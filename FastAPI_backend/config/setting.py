@@ -13,4 +13,5 @@ MONGO_URI = f"mongodb+srv://{MONGO_USERNAME}:{MONGO_PASSWORD}@clustermodella.4ab
 
 client = AsyncIOMotorClient(MONGO_URI)
 db = client[MONGO_DB]
-collection_tags = db["tags"]  
+collection_tags = db["tags"]
+collection_preferences = db["preferences"]

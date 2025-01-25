@@ -1,7 +1,7 @@
 from typing import List
-from fastapi import APIRouter
-from models.tag import TagData, UpdateTagData, TagFilterRequest
-from services.tag_services import create_tag, get_tag, update_tag, delete_tag, list_tags, filter_tags
+from fastapi import APIRouter, HTTPException
+from models.tag import TagData, UpdateTagData, TagFilterRequest, CreateRandomTagsRequest
+from services.tag_services import create_random_tag, create_tag, get_tag, update_tag, delete_tag, list_tags, filter_tags
 
 router = APIRouter()
 
@@ -30,4 +30,16 @@ async def filter_tags_endpoint(data: TagFilterRequest):
     """
     Filter tags based on the provided parameters and return matching user_Id values.
     """
+    print(data)
     return await filter_tags(data)
+
+
+@router.post("/create-random-tags/")
+async def create_random_tags(request: CreateRandomTagsRequest):
+    try:
+        # Call the service function to create random tags
+        result = await create_random_tag(request.count)
+        return result  # Return the result with a success message
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+

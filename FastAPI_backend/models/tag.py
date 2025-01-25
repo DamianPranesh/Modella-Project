@@ -57,3 +57,7 @@ class TagFilterRequest(BaseModel):
     experience_Level: Optional[str] = None
     gender: Optional[str] = None
     shoe_Size: Optional[float] = None
+
+
+class CreateRandomTagsRequest(BaseModel):
+    count: int  # Number of random tags to create
