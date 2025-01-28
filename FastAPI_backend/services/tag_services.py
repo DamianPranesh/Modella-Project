@@ -152,6 +152,13 @@ async def list_tags():
 async def filter_tags(data: TagFilterRequest):
     query = build_query(data)
     print(f"Generated Query: {query}")
-    matched_tags = await collection_tags.find(query).to_list(length=None)
+    # matched_tags = await collection_tags.find(query).to_list(length=None)
+
+    # Use aggregation with $sample to get 100 random documents
+    matched_tags = await collection_tags.aggregate([
+        {"$match": query},  # Filter documents based on the query
+        {"$sample": {"size": 100}}  # Randomly select 100 documents
+    ]).to_list(length=None)
+    
     return [tag["user_Id"] for tag in matched_tags]
 
