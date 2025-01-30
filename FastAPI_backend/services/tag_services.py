@@ -69,7 +69,7 @@ async def get_all_user_ids(client_Type: str):
 def generate_ids(user_Ids: list, client_Type: str):
     unique = False
     while not unique:
-        user_Id = client_Type.lower()+ str(random.randint(100,1000))
+        user_Id = client_Type.lower()+ str(random.randint(0, 999999999999)).zfill(12)
         if user_Id not in user_Ids:
             unique = True
     return user_Id
