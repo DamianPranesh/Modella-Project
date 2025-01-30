@@ -33,7 +33,6 @@ async def create_user(user: User):
         "social_Media_URL": user.social_Media_URL or None,
         "tags_Id": user.tags_Id or None,
         "booking_Availability": user.booking_Availability or None,
-        "rating": user.rating or None,
         "preference_Id": user.preference_Id or None,
         "portfolio_URL": user.portfolio_URL or None 
     }
@@ -64,7 +63,7 @@ async def get_user(user_Id: str):
 
 async def update_user(user_Id: str, updated_data: UserUpdate):
     # Convert Pydantic model to dictionary and remove None values
-    update_fields = updated_data.dict(exclude_unset=True)
+    update_fields = updated_data.model_dump(exclude_unset=True)
 
     # Prevent updates to immutable fields
     protected_fields = {"user_Id", "role", "_id"}
@@ -161,7 +160,6 @@ async def generate_fake_users(num_users: int):
             "social_Media_URL": None,
             "tags_Id": None,
             "booking_Availability": None,
-            "rating": None,
             "preference_Id": None,
             "portfolio_URL": None 
         }

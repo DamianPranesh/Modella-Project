@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from routes.tag_routes import router as tag_router
 from routes.preferences_routes import router as preferences_router  # Import the preferences router
 from routes.user_routes import router as user_router
-from routes.model_routes import router as model_router
+from routes.rating_routes import router as rating_router
 from config.setting import user_collection
 import logging
 from config.logging_config import *
@@ -37,8 +37,8 @@ app.include_router(preferences_router, prefix="/preferences", tags=["Preferences
 # Include the user routes
 app.include_router(user_router, prefix="/users", tags=["Users"])
 
-# Include the model routes
-app.include_router(model_router, prefix="/models", tags=["models"])
+# Include the rating routes
+app.include_router(rating_router)
 
 # Optional: Add a root endpoint
 @app.get("/")
