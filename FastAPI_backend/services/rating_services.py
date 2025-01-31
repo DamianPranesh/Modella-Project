@@ -130,3 +130,37 @@ async def generate_random_reviews_service(num_reviews: int):
     await rating_collection.insert_many(reviews)
 
     return {"message": f"Successfully generated {num_reviews} random reviews!"}
+
+
+
+async def get_recent_reviews_service(user_Id: str):
+    """Retrieve the 10 most recent reviews from a specific user."""
+    reviews = await rating_collection.find(
+        {"user_Id": user_Id},
+        sort=[("_id", -1)],  # Sort by most recent first
+        limit=10
+    ).to_list(None)
+
+    if not reviews:
+        return {"error": "No reviews found from this user."}
+
+    for review in reviews:
+        review["rating_id"] = str(review.pop("_id"))  # Convert ObjectId to string
+
+    return reviews
+
+
+async def get_ratings_by_level_service(user_Id: str, rating_level: int):
+    """Retrieve all ratings for a user at a specific rating level (1-5)."""
+    if rating_level not in range(1, 6):
+        return {"error": "Invalid rating level. Must be between 1 and 5."}
+
+    ratings = await rating_collection.find(
+        {"user_Id": user_Id, "rating": rating_level},
+        sort=[("_id", -1)]  # Sort by most recent first
+    ).to_list(None)
+
+    for rating in ratings:
+        rating["rating_id"] = str(rating.pop("_id"))  # Convert ObjectId to string
+
+    return ratings if ratings else {"message": "No ratings found at this level."}

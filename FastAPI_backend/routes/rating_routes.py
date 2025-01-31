@@ -58,3 +58,20 @@ async def generate_random_reviews(num_reviews: int):
         raise HTTPException(status_code=400, detail=response["error"])
     
     return response
+
+@router.get("/recent/{user_Id}")
+async def get_recent_reviews(user_Id: str):
+    """Fetch the 10 most recent reviews for a user from another user."""
+    reviews = await get_recent_reviews_service(user_Id)
+    if "error" in reviews:
+        raise HTTPException(status_code=404, detail=reviews["error"])
+    return reviews
+
+
+@router.get("/level/{user_Id}/{rating_level}")
+async def get_ratings_by_level(user_Id: str, rating_level: int):
+    """Fetch all ratings for a user at a specific rating level (sorted by most recent)."""
+    ratings = await get_ratings_by_level_service(user_Id, rating_level)
+    if "error" in ratings:
+        raise HTTPException(status_code=400, detail=ratings["error"])
+    return ratings
