@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, EmailStr, field_validator
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional
 from datetime import datetime, timezone
 
@@ -20,7 +20,7 @@ class User(BaseModel):
     social_Media_URL: Optional[List[str]] = None
     tags_Id: Optional[List[str]] = None
     booking_Availability: Optional[str] = None
-    rating: Optional[str] = None
+    # ratings: Optional[List[str]] = None
     preference_Id: Optional[str] = None
     portfolio_URL: Optional[List[str]] = None 
 
@@ -47,6 +47,6 @@ class UserUpdate(BaseModel):
     social_Media_URL: Optional[List[str]] = None
     tags_Id: Optional[List[str]] = None
     booking_Availability: Optional[str] = None
-    rating: Optional[str] = None
+    # ratings: Optional[List[str]] = None
     preference_Id: Optional[str] = None
     portfolio_URL: Optional[List[str]] = None 

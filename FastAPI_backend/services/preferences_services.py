@@ -1,6 +1,6 @@
 from datetime import *
 import random
-from config.setting import collection_preferences
+from config.setting import collection_preferences,user_collection
 from models.tag import TagData, UpdateTagData, TagFilterRequest
 from fastapi import HTTPException
 import asyncio
@@ -24,8 +24,14 @@ def clean_model_fields(data: TagData):
 
 async def create_Preferences(data: TagData):
     async with data_locks:
+        # Check if user_Id exists in user_collection
+        user_exists = await user_collection.find_one({"user_Id": data.user_Id})
+        if not user_exists:
+            raise HTTPException(status_code=400, detail="Invalid user_Id. User does not exist.")
+
+        # Check if a preferences for the user already exists
         if await collection_preferences.find_one({"user_Id": data.user_Id}):
-            raise HTTPException(status_code=400, detail="Tag for this user_Id already exists.")
+            raise HTTPException(status_code=400, detail="preference for this user_Id already exists.")
         
         clean_model_fields(data)
         result = await collection_preferences.insert_one(data.model_dump())
@@ -124,32 +130,51 @@ async def filter_Preferences(data: TagFilterRequest):
 
 async def create_random_preference(count : int):
     async with data_locks:
+        created_count = 0
         for i in range(count):
             tag = await generate_preference()
             if tag:  # Ensure tag is not None or empty
-                result = await collection_preferences.insert_one(tag.model_dump())  # Insert the tag into the collection
-        return {"message": f"{count} tags created successfully."}
+                await collection_preferences.insert_one(tag.model_dump())  # Insert the tag into the collection
+                created_count += 1
+            else:
+                break
+        return {"message": f"{created_count} tags created successfully."}
 
-async def get_all_user_ids(client_Type: str):
-    user_ids = []
-    async for tag in collection_preferences.find({"client_Type": client_Type}, {"user_Id": 1}):  # Select only the user_Id field
-        user_ids.append(tag["user_Id"])
-    return user_ids
+# async def get_all_user_ids(client_Type: str):
+#     user_ids = []
+#     async for tag in collection_preferences.find({"client_Type": client_Type}, {"user_Id": 1}):  # Select only the user_Id field
+#         user_ids.append(tag["user_Id"])
+#     return user_ids
 
-def generate_ids(user_Ids: list, client_Type: str):
-    unique = False
-    while not unique:
-        user_Id = client_Type.lower()+ str(random.randint(100,1000))
-        if user_Id not in user_Ids:
-            unique = True
-    return user_Id
+# def generate_ids(user_Ids: list, client_Type: str):
+#     unique = False
+#     while not unique:
+#         user_Id = client_Type.lower()+ str(random.randint(100,1000))
+#         if user_Id not in user_Ids:
+#             unique = True
+#     return user_Id
+
+async def get_unused_user_ids(client_Type: str):
+    """Fetch all user IDs from user_collection and remove those already tagged."""
+    all_user_ids = {user["user_Id"] async for user in user_collection.find({"user_Id": {"$regex": f"^{client_Type.lower()}"}})}
+    used_user_ids = {tag["user_Id"] async for tag in collection_preferences.find({"client_Type": client_Type}, {"user_Id": 1})}
+
+    # Keep only user IDs that don't have a  yet
+    unused_user_ids = list(all_user_ids - used_user_ids)
+    return unused_user_ids
 
 async def generate_preference():
     client_type = random.choice(["Model", "Brand"])
-    user_Ids = await get_all_user_ids(client_type)
-    client = "Brand" if client_type == "Model" else "Model" # to get the inverse of the client type in preferences.
-    user_Id = generate_ids(user_Ids, client)  # Get a unique user_Id
-
+    client = "Brand" if client_type == "Model" else "Model"
+    user_Ids = await get_unused_user_ids(client)
+     # to get the inverse of the client type in preferences.
+    #user_Id = generate_ids(user_Ids, client)  # Get a unique user_Id
+    
+    if not user_Ids:
+        return None
+    
+    user_Id = random.choice(user_Ids)
+    
     if client_type == "Model":
         tag = TagData(
             client_Type=client_type,
@@ -180,3 +205,9 @@ async def generate_preference():
         )
 
     return tag
+
+async def delete_all_preferences_service():
+    """Deletes all tags from collection_tags."""
+    async with data_locks:
+        result = await collection_preferences.delete_many({})
+        return {"message": f"Deleted {result.deleted_count} preferences successfully."}

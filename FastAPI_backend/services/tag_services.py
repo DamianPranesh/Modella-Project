@@ -1,6 +1,6 @@
 from datetime import *
 import random
-from config.setting import collection_tags
+from config.setting import collection_tags, user_collection
 from models.tag import TagData, UpdateTagData, TagFilterRequest
 from fastapi import HTTPException
 from .keywords import *
@@ -41,6 +41,12 @@ def build_query(data: TagFilterRequest):
 
 async def create_tag(data: TagData):
     async with data_locks:
+        # Check if user_Id exists in user_collection
+        user_exists = await user_collection.find_one({"user_Id": data.user_Id})
+        if not user_exists:
+            raise HTTPException(status_code=400, detail="Invalid user_Id. User does not exist.")
+
+        # Check if a tag for the user already exists
         if await collection_tags.find_one({"user_Id": data.user_Id}):
             raise HTTPException(status_code=400, detail="Tag for this user_Id already exists.")
         
@@ -49,35 +55,39 @@ async def create_tag(data: TagData):
         return {"message": "Tag created successfully", "id": str(result.inserted_id)}
 
 
-
-
-
-async def create_random_tag(count : int):
+async def create_random_tag(count: int):
     async with data_locks:
-        for i in range(count):
+        created_count = 0
+        for _ in range(count):
             tag = await generate_tag()
-            if tag:  # Ensure tag is not None or empty
-                result = await collection_tags.insert_one(tag.model_dump())  # Insert the tag into the collection
-        return {"message": f"{count} tags created successfully."}
+            if tag:  # Ensure tag is not None
+                await collection_tags.insert_one(tag.model_dump())
+                created_count += 1
+            else:
+                break  # Stop if no more available user IDs
+        return {"message": f"{created_count} new tags created successfully."}
 
-async def get_all_user_ids(client_Type: str):
-    user_ids = []
-    async for tag in collection_tags.find({"client_Type": client_Type}, {"user_Id": 1}):  # Select only the user_Id field
-        user_ids.append(tag["user_Id"])
-    return user_ids
 
-def generate_ids(user_Ids: list, client_Type: str):
-    unique = False
-    while not unique:
-        user_Id = client_Type.lower()+ str(random.randint(0, 999999999999)).zfill(12)
-        if user_Id not in user_Ids:
-            unique = True
-    return user_Id
+
+
+async def get_unused_user_ids(client_Type: str):
+    """Fetch all user IDs from user_collection and remove those already tagged."""
+    all_user_ids = {user["user_Id"] async for user in user_collection.find({"user_Id": {"$regex": f"^{client_Type.lower()}"}})}
+    used_user_ids = {tag["user_Id"] async for tag in collection_tags.find({"client_Type": client_Type}, {"user_Id": 1})}
+
+    # Keep only user IDs that don't have a tag yet
+    unused_user_ids = list(all_user_ids - used_user_ids)
+    return unused_user_ids
+
 
 async def generate_tag():
     client_type = random.choice(["Model", "Brand"])
-    user_Ids = await get_all_user_ids(client_type)
-    user_Id = generate_ids(user_Ids, client_type)  # Get a unique user_Id
+    user_Ids = await get_unused_user_ids(client_type)  # Fetch only user IDs that don't have tags
+
+    if not user_Ids:
+        return None  # No available user IDs left to tag
+
+    user_Id = random.choice(user_Ids)  # Pick a user ID that doesn't have a tag
 
     if client_type == "Model":
         tag = TagData(
@@ -96,7 +106,7 @@ async def generate_tag():
             location=random.choice(get_keywords("locations")),
             shoe_Size=random.randint(31, 50),
             price_range=random.randrange(200, 30000, 500),
-            saved_time=datetime.now(timezone.utc)  # Add the saved_time field
+            saved_time=datetime.now(timezone.utc)  
         )
     else:
         tag = TagData(
@@ -105,12 +115,10 @@ async def generate_tag():
             industry_Type=random.choice(get_keywords("work_fields")),
             location=random.choice(get_keywords("locations")),
             price_range=random.randrange(200, 30000, 500),
-            saved_time=datetime.now(timezone.utc)  # Add the saved_time field
+            saved_time=datetime.now(timezone.utc)  
         )
 
     return tag
-
-
 
 
 
@@ -162,3 +170,8 @@ async def filter_tags(data: TagFilterRequest):
     
     return [tag["user_Id"] for tag in matched_tags]
 
+async def delete_all_tags_service():
+    """Deletes all tags from collection_tags."""
+    async with data_locks:
+        result = await collection_tags.delete_many({})
+        return {"message": f"Deleted {result.deleted_count} tags successfully."}

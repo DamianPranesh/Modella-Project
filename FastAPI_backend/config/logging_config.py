@@ -22,3 +22,8 @@ logging.basicConfig(
     level=logging.INFO,  # Minimum level to log
     handlers=[file_handler, console_handler]
 )
+
+
+# Create a logger for FastAPI
+logger = logging.getLogger("fastapi")
+logger.setLevel(logging.INFO)

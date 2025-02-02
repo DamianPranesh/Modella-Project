@@ -1,9 +1,9 @@
 from typing import List
 from fastapi import APIRouter, HTTPException
 from models.tag import TagData, UpdateTagData, TagFilterRequest, CreateRandomTagsRequest
-from services.tag_services import create_random_tag, create_tag, get_tag, update_tag, delete_tag, list_tags, filter_tags
+from services.tag_services import create_random_tag, create_tag, get_tag, update_tag, delete_tag, list_tags, filter_tags, delete_all_tags_service
 
-router = APIRouter()
+router = APIRouter(prefix="/tags", tags=["Tags"])
 
 @router.post("/create_tag/", response_model=dict)
 async def create_tag_endpoint(data: TagData):
@@ -43,3 +43,7 @@ async def create_random_tags(request: CreateRandomTagsRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.delete("/tags/delete-all")
+async def delete_all_tags():
+    """API to delete all tags from collection_tags."""
+    return await delete_all_tags_service()
