@@ -85,11 +85,6 @@ async def delete_all_ratings_service():
     return result.deleted_count 
 
 
-
-
-
-
-
 async def generate_random_reviews_service(num_reviews: int):
     # Get all user IDs from user_collection
     users = await user_collection.find({}, {"user_Id": 1, "_id": 0}).to_list(None)

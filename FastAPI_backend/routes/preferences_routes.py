@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from models.tag import CreateRandomTagsRequest, TagData, UpdateTagData, TagFilterRequest
 from services.preferences_services import *
 
-router = APIRouter()
+router = APIRouter(prefix="/preferences", tags=["Preferences"])
 
 @router.post("/create_preferences/", response_model=dict)
 async def create_preferences_endpoint(data: TagData):
@@ -56,3 +56,9 @@ async def create_random_tags(request: CreateRandomTagsRequest):
         return result  # Return the result with a success message
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@router.delete("/preferences/delete-all")
+async def delete_all_preferences():
+    """API to delete all tags from collection_preferences."""
+    return await delete_all_preferences_service()

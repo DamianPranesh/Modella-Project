@@ -3,7 +3,7 @@ from typing import List, Dict
 from models.User import User
 from services.user_services import *
 
-router = APIRouter()
+router = APIRouter(prefix="/users", tags=["Users"])
 
 @router.post("/", status_code=201, response_model=Dict)
 async def create_user_endpoint(user: User):

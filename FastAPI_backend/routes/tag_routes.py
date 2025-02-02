@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException
 from models.tag import TagData, UpdateTagData, TagFilterRequest, CreateRandomTagsRequest
 from services.tag_services import create_random_tag, create_tag, get_tag, update_tag, delete_tag, list_tags, filter_tags, delete_all_tags_service
 
-router = APIRouter()
+router = APIRouter(prefix="/tags", tags=["Tags"])
 
 @router.post("/create_tag/", response_model=dict)
 async def create_tag_endpoint(data: TagData):

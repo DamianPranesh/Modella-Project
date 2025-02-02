@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from routes.file_routes import router as file_router
 from routes.tag_routes import router as tag_router
 from routes.preferences_routes import router as preferences_router  # Import the preferences router
 from routes.user_routes import router as user_router
@@ -11,34 +12,42 @@ from contextlib import asynccontextmanager
 # Define the lifespan handler
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Actions to perform on app startup
-    await user_collection.create_index("user_Id", unique=True)
-    await user_collection.create_index("email", unique=True)
-    print("Unique indexes created")
+    try:
+        # Actions to perform on app startup
+        await user_collection.create_index("user_Id", unique=True)
+        await user_collection.create_index("email", unique=True)
+        logger.info("Unique indexes created successfully")
+        print("Unique indexes created")
+    except Exception as e:
+        logger.error(f"Error creating indexes: {str(e)}")
 
     yield  # FastAPI app is running here
 
     # Actions to perform on app shutdown (if needed)
     print("App is shutting down")
+    logger.info("Application is shutting down")
 
 
 app = FastAPI(lifespan=lifespan)
 
 # Create or retrieve a logger for the application
-logger = logging.getLogger("fastapi")
+#logger = logging.getLogger("fastapi")
 
 # Include the tag routes
-app.include_router(tag_router, prefix="/tags", tags=["Tags"])
+app.include_router(tag_router)
 
 # Include the preferences routes
-app.include_router(preferences_router, prefix="/preferences", tags=["Preferences"])
+app.include_router(preferences_router)
 
 
 # Include the user routes
-app.include_router(user_router, prefix="/users", tags=["Users"])
+app.include_router(user_router)
 
 # Include the rating routes
 app.include_router(rating_router)
+
+# Include the file managing routes
+app.include_router(file_router)
 
 # Optional: Add a root endpoint
 @app.get("/")
