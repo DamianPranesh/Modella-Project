@@ -7,7 +7,7 @@ function App() {
   return (
     <div className="flex min-h-screen bg-white">
       <Sidebar />
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-8 ml-[300px] md:ml-[250px] sm:ml-[200px]">
         <SearchBar />
         <div className="mt-8">
           <ImageCarousel />
