@@ -22,7 +22,7 @@ export function ImageCarousel() {
           <img
             src={images[activeIndex] || "/placeholder.svg"}
             alt={`Slide ${activeIndex + 1}`}
-            className="w-full h-full object-contain"
+            className="w-full h-full object-contain rounded-xl"
           />
         </div>
         <button
