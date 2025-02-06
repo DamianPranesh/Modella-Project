@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Sidebar } from "./components/Sidebar";
 import { SearchBar } from "./components/SearchBar";
 import { ImageCarousel } from "./components/ImageCarousel";
-import { CategoryButtons } from "./components/CategoryButtons";
+import { CategoryGrid } from "./components/CategoryGrid";
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -45,8 +45,11 @@ function App() {
         <div className="mt-8">
           <ImageCarousel />
         </div>
-        <div className="mt-8">
+        {/* <div className="mt-8">
           <CategoryButtons />
+        </div> */}
+        <div className="mt-8">
+          <CategoryGrid />
         </div>
       </main>
     </div>

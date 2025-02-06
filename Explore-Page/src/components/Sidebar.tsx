@@ -40,7 +40,7 @@ export function Sidebar({
           className="w-32 h-auto"
         />
       </div>
-      <nav className="space-y-6 mt-4">
+      <nav className="space-y-6 mt-4 font-medium">
         <NavItem icon={Compass} label="Explore" />
         <hr className="border-t border-white/50" />
         <NavItem icon={Layout} label="Swipe Page" />
