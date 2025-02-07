@@ -1,17 +1,19 @@
 from datetime import *
 import random
 from config.setting import collection_preferences,user_collection
-from models.tag import TagData, UpdateTagData, TagFilterRequest
+from models.tag import TagFilterRequest
+from models.preference_model import PreferenceData, UpdatePreferenceData, PreferenceFilterRequest
 from fastapi import HTTPException
 import asyncio
 
 from services.keywords import get_keywords
 from services.tag_services import filter_tags
+from services.rating_services import filter_users_by_most_frequent_rating
 
 data_locks = asyncio.Lock()
 
 
-def clean_model_fields(data: TagData):
+def clean_model_fields(data: PreferenceData):
     """Set fields to None based on client_Type."""
     if data.client_Type == "Brand":
         for field in [
@@ -22,7 +24,7 @@ def clean_model_fields(data: TagData):
     elif data.client_Type == "Model":
         data.industry_Type = None
 
-async def create_Preferences(data: TagData):
+async def create_Preferences(data: PreferenceData):
     async with data_locks:
         # Check if user_Id exists in user_collection
         user_exists = await user_collection.find_one({"user_Id": data.user_Id})
@@ -67,8 +69,22 @@ async def get_filtered_Tags_On_Preferences(user_id: str):
     filterResults= await filter_tags(preference)
     return filterResults
 
+async def get_filtered_Tags_On_Ratings_For_Preferences(user_id: str):
+    preference = await get_filtered_Preferences(user_id)
+    filterResults = await filter_tags(preference)
+    rating_level = await get_preference_and_rating(user_id)
+    
+    # Filter users based on their most frequent rating
+    if rating_level is not None:
+        filtered_users = await filter_users_by_most_frequent_rating(filterResults, rating_level)
+        return filtered_users
+    
+    return filterResults
 
-async def update_Preferences(user_id: str, updates: UpdateTagData):
+
+
+
+async def update_Preferences(user_id: str, updates: UpdatePreferenceData):
     async with data_locks:
         update_data = {k: v for k, v in updates.model_dump(exclude_unset=True).items()}
         if not update_data:
@@ -95,7 +111,7 @@ async def list_Preferences():
     ]
 
 
-def build_query(data: TagFilterRequest):
+def build_query(data: PreferenceFilterRequest):
     """Dynamically build the query based on client_Type and fields."""
     query = {"client_Type": data.client_Type}
     optional_fields = {
@@ -112,7 +128,7 @@ def build_query(data: TagFilterRequest):
             query[field] = value
     return query
 
-async def filter_Preferences(data: TagFilterRequest):
+async def filter_Preferences(data: PreferenceFilterRequest):
     query = build_query(data)
     print(f"Generated Query: {query}")
     matched_tags = await collection_preferences.find(query).to_list(length=None)
@@ -176,7 +192,7 @@ async def generate_preference():
     user_Id = random.choice(user_Ids)
     
     if client_type == "Model":
-        tag = TagData(
+        tag = PreferenceData(
             client_Type=client_type,
             user_Id=user_Id,
             age=random.randint(8, 100),
@@ -192,15 +208,17 @@ async def generate_preference():
             location=random.choice(get_keywords("locations")),
             shoe_Size=random.randint(31, 50),
             price_range=random.randrange(200, 30000, 500),
+            rating_level=random.randint(1, 5),
             saved_time=datetime.now(timezone.utc)  # Add the saved_time field
         )
     else:
-        tag = TagData(
+        tag = PreferenceData(
             client_Type=client_type,
             user_Id=user_Id,
             industry_Type=random.choice(get_keywords("work_fields")),
             location=random.choice(get_keywords("locations")),
             price_range=random.randrange(200, 30000, 500),
+            rating_level=random.randint(1, 5),
             saved_time=datetime.now(timezone.utc)  # Add the saved_time field
         )
 
@@ -211,3 +229,15 @@ async def delete_all_preferences_service():
     async with data_locks:
         result = await collection_preferences.delete_many({})
         return {"message": f"Deleted {result.deleted_count} preferences successfully."}
+
+async def get_preference_and_rating(user_id: str):
+    """
+    Retrieve rating level for a specific user from their preferences.
+    Returns the rating level or None if not found.
+    """
+    preference = await collection_preferences.find_one({"user_Id": user_id})
+    if not preference:
+        raise HTTPException(status_code=404, detail="Preferences not found.")
+    
+    # Extract and return only the rating level
+    return preference.get("rating_level", None)

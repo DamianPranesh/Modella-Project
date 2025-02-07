@@ -47,6 +47,18 @@ async def get_filtered_tags_on_preferences(user_id: str):
     """
     return await get_filtered_Tags_On_Preferences(user_id)
 
+@router.get("/tags_on_preferences_and_ratings/{user_id}/filtered", response_model=List[str])
+async def get_filtered_tags_on_ratings_for_preferences(user_id: str):
+    """
+    Retrieves tags based on a user's preferences and filters them by rating level.
+
+    Args:
+        - **user_id**: The ID of the user whose preferences and rating level will be used for filtering tags.
+
+    Returns:
+        List of user IDs that match both the preferences and have the same most frequent rating level.
+    """
+    return await get_filtered_Tags_On_Ratings_For_Preferences(user_id)
 
 @router.post("/create-random-preferences/")
 async def create_random_tags(request: CreateRandomTagsRequest):

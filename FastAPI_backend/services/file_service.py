@@ -1,4 +1,3 @@
-
 from datetime import datetime, timezone
 from typing import Optional
 from fastapi import HTTPException
@@ -25,8 +24,20 @@ ALLOWED_FILE_TYPES = {
     "video/mp4"                 # Videos
 }
 
+async def _validate_user(user_id: str) -> bool:
+    """Helper function to validate if a user exists"""
+    if not user_id:
+        return False
+    user = await user_collection.find_one({"user_Id": user_id})
+    return user is not None
+
 async def upload_file(file, user_id: str, folder: str, is_private: bool = False):
     """ Upload a file to AWS S3 and store metadata in MongoDB """
+    # Validate user existence
+    if not await _validate_user(user_id):
+        logger.warning(f"Upload attempt by non-existent user: {user_id}")
+        raise HTTPException(status_code=404, detail="User not found")
+
     if folder not in ALLOWED_FOLDERS:
         logger.warning(f"Invalid folder attempt by {user_id}: {folder}")
         raise HTTPException(status_code=400, detail="Invalid folder name")
@@ -75,6 +86,10 @@ async def upload_file(file, user_id: str, folder: str, is_private: bool = False)
 
 async def get_files(user_id: str = None):
     """ Retrieve files, filter by user if provided """
+    if user_id and not await _validate_user(user_id):
+        logger.warning(f"File retrieval attempt by non-existent user: {user_id}")
+        raise HTTPException(status_code=404, detail="User not found")
+
     query = {"uploaded_by": user_id} if user_id else {}
     files = await file_collection.find(query, {"_id": 0}).to_list(None)
 
@@ -85,6 +100,10 @@ async def get_files(user_id: str = None):
 
 async def download_file(file_id: str, user_id: str):
     """ Generate a pre-signed S3 URL for private files """
+    if not await _validate_user(user_id):
+        logger.warning(f"Download attempt by non-existent user: {user_id}")
+        raise HTTPException(status_code=404, detail="User not found")
+
     file_metadata = await file_collection.find_one({"file_id": file_id})
     if not file_metadata:
         logger.warning(f"Download attempt for non-existing file: {file_id} by {user_id}")
@@ -110,6 +129,10 @@ async def download_file(file_id: str, user_id: str):
 
 async def delete_file(file_id: str, user_id: str):
     """ Delete file from S3 and MongoDB """
+    if not await _validate_user(user_id):
+        logger.warning(f"Delete attempt by non-existent user: {user_id}")
+        raise HTTPException(status_code=404, detail="User not found")
+
     file_metadata = await file_collection.find_one({"file_id": file_id})
     if not file_metadata:
         logger.warning(f"Delete attempt for non-existing file: {file_id} by {user_id}")
@@ -131,6 +154,10 @@ async def delete_file(file_id: str, user_id: str):
 
 async def update_visibility(file_id: str, user_id: str, is_private: bool):
     """ Change file visibility (private/public) """
+    if not await _validate_user(user_id):
+        logger.warning(f"Visibility update attempt by non-existent user: {user_id}")
+        raise HTTPException(status_code=404, detail="User not found")
+
     file_metadata = await file_collection.find_one({"file_id": file_id})
     if not file_metadata:
         logger.warning(f"Visibility update attempt for non-existing file: {file_id} by {user_id}")
@@ -150,6 +177,9 @@ async def update_visibility(file_id: str, user_id: str, is_private: bool):
 
 async def get_file_url(user_id: Optional[str] = None):
     """Retrieve file URLs, excluding private files unless the user is the owner."""
+    if user_id and not await _validate_user(user_id):
+        logger.warning(f"File URL retrieval attempt by non-existent user: {user_id}")
+        raise HTTPException(status_code=404, detail="User not found")
     
     pipeline = []
 

@@ -8,6 +8,7 @@ from config.setting import user_collection
 import logging
 from config.logging_config import *
 from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
 
 # Define the lifespan handler
 @asynccontextmanager
@@ -28,7 +29,21 @@ async def lifespan(app: FastAPI):
     logger.info("Application is shutting down")
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    lifespan=lifespan,
+    title="Modella API",
+    description="API for Modella platform",
+    version="1.0.0",
+    root_path="/api/v1"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Configure appropriately for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Create or retrieve a logger for the application
 #logger = logging.getLogger("fastapi")
