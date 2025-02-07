@@ -41,26 +41,34 @@ export function Sidebar({
         />
       </div>
       <nav className="space-y-6 mt-4 font-medium">
-        <NavItem icon={Compass} label="Explore" />
+        <NavItem icon={Compass} label="Explore" to="/" />
         <hr className="border-t border-white/50" />
-        <NavItem icon={Layout} label="Swipe Page" />
+        <NavItem icon={Layout} label="Swipe Page" to="/swipe" />
         <hr className="border-t border-white/50" />
-        <NavItem icon={Bookmark} label="Saved List" />
+        <NavItem icon={Bookmark} label="Saved List" to="/saved" />
         <hr className="border-t border-white/50" />
-        <NavItem icon={MessageCircle} label="Chats" />
+        <NavItem icon={MessageCircle} label="Chats" to="/chats" />
         <hr className="border-t border-white/50" />
-        <NavItem icon={User} label="Account" />
+        <NavItem icon={User} label="Account" to="/account" />
         <hr className="border-t border-white/50" />
-        <NavItem icon={Settings} label="Settings" />
+        <NavItem icon={Settings} label="Settings" to="/settings" />
       </nav>
     </div>
   );
 }
 
-function NavItem({ icon: Icon, label }: { icon: any; label: string }) {
+function NavItem({
+  icon: Icon,
+  label,
+  to,
+}: {
+  icon: any;
+  label: string;
+  to: string;
+}) {
   return (
     <a
-      href="#"
+      href={to}
       className="flex items-center space-x-4 text-lg hover:opacity-80 transition-opacity"
     >
       <Icon className="w-6 h-6" />

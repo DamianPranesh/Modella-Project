@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { Sidebar } from "./components/Sidebar";
-import { SearchBar } from "./components/SearchBar";
-import { ImageCarousel } from "./components/ImageCarousel";
-import { CategoryGrid } from "./components/CategoryGrid";
+import { ExplorePage } from "./components/ExplorePage";
+import { AccountPage } from "./components/AccountPage";
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -31,28 +31,30 @@ function App() {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-white">
-      <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-      <main
-        className={`flex-1 p-8 transition-margin ${
-          isSidebarOpen ? "md:ml-[250px]" : "ml-0"
-        }`}
-      >
-        <SearchBar
-          toggleSidebar={toggleSidebar}
-          isSidebarOpen={isSidebarOpen}
-        />
-        <div className="mt-8">
-          <ImageCarousel />
-        </div>
-        {/* <div className="mt-8">
-          <CategoryButtons />
-        </div> */}
-        <div className="mt-8">
-          <CategoryGrid />
-        </div>
-      </main>
-    </div>
+    <Router>
+      <div className="flex min-h-screen bg-white">
+        <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+        <main
+          className={`flex-1 p-8 transition-margin ${
+            isSidebarOpen ? "md:ml-[250px]" : "ml-0"
+          }`}
+        >
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <ExplorePage
+                  toggleSidebar={toggleSidebar}
+                  isSidebarOpen={isSidebarOpen}
+                />
+              }
+            />
+            <Route path="/account" element={<AccountPage />} />
+            {/* Add more routes as needed */}
+          </Routes>
+        </main>
+      </div>
+    </Router>
   );
 }
 
