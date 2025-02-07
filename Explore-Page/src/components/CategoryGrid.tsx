@@ -178,7 +178,7 @@ export function CategoryGrid() {
           <button
             key={category}
             onClick={() => setSelectedCategory(category as any)}
-            className={`px-6 py-2 rounded-full transition-all ${
+            className={`px-6 py-2 rounded-full transition-all cursor-pointer ${
               selectedCategory === category
                 ? "bg-[#DD8560] text-white shadow-lg"
                 : "bg-white shadow-md hover:shadow-lg"
