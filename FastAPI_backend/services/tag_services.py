@@ -9,6 +9,56 @@ import asyncio
 data_locks = asyncio.Lock()
 
 
+
+
+def validate_tag_data(data: TagData):
+    """Validates tag data against predefined keyword lists and numeric constraints."""
+
+    # Validation for categorical fields
+    valid_fields = {
+        "eye_color": "eye_colors",
+        "body_Type": "body_types",
+        "work_Field": "work_fields",
+        "skin_Tone": "skin_tones",
+        "ethnicity": "ethnicities",
+        "hair": "hair_types",
+        "gender": "genders",
+        "location": "locations",
+        "experience_Level": "experience_levels",
+        "industry_Type": "work_fields",
+    }
+
+    for field, keyword_category in valid_fields.items():
+        value = getattr(data, field, None)
+        if value:
+            allowed_values = get_keywords(keyword_category)
+
+            if isinstance(value, list):  # Handle multiple selections (work_Field, industry_Type)
+                if not all(item in allowed_values for item in value):
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Invalid value in {field}. Allowed values: {allowed_values}"
+                    )
+            elif value not in allowed_values:  # Handle single selections
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid value '{value}' for {field}. Allowed values: {allowed_values}"
+                )
+
+    # Numeric field validation
+    if data.age is not None and not (8 <= data.age <= 100):
+        raise HTTPException(status_code=400, detail="Age must be between 8 and 100.")
+
+    if data.height is not None and not (116 <= data.height <= 191):
+        raise HTTPException(status_code=400, detail="Height must be between 116 and 191 cm.")
+
+    if data.shoe_Size is not None and not (31 <= data.shoe_Size <= 50):
+        raise HTTPException(status_code=400, detail="Shoe size must be between 31 and 50.")
+
+    if data.price_range is not None and data.price_range < 0:
+        raise HTTPException(status_code=400, detail="Price range cannot be negative.")
+
+
 def clean_model_fields(data: TagData):
     """Set fields to None based on client_Type."""
     if data.client_Type == "Brand":
@@ -50,6 +100,7 @@ async def create_tag(data: TagData):
         if await collection_tags.find_one({"user_Id": data.user_Id}):
             raise HTTPException(status_code=400, detail="Tag for this user_Id already exists.")
         
+        validate_tag_data(data)  # Validate before inserting
         clean_model_fields(data)
         result = await collection_tags.insert_one(data.model_dump())
         return {"message": "Tag created successfully", "id": str(result.inserted_id)}
@@ -97,7 +148,7 @@ async def generate_tag():
             height=random.randint(116, 191),
             eye_color=random.choice(get_keywords("eye_colors")),
             body_Type=random.choice(get_keywords("body_types")),
-            work_Field=random.choice(get_keywords("work_fields")),
+            work_Field=random.sample(get_keywords("work_fields"), 3),
             skin_Tone=random.choice(get_keywords("skin_tones")),
             ethnicity=random.choice(get_keywords("ethnicities")),
             hair=random.choice(get_keywords("hair_types")),
@@ -112,7 +163,7 @@ async def generate_tag():
         tag = TagData(
             client_Type=client_type,
             user_Id=user_Id,
-            industry_Type=random.choice(get_keywords("work_fields")),
+            industry_Type=random.sample(get_keywords("work_fields"), 3),
             location=random.choice(get_keywords("locations")),
             price_range=random.randrange(200, 30000, 500),
             saved_time=datetime.now(timezone.utc)  
@@ -136,11 +187,74 @@ async def update_tag(user_id: str, updates: UpdateTagData):
         if not update_data:
             raise HTTPException(status_code=400, detail="No fields to update.")
         
+
+        # Fetch existing tag data to check client type
+        existing_tag = await collection_tags.find_one({"user_Id": user_id})
+        if not existing_tag:
+            raise HTTPException(status_code=404, detail="Tag not found.")
+
+        # Validate the updates
+        validate_tag_updates(existing_tag["client_Type"], update_data)
+
         result = await collection_tags.update_one({"user_Id": user_id}, {"$set": update_data})
         if result.matched_count == 0:
             raise HTTPException(status_code=404, detail="Tag not found.")
         return {"message": "Tag updated successfully"}
 
+def validate_tag_updates(client_Type: str, update_data: dict):
+    """Validates updates against allowed values and numeric constraints."""
+
+    # Define allowed categorical fields
+    valid_fields = {
+        "eye_color": "eye_colors",
+        "body_Type": "body_types",
+        "work_Field": "work_fields",
+        "skin_Tone": "skin_tones",
+        "ethnicity": "ethnicities",
+        "hair": "hair_types",
+        "gender": "genders",
+        "location": "locations",
+        "experience_Level": "experience_levels",
+        "industry_Type": "work_fields",
+    }
+
+    # Validate categorical fields
+    for field, category in valid_fields.items():
+        if field in update_data:
+            value = update_data[field]
+            allowed_values = get_keywords(category)
+
+            if isinstance(value, list):  # Handle fields with multiple values
+                if not all(item in allowed_values for item in value):
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Invalid values in {field}. Allowed values: {allowed_values}"
+                    )
+            elif value not in allowed_values:  # Handle single selections
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid value '{value}' for {field}. Allowed values: {allowed_values}"
+                )
+
+    # Validate numerical fields
+    if "age" in update_data and not (8 <= update_data["age"] <= 100):
+        raise HTTPException(status_code=400, detail="Age must be between 8 and 100.")
+
+    if "height" in update_data and not (116 <= update_data["height"] <= 191):
+        raise HTTPException(status_code=400, detail="Height must be between 116 and 191 cm.")
+
+    if "shoe_Size" in update_data and not (31 <= update_data["shoe_Size"] <= 50):
+        raise HTTPException(status_code=400, detail="Shoe size must be between 31 and 50.")
+
+    if "price_range" in update_data and update_data["price_range"] < 0:
+        raise HTTPException(status_code=400, detail="Price range cannot be negative.")
+
+    # Ensure `Model` does not update `industry_Type` and `Brand` does not update `work_Field`
+    if client_Type == "Model" and "industry_Type" in update_data:
+        raise HTTPException(status_code=400, detail="Models cannot have industry_Type.")
+
+    if client_Type == "Brand" and any(field in update_data for field in ["age", "height", "eye_color", "body_Type", "work_Field", "skin_Tone", "ethnicity", "hair", "experience_Level", "gender", "shoe_Size"]):
+        raise HTTPException(status_code=400, detail="Brands cannot update model-specific fields.")
 
 async def delete_tag(user_id: str):
     async with data_locks:

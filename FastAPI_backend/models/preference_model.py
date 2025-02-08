@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import List, Optional
 from datetime import datetime , timezone
 
 class PreferenceData(BaseModel):
@@ -9,8 +9,8 @@ class PreferenceData(BaseModel):
     height: Optional[float] = None
     eye_color: Optional[str] = None
     body_Type: Optional[str] = None
-    work_Field: Optional[str] = None
-    industry_Type: Optional[str] = None
+    work_Field: Optional[List[str]] = None
+    industry_Type: Optional[List[str]] = None
     skin_Tone: Optional[str] = None
     ethnicity: Optional[str] = None
     hair: Optional[str] = None
@@ -28,8 +28,8 @@ class UpdatePreferenceData(BaseModel):
     height: Optional[float] = None
     eye_color: Optional[str] = None
     body_Type: Optional[str] = None
-    work_Field: Optional[str] = None
-    industry_Type: Optional[str] = None
+    work_Field: Optional[List[str]] = None
+    industry_Type: Optional[List[str]] = None
     skin_Tone: Optional[str] = None
     ethnicity: Optional[str] = None
     hair: Optional[str] = None
@@ -43,7 +43,7 @@ class UpdatePreferenceData(BaseModel):
 class PreferenceFilterRequest(BaseModel):
     client_Type: str  # "Model" or "Brand"
     location: Optional[str] = None
-    industry_Type: Optional[str] = None
+    industry_Type: Optional[List[str]] = None
     price_range: Optional[float] = None
     # Fields for "Brand" users
     age: Optional[int] = None
@@ -51,7 +51,7 @@ class PreferenceFilterRequest(BaseModel):
     height: Optional[float] = None
     eye_color: Optional[str] = None
     body_Type: Optional[str] = None
-    work_Field: Optional[str] = None
+    work_Field: Optional[List[str]] = None
     skin_Tone: Optional[str] = None
     ethnicity: Optional[str] = None
     hair: Optional[str] = None
