@@ -2,10 +2,28 @@ import { useState } from "react";
 
 import CarnageLogo from "../images/Image-19.png";
 
+// Import your images
+import projectImage1 from "../images/Image-20.jpg";
+import projectImage2 from "../images/Image-21.jpg";
+import projectImage3 from "../images/Image-22.jpg";
+import projectImage4 from "../images/Image-23.jpg";
+import projectImage5 from "../images/Image-24.jpg";
+import projectImage6 from "../images/Image-25.jpg";
+
 type Tab = "PROJECTS" | "VIDEOS" | "IMAGES";
 
 export function AccountPage() {
   const [activeTab, setActiveTab] = useState<Tab>("PROJECTS");
+
+  // Array of project images
+  const projectImages = [
+    projectImage1,
+    projectImage2,
+    projectImage3,
+    projectImage4,
+    projectImage5,
+    projectImage6,
+  ];
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
@@ -23,23 +41,23 @@ export function AccountPage() {
           <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
             <h1 className="text-2xl font-medium">Carnage.lk</h1>
             <div className="flex gap-3">
-              <button className="px-4 py-2 bg-[#DD8560] text-white rounded-full hover:bg-opacity-90 transition-colors">
+              <button className="px-4 py-2 bg-[#DD8560] text-white rounded-full hover:bg-opacity-90 transition-colors hover:scale-105 cursor-pointer">
                 Edit Profile
               </button>
-              <button className="px-4 py-2 bg-[#DD8560] text-white rounded-full hover:bg-opacity-90 transition-colors">
+              <button className="px-4 py-2 bg-[#DD8560] text-white rounded-full hover:bg-opacity-90 transition-colors hover:scale-105 cursor-pointer">
                 Projects +
               </button>
             </div>
           </div>
 
           <div className="flex gap-8 mb-6">
-            <div className="text-center md:text-left">
+            <div className="text-center md:text-left hover:text-[#DD8560] transition-colors cursor-pointer">
               <span className="font-medium">10</span> Projects
             </div>
-            <div className="text-center md:text-left">
+            <div className="text-center md:text-left hover:text-[#DD8560] transition-colors cursor-pointer">
               <span className="font-medium">800</span> Followers
             </div>
-            <div className="text-center md:text-left">
+            <div className="text-center md:text-left hover:text-[#DD8560] transition-colors cursor-pointer">
               <span className="font-medium">153</span> Connections
             </div>
           </div>
@@ -64,7 +82,7 @@ export function AccountPage() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`py-2 px-4 font-medium relative ${
+              className={`py-2 px-4 font-medium relative transition-colors hover:text-[#DD8560] cursor-pointer ${
                 activeTab === tab ? "text-[#DD8560]" : "text-gray-600"
               }`}
             >
@@ -79,15 +97,15 @@ export function AccountPage() {
 
       {/* Grid */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[1, 2, 3, 4, 5, 6].map((item) => (
+        {projectImages.map((image, index) => (
           <div
-            key={item}
-            className="aspect-square rounded-lg overflow-hidden bg-gray-100"
+            key={index}
+            className="aspect-square rounded-lg overflow-hidden bg-gray-100 hover:scale-105 transition-transform duration-300 cursor-pointer"
           >
             <img
-              src={`/placeholder.svg?height=400&width=400&text=Project+${item}`}
-              alt={`Project ${item}`}
-              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+              src={image}
+              alt={`Project ${index + 1}`}
+              className="w-full h-full object-cover"
             />
           </div>
         ))}
