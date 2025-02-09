@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Menu } from "lucide-react";
 
 import CarnageLogo from "../images/Image-19.png";
 
@@ -12,7 +13,13 @@ import projectImage6 from "../images/Image-25.jpg";
 
 type Tab = "PROJECTS" | "VIDEOS" | "IMAGES";
 
-export function AccountPage() {
+export function AccountPage({
+  toggleSidebar,
+  isSidebarOpen,
+}: {
+  toggleSidebar: () => void;
+  isSidebarOpen: boolean;
+}) {
   const [activeTab, setActiveTab] = useState<Tab>("PROJECTS");
 
   // Array of project images
@@ -27,6 +34,15 @@ export function AccountPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
+      {/* Hamburger Menu for Mobile */}
+      <button className="md:hidden mb-4 cursor-pointer" onClick={toggleSidebar}>
+        <Menu
+          className={`w-6 h-6 ${
+            isSidebarOpen ? "text-white" : "text-[#DD8560]"
+          }`}
+        />
+      </button>
+
       {/* Profile Header */}
       <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
         <div className="w-48 h-48 rounded-full overflow-hidden bg-black flex items-center justify-center">

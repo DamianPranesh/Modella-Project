@@ -9,7 +9,7 @@ export function SearchBar({
 }) {
   return (
     <div className="relative w-full max-w-2xl mx-auto flex items-center">
-      <button className="md:hidden mr-4" onClick={toggleSidebar}>
+      <button className="md:hidden mr-4 cursor-pointer" onClick={toggleSidebar}>
         <Menu
           className={`w-6 h-6 ${
             isSidebarOpen ? "text-white" : "text-[#DD8560]"

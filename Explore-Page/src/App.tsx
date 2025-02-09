@@ -49,7 +49,15 @@ function App() {
                 />
               }
             />
-            <Route path="/account" element={<AccountPage />} />
+            <Route
+              path="/account"
+              element={
+                <AccountPage
+                  toggleSidebar={toggleSidebar}
+                  isSidebarOpen={isSidebarOpen}
+                />
+              }
+            />
             {/* Add more routes as needed */}
           </Routes>
         </main>

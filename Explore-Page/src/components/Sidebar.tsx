@@ -28,7 +28,7 @@ export function Sidebar({
       }}
     >
       <button
-        className="absolute top-4 right-4 md:hidden"
+        className="absolute top-4 right-4 md:hidden cursor-pointer"
         onClick={toggleSidebar}
       >
         <ArrowLeft className="w-6 h-6" />
