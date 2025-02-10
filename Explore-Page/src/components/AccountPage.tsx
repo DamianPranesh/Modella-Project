@@ -13,6 +13,10 @@ import projectImage6 from "../images/Image-25.jpg";
 
 type Tab = "PROJECTS" | "VIDEOS" | "IMAGES";
 
+// Add type definitions
+type ImageType = string;
+type VideoType = string;
+
 export function AccountPage({
   toggleSidebar,
   isSidebarOpen,
@@ -31,6 +35,10 @@ export function AccountPage({
     projectImage5,
     projectImage6,
   ];
+
+  // Explicitly type the arrays
+  const images: ImageType[] = []; // Add image URLs here if available
+  const videos: VideoType[] = []; // Add video URLs here if available
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
@@ -68,7 +76,7 @@ export function AccountPage({
 
           <div className="flex gap-8 mb-6">
             <div className="text-center md:text-left hover:text-[#DD8560] transition-colors cursor-pointer">
-              <span className="font-medium">10</span> Projects
+              <span className="font-medium">6</span> Projects
             </div>
             <div className="text-center md:text-left hover:text-[#DD8560] transition-colors cursor-pointer">
               <span className="font-medium">800</span> Followers
@@ -111,20 +119,56 @@ export function AccountPage({
         </div>
       </div>
 
-      {/* Grid */}
+      {/* Content based on active tab */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-        {projectImages.map((image, index) => (
-          <div
-            key={index}
-            className="aspect-square rounded-lg overflow-hidden bg-gray-100 hover:scale-105 transition-transform duration-300 cursor-pointer"
-          >
-            <img
-              src={image}
-              alt={`Project ${index + 1}`}
-              className="w-full h-full object-cover"
-            />
+        {activeTab === "PROJECTS" && projectImages.length > 0 ? (
+          projectImages.map((image, index) => (
+            <div
+              key={index}
+              className="aspect-square rounded-lg overflow-hidden bg-gray-100 hover:scale-105 transition-transform duration-300 cursor-pointer"
+            >
+              <img
+                src={image}
+                alt={`Project ${index + 1}`}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ))
+        ) : activeTab === "IMAGES" && images.length > 0 ? (
+          images.map((image, index) => (
+            <div
+              key={index}
+              className="aspect-square rounded-lg overflow-hidden bg-gray-100 hover:scale-105 transition-transform duration-300 cursor-pointer"
+            >
+              <img
+                src={image}
+                alt={`Image ${index + 1}`}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ))
+        ) : activeTab === "VIDEOS" && videos.length > 0 ? (
+          videos.map((video, index) => (
+            <div
+              key={index}
+              className="aspect-square rounded-lg overflow-hidden bg-gray-100 hover:scale-105 transition-transform duration-300 cursor-pointer"
+            >
+              <video
+                src={video}
+                controls
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ))
+        ) : (
+          <div className="col-span-full text-center text-gray-600">
+            {activeTab === "IMAGES"
+              ? "No Images posted"
+              : activeTab === "VIDEOS"
+              ? "No Videos found"
+              : "No Projects available"}
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
