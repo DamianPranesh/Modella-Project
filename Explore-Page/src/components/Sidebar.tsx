@@ -33,14 +33,14 @@ export function Sidebar({
       >
         <ArrowLeft className="w-6 h-6" />
       </button>
-      <div className="mb-8 flex justify-center">
+      <div className="mb-16 mt-4">
         <img
           src={ModellaLogo || "/placeholder.png"}
           alt="Modella Logo"
-          className="w-32 h-auto"
+          className="w-32 h-auto mx-auto"
         />
       </div>
-      <nav className="space-y-6 mt-4 font-medium">
+      <nav className="space-y-8 mt-4 font-medium">
         <NavItem icon={Compass} label="Explore" to="/" />
         <hr className="border-t border-white/50" />
         <NavItem icon={Layout} label="Swipe Page" to="/swipe" />

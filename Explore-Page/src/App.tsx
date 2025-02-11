@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { Sidebar } from "./components/Sidebar";
 import { ExplorePage } from "./components/ExplorePage";
 import { AccountPage } from "./components/AccountPage";
+import SwipeCards from "./components/SwipeCards";
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -53,6 +54,15 @@ function App() {
               path="/account"
               element={
                 <AccountPage
+                  toggleSidebar={toggleSidebar}
+                  isSidebarOpen={isSidebarOpen}
+                />
+              }
+            />
+            <Route
+              path="/swipe"
+              element={
+                <SwipeCards
                   toggleSidebar={toggleSidebar}
                   isSidebarOpen={isSidebarOpen}
                 />
