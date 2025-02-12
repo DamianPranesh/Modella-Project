@@ -2,6 +2,77 @@ import { Dispatch, SetStateAction, useState } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { Check, X, Menu } from "lucide-react";
 
+// Extend the Card type to include tags and projectCount
+type Card = {
+  id: number;
+  url: string;
+  name: string;
+  age: number;
+  description: string;
+  tags: string[];
+  projectCount: number;
+};
+
+const cardData: Card[] = [
+  {
+    id: 1,
+    url: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?ixlib=rb-4.0.3&auto=format&fit=crop&w=687&q=80",
+    name: "Emma",
+    age: 28,
+    description:
+      "Photography enthusiast and coffee lover. Always up for an adventure!",
+    tags: ["Commercial Modeling", "Beauty Modeling"],
+    projectCount: 12,
+  },
+  {
+    id: 2,
+    url: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?ixlib=rb-4.0.3&auto=format&fit=crop&w=687&q=80",
+    name: "Sophie",
+    age: 25,
+    description: "Travel blogger exploring the world one city at a time. 🌎✈️",
+    tags: ["Fashion/Runway Modeling", "Fitness Modeling"],
+    projectCount: 8,
+  },
+  {
+    id: 3,
+    url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=crop&w=687&q=80",
+    name: "Olivia",
+    age: 27,
+    description:
+      "Yoga instructor and plant mom. Looking for genuine connections.",
+    tags: ["Beauty Modeling"],
+    projectCount: 10,
+  },
+  {
+    id: 4,
+    url: "https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-4.0.3&auto=format&fit=crop&w=687&q=80",
+    name: "Isabella",
+    age: 26,
+    description:
+      "Art curator with a passion for contemporary design and music festivals.",
+    tags: ["Commercial Modeling", "Fashion/Runway Modeling"],
+    projectCount: 15,
+  },
+  {
+    id: 5,
+    url: "https://images.unsplash.com/photo-1524502397800-2eeaad7c3fe5?ixlib=rb-4.0.3&auto=format&fit=crop&w=687&q=80",
+    name: "Mia",
+    age: 29,
+    description:
+      "Tech entrepreneur who loves hiking and trying new restaurants.",
+    tags: [
+      "Fitness Modeling",
+      "Lingerie/Swimsuit Modeling",
+      "Commercial Modeling",
+      "Beauty Modeling",
+      "Commercial Print Modeling",
+      "Virtual Modeling",
+      "Lifestyle Modeling",
+    ],
+    projectCount: 5,
+  },
+];
+
 const SwipeCards = ({
   toggleSidebar,
   isSidebarOpen,
@@ -11,8 +82,11 @@ const SwipeCards = ({
 }) => {
   const [cards, setCards] = useState<Card[]>(cardData);
 
+  // Determine the current (top) card to display in the details section.
+  const currentCard = cards[cards.length - 1];
+
   return (
-    <div className="w-full">
+    <div className="w-full bg-neutral-100 min-h-screen p-4">
       {/* Hamburger Menu for Mobile */}
       <button className="md:hidden mb-4 cursor-pointer" onClick={toggleSidebar}>
         <Menu
@@ -22,16 +96,54 @@ const SwipeCards = ({
         />
       </button>
 
-      <div className="grid h-screen w-full place-items-center bg-neutral-100">
-        {cards.map((card) => (
-          <Card key={card.id} cards={cards} setCards={setCards} {...card} />
-        ))}
+      {/* Use a column layout for all screens below xl. On xl screens, switch to a row layout. */}
+      <div className="flex flex-col xl:flex-row">
+        {/* Swipe Cards Section */}
+        <div className="flex-1 flex justify-center items-center relative mx-auto xl:ml-[-40px]">
+          <div className="grid">
+            {cards.map((card) => (
+              <CardComponent
+                key={card.id}
+                cards={cards}
+                setCards={setCards}
+                {...card}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Details Section */}
+        <div className="flex-1 p-4">
+          {currentCard ? (
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h2 className="text-2xl font-bold mb-2">
+                About {currentCard.name}
+              </h2>
+              <p className="text-gray-700">{currentCard.description}</p>
+              <div className="mt-4">
+                {currentCard.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-block bg-gray-200 text-gray-700 rounded-full px-3 py-1 text-sm font-semibold mr-2 mb-2"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+              <button className="mt-4 px-4 py-2 bg-[#DD8560] text-white rounded hover:bg-[#c46b4b]">
+                Projects: {currentCard.projectCount}
+              </button>
+            </div>
+          ) : (
+            <p className="text-center text-gray-600">No more cards</p>
+          )}
+        </div>
       </div>
     </div>
   );
 };
 
-const Card = ({
+const CardComponent = ({
   id,
   url,
   name,
@@ -53,6 +165,7 @@ const Card = ({
   const opacity = useTransform(x, [-150, 0, 150], [0, 1, 0]);
   const isFront = id === cards[cards.length - 1].id;
 
+  // Original swipe rotation calculation.
   const rotate = useTransform(() => {
     const offset = isFront ? 0 : id % 2 ? 6 : -6;
     return `${rotateRaw.get() + offset}deg`;
@@ -68,7 +181,7 @@ const Card = ({
 
   const handleDragEnd = () => {
     if (Math.abs(x.get()) > 100) {
-      setCards((pv) => pv.filter((v) => v.id !== id));
+      setCards((prev) => prev.filter((v) => v.id !== id));
     }
   };
 
@@ -86,14 +199,9 @@ const Card = ({
           ? "0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.5)"
           : undefined,
       }}
-      animate={{
-        scale: isFront ? 1 : 0.98,
-      }}
+      animate={{ scale: isFront ? 1 : 0.98 }}
       drag={isFront ? "x" : false}
-      dragConstraints={{
-        left: 0,
-        right: 0,
-      }}
+      dragConstraints={{ left: 0, right: 0 }}
       onDragEnd={handleDragEnd}
     >
       <motion.div
@@ -126,53 +234,3 @@ const Card = ({
 };
 
 export default SwipeCards;
-
-type Card = {
-  id: number;
-  url: string;
-  name: string;
-  age: number;
-  description: string;
-};
-
-const cardData: Card[] = [
-  {
-    id: 1,
-    url: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80",
-    name: "Emma",
-    age: 28,
-    description:
-      "Photography enthusiast and coffee lover. Always up for an adventure!",
-  },
-  {
-    id: 2,
-    url: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80",
-    name: "Sophie",
-    age: 25,
-    description: "Travel blogger exploring the world one city at a time. 🌎✈️",
-  },
-  {
-    id: 3,
-    url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80",
-    name: "Olivia",
-    age: 27,
-    description:
-      "Yoga instructor and plant mom. Looking for genuine connections.",
-  },
-  {
-    id: 4,
-    url: "https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80",
-    name: "Isabella",
-    age: 26,
-    description:
-      "Art curator with a passion for contemporary design and music festivals.",
-  },
-  {
-    id: 5,
-    url: "https://images.unsplash.com/photo-1524502397800-2eeaad7c3fe5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80",
-    name: "Mia",
-    age: 29,
-    description:
-      "Tech entrepreneur who loves hiking and trying new restaurants.",
-  },
-];
