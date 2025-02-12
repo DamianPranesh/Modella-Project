@@ -1,8 +1,15 @@
 import { Dispatch, SetStateAction, useState } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
-import { Check, X, Menu } from "lucide-react";
+import { Check, X, Menu, Star } from "lucide-react";
 
-// Extend the Card type to include tags and projectCount
+// Define a Testimonial type.
+type Testimonial = {
+  rating: number; // 1 to 5
+  comment: string;
+  brand?: string;
+};
+
+// Extend the Card type to include testimonials.
 type Card = {
   id: number;
   url: string;
@@ -11,6 +18,7 @@ type Card = {
   description: string;
   tags: string[];
   projectCount: number;
+  testimonials: Testimonial[];
 };
 
 const cardData: Card[] = [
@@ -23,6 +31,14 @@ const cardData: Card[] = [
       "Photography enthusiast and coffee lover. Always up for an adventure!",
     tags: ["Commercial Modeling", "Beauty Modeling"],
     projectCount: 12,
+    testimonials: [
+      {
+        rating: 5,
+        comment:
+          "Emma is a true professional. She took direction well, improvised when needed, and delivered top-tier shots. Her expressions were authentic, and her energy on set was contagious. Highly recommended!",
+        brand: "Luxury Fashion",
+      },
+    ],
   },
   {
     id: 2,
@@ -32,6 +48,14 @@ const cardData: Card[] = [
     description: "Travel blogger exploring the world one city at a time. 🌎✈️",
     tags: ["Fashion/Runway Modeling", "Fitness Modeling"],
     projectCount: 8,
+    testimonials: [
+      {
+        rating: 1,
+        comment:
+          "Unfortunately, Sophia canceled last minute, leaving us scrambling for a replacement. No communication or explanation given. Very unprofessional.",
+        brand: "Runway Star",
+      },
+    ],
   },
   {
     id: 3,
@@ -42,6 +66,7 @@ const cardData: Card[] = [
       "Yoga instructor and plant mom. Looking for genuine connections.",
     tags: ["Beauty Modeling"],
     projectCount: 10,
+    testimonials: [],
   },
   {
     id: 4,
@@ -50,8 +75,29 @@ const cardData: Card[] = [
     age: 26,
     description:
       "Art curator with a passion for contemporary design and music festivals.",
-    tags: ["Commercial Modeling", "Fashion/Runway Modeling"],
+    tags: [
+      "Commercial Modeling",
+      "Fashion/Runway Modeling",
+      "Fitness Modeling",
+      "Lingerie/Swimsuit Modeling",
+      "Commercial Modeling",
+      "Beauty Modeling",
+    ],
     projectCount: 15,
+    testimonials: [
+      {
+        rating: 2,
+        comment:
+          "While Isabella has a great look, she arrived late to the shoot, and her communication was lacking. We had to do multiple retakes because she struggled to follow directions. Needs improvement on professionalism.",
+        brand: "Elite Vogue",
+      },
+      {
+        rating: 4,
+        comment:
+          "Very reliable and creative. Need to work on arrival time and communication.",
+        brand: "Design House",
+      },
+    ],
   },
   {
     id: 5,
@@ -65,11 +111,20 @@ const cardData: Card[] = [
       "Lingerie/Swimsuit Modeling",
       "Commercial Modeling",
       "Beauty Modeling",
+      "Fitness Modeling",
       "Commercial Print Modeling",
       "Virtual Modeling",
       "Lifestyle Modeling",
     ],
     projectCount: 5,
+    testimonials: [
+      {
+        rating: 3,
+        comment:
+          "Mia has a stunning look and radiant skin, perfect for beauty shoots. However, she seemed a bit uncomfortable with close-up shots, which made it difficult to capture the right angles. Needs more experience in this area.",
+        brand: "Glow Beauty Cosmetics",
+      },
+    ],
   },
 ];
 
@@ -96,7 +151,7 @@ const SwipeCards = ({
         />
       </button>
 
-      {/* Use a column layout for all screens below xl. On xl screens, switch to a row layout. */}
+      {/* Layout: for screens below xl, details stack vertically; on xl+ screens, side-by-side */}
       <div className="flex flex-col xl:flex-row">
         {/* Swipe Cards Section */}
         <div className="flex-1 flex justify-center items-center relative mx-auto xl:ml-[-40px]">
@@ -115,24 +170,66 @@ const SwipeCards = ({
         {/* Details Section */}
         <div className="flex-1 p-4">
           {currentCard ? (
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-2xl font-bold mb-2">
-                About {currentCard.name}
-              </h2>
-              <p className="text-gray-700">{currentCard.description}</p>
-              <div className="mt-4">
-                {currentCard.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="inline-block bg-gray-200 text-gray-700 rounded-full px-3 py-1 text-sm font-semibold mr-2 mb-2"
-                  >
-                    {tag}
-                  </span>
-                ))}
+            <div className="flex flex-col gap-6">
+              {/* About Us Section */}
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <div className="flex flex-col gap-4">
+                  <h2 className="text-2xl font-bold">
+                    About {currentCard.name}
+                  </h2>
+                  <p className="text-gray-700">{currentCard.description}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {currentCard.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="bg-gray-200 text-gray-700 rounded-full px-3 py-1 text-sm font-semibold"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <button className="w-fit px-4 py-2 bg-[#DD8560] text-white rounded hover:bg-[#c46b4b] cursor-pointer">
+                    Projects: {currentCard.projectCount}
+                  </button>
+                </div>
               </div>
-              <button className="mt-4 px-4 py-2 bg-[#DD8560] text-white rounded hover:bg-[#c46b4b]">
-                Projects: {currentCard.projectCount}
-              </button>
+
+              {/* Testimonials Section */}
+              <div className="bg-white p-6 rounded-lg shadow-md">
+                <h3 className="text-xl font-bold mb-4">Testimonials</h3>
+                {currentCard.testimonials &&
+                currentCard.testimonials.length > 0 ? (
+                  <div className="flex flex-col gap-4">
+                    {currentCard.testimonials.map((testimonial, index) => (
+                      <div
+                        key={index}
+                        className="flex flex-col items-start gap-2 border p-2 rounded"
+                      >
+                        <div className="flex items-center">
+                          {Array.from({ length: 5 }, (_, i) => (
+                            <Star
+                              key={i}
+                              className={`w-4 h-4 ${
+                                i < testimonial.rating
+                                  ? "text-yellow-500"
+                                  : "text-gray-300"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <p className="text-gray-700">{testimonial.comment}</p>
+                        {testimonial.brand && (
+                          <p className="text-sm text-gray-500">
+                            - {testimonial.brand}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-600">No testimonials available.</p>
+                )}
+              </div>
             </div>
           ) : (
             <p className="text-center text-gray-600">No more cards</p>
