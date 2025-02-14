@@ -188,48 +188,46 @@ const SwipeCards = ({
                       </span>
                     ))}
                   </div>
-                  <button className="w-fit px-4 py-2 bg-[#DD8560] text-white rounded hover:bg-[#c46b4b] cursor-pointer">
+                  <button className="w-fit px-4 py-2 bg-[#DD8560] text-white rounded hover:bg-[#c46b4b]">
                     Projects: {currentCard.projectCount}
                   </button>
                 </div>
               </div>
 
               {/* Testimonials Section */}
-              <div className="bg-white p-6 rounded-lg shadow-md">
-                <h3 className="text-xl font-bold mb-4">Testimonials</h3>
-                {currentCard.testimonials &&
-                currentCard.testimonials.length > 0 ? (
-                  <div className="flex flex-col gap-4">
-                    {currentCard.testimonials.map((testimonial, index) => (
-                      <div
-                        key={index}
-                        className="flex flex-col items-start gap-2 border p-2 rounded"
-                      >
-                        <div className="flex items-center">
-                          {Array.from({ length: 5 }, (_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-4 h-4 ${
-                                i < testimonial.rating
-                                  ? "text-yellow-500"
-                                  : "text-gray-300"
-                              }`}
-                            />
-                          ))}
+              {currentCard.testimonials &&
+                currentCard.testimonials.length > 0 && (
+                  <div className="bg-white p-6 rounded-lg shadow-md">
+                    <h3 className="text-xl font-bold mb-4">Testimonials</h3>
+                    <div className="flex flex-col gap-4">
+                      {currentCard.testimonials.map((testimonial, index) => (
+                        <div
+                          key={index}
+                          className="flex flex-col items-start gap-2 border p-2 rounded"
+                        >
+                          <div className="flex items-center">
+                            {Array.from({ length: 5 }, (_, i) => (
+                              <Star
+                                key={i}
+                                className={`w-4 h-4 ${
+                                  i < testimonial.rating
+                                    ? "text-yellow-500"
+                                    : "text-gray-300"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <p className="text-gray-700">{testimonial.comment}</p>
+                          {testimonial.brand && (
+                            <p className="text-sm text-gray-500">
+                              - {testimonial.brand}
+                            </p>
+                          )}
                         </div>
-                        <p className="text-gray-700">{testimonial.comment}</p>
-                        {testimonial.brand && (
-                          <p className="text-sm text-gray-500">
-                            - {testimonial.brand}
-                          </p>
-                        )}
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                ) : (
-                  <p className="text-gray-600">No testimonials available.</p>
                 )}
-              </div>
             </div>
           ) : (
             <p className="text-center text-gray-600">No more cards</p>
