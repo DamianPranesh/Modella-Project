@@ -6,11 +6,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 keywords = {
-    "eye_colors": [
+    "natural_eye_colors": [
         "Brown", "Blue", "Hazel", "Green", "Gray", "Amber", "Red", "Violet", "Heterochromia"
     ],
     "body_types": [
-        "Straight Size Models", "Plus-Size Models", "Petite Models", "Fitness Models",
+        "Straight Size Models", "Plus-Size Models","Straight Size Models", "Plus-Size Models", "Petite Models", "Fitness Models",
         "Glamour Models", "Mature Models", "Alternative Models", "Parts Models", 
         "Child Models", "Body-Positive Models", "Androgynous Models", "Fit Models"
     ],
@@ -30,7 +30,7 @@ keywords = {
         "Mediterranean", "Nordic", "East Asian (Chinese, Japanese, Korean)", 
         "Southeast Asian (Thai, Filipino, Vietnamese, etc.)", "Caribbean"
     ],
-    "hair_types": [
+    "natural_hair_types": [
         "Straight", "Wavy", "Curly", "Coily", "Kinky", "Textured", "Afro", "Braided",
         "Buzz Cut", "Shaved", "Dyed/Colored Hair", "Gray/White Hair", "Bald"
     ],

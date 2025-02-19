@@ -21,6 +21,15 @@ user_collection = db["users"]
 rating_collection = db["ratings"]
 file_collection = db["file_metadata"]
 
+
+model_tags_collection = db["models_tags"]
+brand_tags_collection = db["brands_tags"]
+project_tags_collection = db["projects_tags"]
+
+model_preferences_collection = db["model_preference"]
+brand_preferences_collection = db["brand_preferences"]
+model_brand_preferences_collection = db["model_brand_preference"]
+
 # AWS S3 Configuration
 AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
@@ -33,5 +42,8 @@ s3_client = boto3.client(
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
     region_name=AWS_REGION
 )
+
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 
 

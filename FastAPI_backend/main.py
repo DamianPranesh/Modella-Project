@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from routes.file_routes import router as file_router
-from routes.tag_routes import router as tag_router
-from routes.preferences_routes import router as preferences_router  # Import the preferences router
+# from remove.tag_routes import router as tag_router
+# from remove.preferences_routes import router as preferences_router  # Import the preferences router
 from routes.user_routes import router as user_router
 from routes.rating_routes import router as rating_router
+from services.Modellatag_service import router as Modellatag_router
+from services.Modella_preference_service import router as ModellaPref_router
 from config.setting import user_collection
 import logging
 from config.logging_config import *
@@ -49,10 +51,10 @@ app.add_middleware(
 #logger = logging.getLogger("fastapi")
 
 # Include the tag routes
-app.include_router(tag_router)
+# app.include_router(tag_router)
 
 # Include the preferences routes
-app.include_router(preferences_router)
+# app.include_router(preferences_router)
 
 
 # Include the user routes
@@ -63,6 +65,13 @@ app.include_router(rating_router)
 
 # Include the file managing routes
 app.include_router(file_router)
+
+# Include the tag managing routes
+app.include_router(Modellatag_router)
+
+# Include the preference managing routes
+app.include_router(ModellaPref_router)
+
 
 # Optional: Add a root endpoint
 @app.get("/")

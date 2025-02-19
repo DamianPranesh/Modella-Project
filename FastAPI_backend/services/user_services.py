@@ -17,9 +17,9 @@ async def create_user(user: User):
     
     # Convert to dict and get all fields from User model
     user_dict = {
-        "name": user.name,
+        "name": user.name or None,
         "email": user.email,
-        "password_Hash": user.password_Hash,
+        "password_Hash": user.password_Hash or None,
         "profile_Picture_URL": user.profile_Picture_URL or None,
         "google_Id": user.google_Id or None,
         "apple_Id": user.apple_Id or None,
@@ -137,7 +137,7 @@ async def generate_fake_users(num_users: int):
     fake_users = []
 
     for _ in range(num_users):
-        role = random.choice(["model", "brand", "admin"])
+        role = random.choice(["model", "brand"])
         mongo_id = ObjectId()  # Generate MongoDB _id in advance
         user_id = f"{role}_{mongo_id}"  # Generate user_Id before inserting
 

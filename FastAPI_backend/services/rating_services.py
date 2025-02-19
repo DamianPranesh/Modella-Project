@@ -16,6 +16,10 @@ RATING_REVIEW_MAP = {
 }
 
 async def create_rating_service(rating: Rating):
+    # Validate rating level (1-5)
+    if rating.rating not in RATING_REVIEW_MAP:
+        return {"error": "Invalid rating level. Must be between 1 and 5."}
+
     # Check if both user_Id (receiver) and ratedBy_Id (giver) exist in user_collection
     user_exists = await user_collection.find_one({"user_Id": rating.user_Id})
     rated_by_exists = await user_collection.find_one({"user_Id": rating.ratedBy_Id})
@@ -37,6 +41,10 @@ async def create_rating_service(rating: Rating):
 
 
 async def update_rating_service(rating_id: str, ratedBy_Id: str, update_data: Dict[str, Any]):
+    # Validate rating level if it's included in update_data
+    if "rating" in update_data and update_data["rating"] not in RATING_REVIEW_MAP:
+        return {"error": "Invalid rating level. Must be between 1 and 5."}
+    
     # Retrieve the existing rating from the database using rating_id
     existing_rating = await rating_collection.find_one({"_id": ObjectId(rating_id)})
     
