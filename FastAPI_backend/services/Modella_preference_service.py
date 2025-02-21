@@ -5,7 +5,7 @@ from typing import List
 from pymongo import ReturnDocument
 from models.Modella_preference import BrandModelPreferenceFilterRequest, ModelBrandPreferenceData, ModelBrandPreferenceFilterRequest, ModelProjectPreferenceData, BrandModelPreferenceData, ModelProjectPreferenceFilterRequest
 from models.Modella_tag import CreateRandomTagsRequest, ProjectTagFilterRequest
-from services.Modellatag_service import filter_modelproject_tags, filter_project_tags
+from services.Modellatag_service import filter_modelproject_tags
 from services.keywords import get_keywords
 from services.model_convert import convert_model
 from services.rating_services import get_ratings_by_level_service
@@ -114,7 +114,7 @@ async def get_all_model_brand_preferences():
 
 
 # Update Preference
-@router.put("/preferences/model/{user_id}", response_model=ModelProjectPreferenceData)
+@router.patch("/preferences/model/{user_id}", response_model=ModelProjectPreferenceData)
 async def update_model_preference(user_id: str, preference_data : dict):
     existing_preference = await model_preferences_collection.find_one({"user_Id": user_id})
     if not existing_preference:
@@ -135,7 +135,7 @@ async def update_model_preference(user_id: str, preference_data : dict):
         return ModelProjectPreferenceData(**updated_pref)
     raise HTTPException(status_code=404, detail="Model preference not found")
 
-@router.put("/preferences/brand/{user_id}", response_model=BrandModelPreferenceData)
+@router.patch("/preferences/brand/{user_id}", response_model=BrandModelPreferenceData)
 async def update_brand_preference(user_id: str, preference_data : dict):
     existing_preference = await brand_preferences_collection.find_one({"user_Id": user_id})
     if not existing_preference:
@@ -157,7 +157,7 @@ async def update_brand_preference(user_id: str, preference_data : dict):
     raise HTTPException(status_code=404, detail="Brand preference not found")
 
 
-@router.put("/preferences/model-brand/{user_id}", response_model=ModelBrandPreferenceData)
+@router.patch("/preferences/model-brand/{user_id}", response_model=ModelBrandPreferenceData)
 async def update_model_brand_preference(user_id: str, preference_data : dict):
     existing_preference = await model_brand_preferences_collection.find_one({"user_Id": user_id})
     if not existing_preference:
@@ -311,6 +311,8 @@ async def filter_model_project_preference_matched_project_ids(data: ModelProject
     project_ids = [tag.project_Id for tag in project_tag_data_list]
 
     return project_ids
+
+
 
 @router.post("/brand-Model-preference-matched-ids", response_model=List[str])
 async def filter_brand_Model_preference_matched_user_ids(data: BrandModelPreferenceFilterRequest):

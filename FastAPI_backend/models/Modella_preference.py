@@ -102,7 +102,7 @@ class ModelBrandPreferenceData(BaseModel):
     
 
 class ModelBrandPreferenceFilterRequest(BaseModel):
-    user_Id: str
+    user_Id: Optional[str] = None
     work_Field: Optional[List[str]] = None
     location: Optional[str] = None
     rating_level: Optional[int] = None
