@@ -1,6 +1,7 @@
 import { Dispatch, SetStateAction, useState } from "react";
 import { motion, useMotionValue, useTransform, AnimatePresence } from "framer-motion";
 import toast, { Toaster } from 'react-hot-toast';
+import { ChevronLeft, ChevronRight, HelpCircle, X, Check, ArrowLeftRight } from 'lucide-react';
 
 const SwipeCards = () => {
     const [cards, setCards] = useState<Card[]>(cardData);
@@ -8,6 +9,7 @@ const SwipeCards = () => {
     const [savedCards, setSavedCards] = useState<Card[]>([]);
     const [rejectedCards, setRejectedCards] = useState<Card[]>([]);
     const [selectedCard, setSelectedCard] = useState<Card | null>(null);
+    const [showLegend, setShowLegend] = useState(false);
 
     const navigateCards = (direction: 'prev' | 'next') => {
         if (direction === 'prev' && currentIndex > 0) {
@@ -50,14 +52,61 @@ const SwipeCards = () => {
     return (
         <div className="min-h-screen w-full bg-neutral-100 px-4 py-8 md:px-8">
             <div className="mx-auto max-w-2xl">
+                {/* Legend Button */}
+                <div className="absolute right-4 top-4 z-50">
+                    <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => setShowLegend(!showLegend)}
+                        className="rounded-full bg-[rgb(221,133,96)] p-2 text-white shadow-lg hover:bg-[rgb(201,113,76)] transition-colors duration-200"
+                    >
+                        <HelpCircle size={24} />
+                    </motion.button>
+
+                    {/* Legend Popup */}
+                    <AnimatePresence>
+                        {showLegend && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className="absolute right-0 mt-2 w-64 rounded-xl bg-white p-4 shadow-xl"
+                            >
+                                <h3 className="mb-3 font-semibold text-gray-800">How to Use</h3>
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <ArrowLeftRight className="text-[rgb(221,133,96)]" size={20} />
+                                        <span className="text-sm text-gray-600">Swipe or drag cards left/right</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <ChevronLeft className="text-[rgb(221,133,96)]" size={20} />
+                                        <ChevronRight className="text-[rgb(221,133,96)]" size={20} />
+                                        <span className="text-sm text-gray-600">Navigate between cards</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <X className="text-red-500" size={20} />
+                                        <span className="text-sm text-gray-600">Reject profile</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Check className="text-green-500" size={20} />
+                                        <span className="text-sm text-gray-600">Accept profile</span>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+
                 <div className="relative mb-12 flex items-center justify-center">
-                    <button
+                    <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
                         onClick={() => navigateCards('prev')}
-                        className="absolute left-[-20px] z-10 rounded-full bg-white p-3 shadow-lg hover:bg-gray-100 disabled:opacity-50 md:left-[-60px] md:p-4"
+                        className="absolute left-[-20px] z-10 rounded-full bg-[rgb(221,133,96)] p-3 shadow-lg text-white hover:bg-[rgb(201,113,76)] transition-colors duration-200 disabled:opacity-50 disabled:hover:bg-[rgb(221,133,96)] md:left-[-60px] md:p-4"
                         disabled={currentIndex === 0}
                     >
-                        <span className="text-xl md:text-2xl">⬅️</span>
-                    </button>
+                        <ChevronLeft size={24} />
+                    </motion.button>
 
                     <AnimatePresence mode="wait">
                         {cards.map((card, index) => (
@@ -73,13 +122,15 @@ const SwipeCards = () => {
                         ))}
                     </AnimatePresence>
 
-                    <button
+                    <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
                         onClick={() => navigateCards('next')}
-                        className="absolute right-[-20px] z-10 rounded-full bg-white p-3 shadow-lg hover:bg-gray-100 disabled:opacity-50 md:right-[-60px] md:p-4"
+                        className="absolute right-[-20px] z-10 rounded-full bg-[rgb(221,133,96)] p-3 shadow-lg text-white hover:bg-[rgb(201,113,76)] transition-colors duration-200 disabled:opacity-50 disabled:hover:bg-[rgb(221,133,96)] md:right-[-60px] md:p-4"
                         disabled={currentIndex === cards.length - 1}
                     >
-                        <span className="text-xl md:text-2xl">➡️</span>
-                    </button>
+                        <ChevronRight size={24} />
+                    </motion.button>
                 </div>
 
                 <div className="flex justify-center gap-6 md:gap-12">
@@ -90,7 +141,7 @@ const SwipeCards = () => {
                         className="rounded-full bg-white p-4 shadow-lg hover:bg-red-50 disabled:opacity-50 md:p-6"
                         disabled={cards.length === 0}
                     >
-                        <span className="text-2xl md:text-3xl">❌</span>
+                        <X size={24} className="text-red-500" />
                     </motion.button>
 
                     <motion.button
@@ -100,7 +151,7 @@ const SwipeCards = () => {
                         className="rounded-full bg-white p-4 shadow-lg hover:bg-green-50 disabled:opacity-50 md:p-6"
                         disabled={cards.length === 0}
                     >
-                        <span className="text-2xl md:text-3xl">✅</span>
+                        <Check size={24} className="text-green-500" />
                     </motion.button>
                 </div>
             </div>
@@ -120,9 +171,10 @@ const DetailedView = ({ card, onClose }: { card: Card; onClose: () => void }) =>
             <div className="mx-auto max-w-4xl">
                 <button
                     onClick={onClose}
-                    className="mb-6 rounded-full bg-white p-3 shadow-lg hover:bg-gray-100 md:p-4"
+                    className="mb-6 rounded-full bg-[rgb(221,133,96)] p-3 shadow-lg text-white hover:bg-[rgb(201,113,76)] transition-colors duration-200 md:p-4"
                 >
-                    <span className="text-xl md:text-2xl">⬅️ Back</span>
+                    <ChevronLeft size={24} />
+                    <span className="ml-2">Back</span>
                 </button>
 
                 <motion.div
@@ -212,6 +264,7 @@ const Card = ({
     const rotateRaw = useTransform(x, [-150, 150], [-18, 18]);
     const opacity = useTransform(x, [-150, 0, 150], [0, 1, 0]);
     const isFront = index === currentIndex;
+    const [showTooltip, setShowTooltip] = useState(true);
 
     const rotate = useTransform(() => {
         const offset = isFront ? 0 : index % 2 ? 6 : -6;
@@ -252,9 +305,34 @@ const Card = ({
                 right: 0,
             }}
             onDragEnd={handleDragEnd}
-            onClick={onSelect}
+            onClick={() => {
+                setShowTooltip(false);
+                onSelect();
+            }}
             whileHover={{ scale: 1.02 }}
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
         >
+            {/* Floating Text Bubble */}
+            <AnimatePresence>
+                {showTooltip && isFront && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
+                        className="absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-16"
+                    >
+                        <div className="relative">
+                            <div className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-lg">
+                                Click to view more details
+                            </div>
+                            {/* Triangle */}
+                            <div className="absolute left-1/2 top-full -translate-x-1/2 border-8 border-transparent border-t-white" />
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <img
                 src={url}
                 alt={`${name}, ${age}`}
