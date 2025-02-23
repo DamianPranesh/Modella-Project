@@ -2,9 +2,10 @@ from datetime import datetime, timezone
 from random import choice, randint, sample
 from fastapi import APIRouter, HTTPException
 from typing import List
+from pydantic import BaseModel
 from pymongo import ReturnDocument
 from models.Modella_preference import BrandModelPreferenceFilterRequest, ModelBrandPreferenceData, ModelBrandPreferenceFilterRequest, ModelProjectPreferenceData, BrandModelPreferenceData, ModelProjectPreferenceFilterRequest
-from models.Modella_tag import CreateRandomTagsRequest, ProjectTagFilterRequest
+from models.Modella_tag import CreateRandomTagsRequest, ModelTagFilterRequest, ProjectTagFilterRequest
 from services.Modellatag_service import filter_modelproject_tags
 from services.keywords import get_keywords
 from services.model_convert import convert_model
@@ -286,8 +287,6 @@ def build_query(data):
     return query
 
 
-
-
 @router.post("/Model-project-preference-matched-project-ids", response_model=List[str])
 async def filter_model_project_preference_matched_project_ids(data: ModelProjectPreferenceFilterRequest):
     """
@@ -312,12 +311,46 @@ async def filter_model_project_preference_matched_project_ids(data: ModelProject
 
     return project_ids
 
+@router.post("/Model-project-preference-matched-project-ids-by-user-id/{user_id}", response_model=List[str])
+async def filter_model_project_preference_by_user_id(user_id: str):
+    """
+    Fetches ModelProjectPreferenceData using user_id, converts it to ProjectTagFilterRequest, 
+    filters the matched projects, and returns the list of project IDs.
 
+    :param user_id: The ID of the user whose preferences are being used
+    :return: List of matched project IDs
+    """
+    # Fetch model preferences
+    preference = await get_model_preference(user_id)
+    
+    # # Convert ModelProjectPreferenceData to dictionary
+    # preference_dict = preference.model_dump()
+
+    # # Remove unwanted fields
+    # excluded_fields = {"saved_time", "client_type", "user_Id", "is_project"}
+    # data = {k: v for k, v in preference_dict.items() if k not in excluded_fields}
+
+    # Convert ModelProjectPreferenceFilterRequest to ProjectTagFilterRequest
+    converted_data = convert_model(preference, ProjectTagFilterRequest,["saved_time", "client_Type", "user_Id", "is_project"])
+
+    # # Convert the filtered data into a ProjectTagFilterRequest
+    # project_tag_filter_request = ProjectTagFilterRequest(**filtered_preference_dict)
+
+    # Build the query
+    query = await build_query_cross_filter(converted_data)
+    print(f"Generated Query: {query}")
+
+    # Get matched project tags
+    project_tag_data_list = await filter_modelproject_tags(query)
+
+    # Extract project IDs
+    project_ids = [tag.project_Id for tag in project_tag_data_list]
+
+    return project_ids
 
 @router.post("/brand-Model-preference-matched-ids", response_model=List[str])
 async def filter_brand_Model_preference_matched_user_ids(data: BrandModelPreferenceFilterRequest):
     """Filter ModelTagData based on BrandModelPreferenceFilterRequest"""
-    
     query = await build_query_cross_filter(data)  # Convert preferences into query
     print(f"Generated Query: {query}")  # Debugging
 
@@ -343,6 +376,51 @@ async def filter_brand_Model_preference_matched_user_ids(data: BrandModelPrefere
         return filtered_user_ids  # Return only user IDs
 
     return [model["user_Id"] for model in matched_tags]  # Return user IDs if no rating filter
+
+
+
+@router.post("/brand-Model-preference-matched-ids-by-user-id/{user_id}", response_model=List[str])
+async def filter_brand_Model_preference_by_user_id(user_id: str):
+    """Filter ModelTagData based on BrandModelPreferenceFilterRequest"""
+    # Fetch model preferences
+    preference = await get_brand_preference(user_id)
+    
+    # Convert ModelProjectPreferenceData to dictionary
+    if isinstance(preference, BaseModel):
+        preference_dict = preference.model_dump()
+    else:
+        preference_dict = preference  # Ensure it's a dictionary
+
+    # Remove unwanted fields
+    excluded_fields = {"saved_time", "client_Type", "user_Id"}
+    data = {k: v for k, v in preference_dict.items() if k not in excluded_fields}
+
+    query = await build_query_cross_filter(DictWrapper(data))  # Convert preferences into query
+    print(f"Generated Query: {query}")  # Debugging
+
+    matched_tags = await model_tags_collection.aggregate([
+        {"$match": query},  # Filter based on query
+        {"$sample": {"size": 100}}  # Randomly select 100 models
+    ]).to_list(length=None)
+
+    if not matched_tags:
+            return []  # Return an empty list if no models match
+
+    # If rating_level filtering is needed
+    if "rating_level" in data and data["rating_level"] is not None:
+        filtered_user_ids = []
+        for model in matched_tags:
+            user_id = model["user_Id"]
+            ratings = await get_ratings_by_level_service(user_id, data["rating_level"])
+            
+            # If ratings exist, keep the user_id; otherwise, discard it
+            if isinstance(ratings, list) and len(ratings) > 0:
+                filtered_user_ids.append(user_id)
+
+        return filtered_user_ids  # Return only user IDs
+
+    return [model["user_Id"] for model in matched_tags]  # Return user IDs if no rating filter
+
 
 
 
@@ -376,7 +454,47 @@ async def filter_Model_brand_preference_matched_user_ids(data: ModelBrandPrefere
 
     return [model["user_Id"] for model in matched_tags]  # Return user IDs if no rating filter
 
+@router.post("/Model-brand-preference-matched-ids-by-user-id/{user_id}", response_model=List[str])
+async def filter_Model_brand_preference_by_user_id(user_id: str):
+    """Filter BrandTagData based on ModelBrandPreferenceFilterRequest"""
+    # Fetch model preferences
+    preference = await get_model_brand_preference(user_id)
+    
+ # Convert ModelProjectPreferenceData to dictionary
+    if isinstance(preference, BaseModel):
+        preference_dict = preference.model_dump()
+    else:
+        preference_dict = preference  # Ensure it's a dictionary
 
+    # Remove unwanted fields
+    excluded_fields = {"saved_time", "client_Type", "user_Id", "is_project"}
+    data = {k: v for k, v in preference_dict.items() if k not in excluded_fields}
+
+    query = await build_query_cross_filter(DictWrapper(data))  # Convert preferences into query
+    print(f"Generated Query: {query}")  # Debugging
+
+    matched_tags = await brand_tags_collection.aggregate([
+        {"$match": query},  # Filter based on query
+        {"$sample": {"size": 100}}  # Randomly select 100 models
+    ]).to_list(length=None)
+
+    if not matched_tags:
+            return []  # Return an empty list if no models match
+
+        # If rating_level filtering is needed
+    if "rating_level" in data and data["rating_level"] is not None:
+        filtered_user_ids = []
+        for model in matched_tags:
+            user_id = model["user_Id"]
+            ratings = await get_ratings_by_level_service(user_id, data["rating_level"])
+            
+            # If ratings exist, keep the user_id; otherwise, discard it
+            if isinstance(ratings, list) and len(ratings) > 0:
+                filtered_user_ids.append(user_id)
+
+        return filtered_user_ids  # Return only user IDs
+
+    return [model["user_Id"] for model in matched_tags]  # Return user IDs if no rating filter
 
 async def build_query_cross_filter(data):
     """Convert BrandModelPreferenceFilterRequest into a MongoDB query for ModelTagData filtering."""
@@ -533,3 +651,16 @@ async def get_unused_user_ids_pref(client_Type: str, tag_type: str):
     unused_user_ids = list(all_user_ids - used_user_ids)
     return unused_user_ids
 
+
+
+
+
+class DictWrapper:
+    def __init__(self, data: dict):
+        self.data = data
+
+    def dict(self, exclude_none=True):
+        """ Mimic Pydantic model's .dict() method """
+        if exclude_none:
+            return {k: v for k, v in self.data.items() if v is not None}
+        return self.data
