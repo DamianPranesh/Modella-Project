@@ -45,7 +45,6 @@ const modelData: ModelInfo[] = [
   },
   {
     id: "3",
-
     name: "EMMA",
     age: 23,
     type: "BEAUTY MODEL",
