@@ -10,6 +10,7 @@ import model6 from "../images/Image-13.png";
 import model7 from "../images/Image-14.png";
 import model8 from "../images/Image-15.png";
 import { Menu } from "lucide-react";
+import ComparisonModal from "./ComparisonModel";
 
 type Model = {
   id: string;
@@ -88,6 +89,8 @@ export function SavedList({
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [isSelectionActive, setIsSelectionActive] = useState<boolean>(false);
   const [showConfirmButtons, setShowConfirmButtons] = useState<boolean>(false);
+  const [comparisonModalOpen, setComparisonModalOpen] =
+    useState<boolean>(false);
 
   const toggleModelSelection = (modelId: string) => {
     if (isSelectionActive) {
@@ -117,7 +120,11 @@ export function SavedList({
   };
 
   const handleOk = () => {
-    console.log("OK clicked with selected models:", selectedModels);
+    setComparisonModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setComparisonModalOpen(false);
   };
 
   return (
@@ -153,12 +160,14 @@ export function SavedList({
               <button
                 className="px-4 py-2 rounded-full border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-colors mr-2"
                 onClick={handleCancel}
+                style={{ marginTop: "-8px" }}
               >
                 Cancel
               </button>
               <button
                 className="px-4 py-2 rounded-full border border-green-500 text-green-500 hover:bg-green-500 hover:text-white transition-colors"
                 onClick={handleOk}
+                style={{ marginTop: "-8px" }}
               >
                 OK
               </button>
@@ -188,7 +197,7 @@ export function SavedList({
             {isSelectionActive && (
               <button
                 onClick={() => toggleModelSelection(model.id)}
-                className={`absolute top-4 right-4 w-6 h-6 rounded-full border-2 ${
+                className={`absolute top-4 right-4 w-6 h-6 rounded-full border-2 cursor-pointer ${
                   selectedModels.includes(model.id)
                     ? "bg-[#DD8560] border-[#DD8560]"
                     : "bg-white/80 border-gray-400"
@@ -205,6 +214,15 @@ export function SavedList({
           </div>
         ))}
       </div>
+
+      {/* Comparison Modal */}
+      <ComparisonModal
+        isOpen={comparisonModalOpen}
+        onClose={closeModal}
+        models={savedModels.filter((model) =>
+          selectedModels.includes(model.id)
+        )}
+      />
     </div>
   );
 }
