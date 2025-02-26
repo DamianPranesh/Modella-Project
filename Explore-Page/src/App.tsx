@@ -4,6 +4,7 @@ import { Sidebar } from "./components/Sidebar";
 import { ExplorePage } from "./components/ExplorePage";
 import { AccountPage } from "./components/AccountPage";
 import SwipeCards from "./components/SwipeCards";
+import { SavedList } from "./components/SavedList";
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -63,6 +64,15 @@ function App() {
               path="/swipe"
               element={
                 <SwipeCards
+                  toggleSidebar={toggleSidebar}
+                  isSidebarOpen={isSidebarOpen}
+                />
+              }
+            />
+            <Route
+              path="/saved"
+              element={
+                <SavedList
                   toggleSidebar={toggleSidebar}
                   isSidebarOpen={isSidebarOpen}
                 />
