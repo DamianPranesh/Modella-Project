@@ -23,7 +23,7 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({
   if (!isOpen) return null; // Don't render if not open
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-95">
+    <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm">
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-3xl w-full">
         <h2 className="text-xl font-bold mb-4">Comparison Chart</h2>
         <table className="min-w-full border-collapse border border-gray-300">
