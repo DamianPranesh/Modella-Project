@@ -2,8 +2,8 @@ import React from 'react';
 
 const StartMessage: React.FC = () => {
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-50">
-      <div className="text-center p-8 rounded-lg scale-75 w-155 max-w-screen-sm">
+    <div className="flex flex-col items-center justify-center h-screen bg-white">
+      <div className="text-center p-8 rounded-lg scale-75 w-140 max-w-screen-sm">
         <h1 className="text-xs font-medium text-black mb-4">Welcome to Chat</h1>
         <p className="text-[20px] text-gray-600 mb-4">Select a conversation to start messaging</p>
         <div className="w-16 h-16 mx-auto mb-4">

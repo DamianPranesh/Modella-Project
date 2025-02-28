@@ -2,13 +2,27 @@ import React, { useState, useEffect } from "react";
 import { Sidebar } from "./components/Sidebar";
 import { ChatList } from "./components/ChatList";
 import StartMessage from "./components/StartMessage";
+import { ChatPage } from "./components/Chatpage";
+
+
+interface Chat {
+  id: string;
+  name: string;
+  lastMessage: string;
+  timestamp: Date;
+  avatar: string;
+  unreadCount: number;
+  isOnline: boolean;
+}
+
+type RemoveAction = 'unmatch' | 'unmatch_and_report' | 'delete';
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [selectedChatId, setSelectedChatId] = useState<string>();
-
+  
   // Sample chat data - replace with your actual data
-  const sampleChats = [
+  const sampleChats: Chat[] = [
     {
       id: '1',
       name: 'Kiana Gunasekara',
@@ -50,7 +64,7 @@ function App() {
       name: 'John Doe',
       lastMessage: 'Hey, how are you?',
       timestamp: new Date(),
-      avatar: 'https://via.placeholder.com/40',
+      avatar: '/images/modella-photos.png',
       unreadCount: 2,
       isOnline: true
     },
@@ -120,6 +134,40 @@ function App() {
     }
   ];
 
+  const [chats, setChats] = useState<Chat[]>(sampleChats);
+  
+  // Mock current user ID - replace with actual user authentication
+  const currentUserId = "current-user";
+
+  const handleRemoveChat = (chatId: string, action: RemoveAction) => {
+    if (action === 'delete') {
+      // For delete, we don't remove the chat from the list
+      console.log(`Chat ${chatId} history cleared`);
+      return;
+    }
+    
+    // For unmatch actions, remove the chat from the list
+    setChats(prevChats => prevChats.filter(chat => chat.id !== chatId));
+    // Clear selected chat if it was the one removed
+    if (selectedChatId === chatId) {
+      setSelectedChatId(undefined);
+    }
+    
+    // Here you would typically make an API call based on the action
+    console.log(`Chat ${chatId} removed with action: ${action}`);
+  };
+
+  const updateChatLastMessage = (chatId: string, message: string) => {
+    setChats(prevChats => prevChats.map(chat => 
+      chat.id === chatId 
+        ? { ...chat, lastMessage: message, timestamp: new Date() }
+        : chat
+    ));
+  };
+
+  // Get the selected chat data
+  const selectedChat = chats.find(chat => chat.id === selectedChatId);
+
   const toggleSidebar = () => {
     setSidebarOpen(!isSidebarOpen);
   };
@@ -151,9 +199,9 @@ function App() {
       <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
 
       {/* ChatList */}
-      <div className={`w-[350px] h-screen overflow-hidden ${isSidebarOpen ? 'ml-[250px]' : ''} transition-all duration-300`}>
+      <div className={`w-[400px] h-screen overflow-hidden ${isSidebarOpen ? 'ml-[250px]' : ''} transition-all duration-300`}>
         <ChatList 
-          chats={sampleChats}
+          chats={chats}
           onChatSelect={handleChatSelect}
           selectedChatId={selectedChatId}
         />
@@ -161,7 +209,17 @@ function App() {
 
       {/* Main Chat Area */}
       <div className="flex-1 h-screen">
-        {!selectedChatId && <StartMessage />}
+        {selectedChatId ? (
+          <ChatPage
+            key={selectedChatId}
+            selectedChat={selectedChat}
+            currentUserId={currentUserId}
+            onMessageSent={(message) => updateChatLastMessage(selectedChatId, message)}
+            onRemoveChat={handleRemoveChat}
+          />
+        ) : (
+          <StartMessage />
+        )}
       </div>
     </div>
   );
