@@ -1,38 +1,138 @@
 import React, { useState, useEffect } from "react";
 import { Sidebar } from "./components/Sidebar";
-import { ChatList } from "./components/Messagelist";
- // Import the ChatMessages component
-
-interface ChatMessagesProps {}
-
-export const ChatMessages: React.FC<ChatMessagesProps> = () => {
-  return (
-    <div className="chat-messages">
-      {/* Chat messages content */}
-    </div>
-  );
-};
+import { ChatList } from "./components/ChatList";
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
-  const [isChatListOpen, setChatListOpen] = useState(true);
+  const [selectedChatId, setSelectedChatId] = useState<string>();
+
+  // Sample chat data - replace with your actual data
+  const sampleChats = [
+    {
+      id: '1',
+      name: 'John Doe',
+      lastMessage: 'Hey, how are you?',
+      timestamp: new Date(),
+      avatar: 'https://via.placeholder.com/40',
+      unreadCount: 2,
+      isOnline: true
+    },
+    {
+      id: '2',
+      name: 'Jane Smith',
+      lastMessage: 'The meeting is at 3 PM',
+      timestamp: new Date(),
+      avatar: 'https://via.placeholder.com/40',
+      unreadCount: 0,
+      isOnline: false
+    },
+    {
+      id: '1',
+      name: 'John Doe',
+      lastMessage: 'Hey, how are you?',
+      timestamp: new Date(),
+      avatar: 'https://via.placeholder.com/40',
+      unreadCount: 2,
+      isOnline: true
+    },
+    {
+      id: '2',
+      name: 'Jane Smith',
+      lastMessage: 'The meeting is at 3 PM',
+      timestamp: new Date(),
+      avatar: 'https://via.placeholder.com/40',
+      unreadCount: 0,
+      isOnline: false
+    },
+    {
+      id: '1',
+      name: 'John Doe',
+      lastMessage: 'Hey, how are you?',
+      timestamp: new Date(),
+      avatar: 'https://via.placeholder.com/40',
+      unreadCount: 2,
+      isOnline: true
+    },
+    {
+      id: '2',
+      name: 'Jane Smith',
+      lastMessage: 'The meeting is at 3 PM',
+      timestamp: new Date(),
+      avatar: 'https://via.placeholder.com/40',
+      unreadCount: 0,
+      isOnline: false
+    }
+    ,
+    {
+      id: '1',
+      name: 'John Doe',
+      lastMessage: 'Hey, how are you?',
+      timestamp: new Date(),
+      avatar: 'https://via.placeholder.com/40',
+      unreadCount: 2,
+      isOnline: true
+    },
+    {
+      id: '2',
+      name: 'Jane Smith',
+      lastMessage: 'The meeting is at 3 PM',
+      timestamp: new Date(),
+      avatar: 'https://via.placeholder.com/40',
+      unreadCount: 7,
+      isOnline: false
+    },
+    {
+      id: '1',
+      name: 'John Doe',
+      lastMessage: 'Hey, how are you?',
+      timestamp: new Date(),
+      avatar: 'https://via.placeholder.com/40',
+      unreadCount: 6,
+      isOnline: true
+    },
+    {
+      id: '2',
+      name: 'Jane Smith',
+      lastMessage: 'The meeting is at 3 PM',
+      timestamp: new Date(),
+      avatar: 'https://via.placeholder.com/40',
+      unreadCount: 0,
+      isOnline: false
+    },
+    {
+      id: '1',
+      name: 'John Doe',
+      lastMessage: 'Hey, how are you?',
+      timestamp: new Date(),
+      avatar: 'https://via.placeholder.com/40',
+      unreadCount: 5,
+      isOnline: true
+    },
+    {
+      id: '2',
+      name: 'Jane Smith',
+      lastMessage: 'The meeting is at 3 PM',
+      timestamp: new Date(),
+      avatar: 'https://via.placeholder.com/40',
+      unreadCount: 0,
+      isOnline: false
+    }
+  ];
 
   const toggleSidebar = () => {
     setSidebarOpen(!isSidebarOpen);
   };
 
-  const toggleChatList = () => {
-    setChatListOpen(!isChatListOpen);
+  const handleChatSelect = (chatId: string) => {
+    setSelectedChatId(chatId);
   };
 
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 768) {
         setSidebarOpen(true);
-        setChatListOpen(true);
       } else {
         setSidebarOpen(false);
-        setChatListOpen(false);
       }
     };
 
@@ -49,11 +149,14 @@ function App() {
       {/* Sidebar */}
       <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
 
-      {/* ChatMessages should fill the space between Sidebar and ChatList */}
-      <ChatMessages /> {/* Chat Messages here */}
-
       {/* ChatList */}
-      <ChatList isOpen={isChatListOpen} toggleChatList={toggleChatList} />
+      <div className={`w-[350px] h-screen overflow-hidden ${isSidebarOpen ? 'ml-[250px]' : ''} transition-all duration-300`}>
+        <ChatList 
+          chats={sampleChats}
+          onChatSelect={handleChatSelect}
+          selectedChatId={selectedChatId}
+        />
+      </div>
     </div>
   );
 }

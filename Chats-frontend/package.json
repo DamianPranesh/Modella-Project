@@ -2,6 +2,7 @@
   "dependencies": {
     "@emoji-mart/data": "^1.2.1",
     "@emoji-mart/react": "^1.1.1",
+    "@fontsource/junge": "^5.1.1",
     "@tailwindcss/vite": "^4.0.9",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.475.0",
