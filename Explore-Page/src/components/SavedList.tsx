@@ -94,11 +94,13 @@ export function SavedList({
 
   const toggleModelSelection = (modelId: string) => {
     if (isSelectionActive) {
-      setSelectedModels((prev) =>
-        prev.includes(modelId)
-          ? prev.filter((id) => id !== modelId)
-          : [...prev, modelId]
-      );
+      if (selectedModels.includes(modelId)) {
+        setSelectedModels((prev) => prev.filter((id) => id !== modelId));
+      } else if (selectedModels.length < 3) {
+        setSelectedModels((prev) => [...prev, modelId]);
+      } else {
+        alert("You can only compare up to 3 models at a time.");
+      }
     }
   };
 
