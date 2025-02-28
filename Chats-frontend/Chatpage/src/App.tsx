@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Sidebar } from "./components/Sidebar";
 import { ChatList } from "./components/ChatList";
+import StartMessage from "./components/StartMessage";
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -10,7 +11,7 @@ function App() {
   const sampleChats = [
     {
       id: '1',
-      name: 'John Doe',
+      name: 'Kiana Gunasekara',
       lastMessage: 'Hey, how are you?',
       timestamp: new Date(),
       avatar: 'https://via.placeholder.com/40',
@@ -19,7 +20,7 @@ function App() {
     },
     {
       id: '2',
-      name: 'Jane Smith',
+      name: 'Curtly J',
       lastMessage: 'The meeting is at 3 PM',
       timestamp: new Date(),
       avatar: 'https://via.placeholder.com/40',
@@ -27,8 +28,8 @@ function App() {
       isOnline: false
     },
     {
-      id: '1',
-      name: 'John Doe',
+      id: '3',
+      name: 'Elia Perera',
       lastMessage: 'Hey, how are you?',
       timestamp: new Date(),
       avatar: 'https://via.placeholder.com/40',
@@ -36,16 +37,16 @@ function App() {
       isOnline: true
     },
     {
-      id: '2',
-      name: 'Jane Smith',
+      id: '4',
+      name: 'Zoe',
       lastMessage: 'The meeting is at 3 PM',
       timestamp: new Date(),
       avatar: 'https://via.placeholder.com/40',
       unreadCount: 0,
-      isOnline: false
+      isOnline: true
     },
     {
-      id: '1',
+      id: '5',
       name: 'John Doe',
       lastMessage: 'Hey, how are you?',
       timestamp: new Date(),
@@ -54,7 +55,7 @@ function App() {
       isOnline: true
     },
     {
-      id: '2',
+      id: '6',
       name: 'Jane Smith',
       lastMessage: 'The meeting is at 3 PM',
       timestamp: new Date(),
@@ -64,7 +65,7 @@ function App() {
     }
     ,
     {
-      id: '1',
+      id: '7',
       name: 'John Doe',
       lastMessage: 'Hey, how are you?',
       timestamp: new Date(),
@@ -73,7 +74,7 @@ function App() {
       isOnline: true
     },
     {
-      id: '2',
+      id: '8',
       name: 'Jane Smith',
       lastMessage: 'The meeting is at 3 PM',
       timestamp: new Date(),
@@ -82,7 +83,7 @@ function App() {
       isOnline: false
     },
     {
-      id: '1',
+      id: '9',
       name: 'John Doe',
       lastMessage: 'Hey, how are you?',
       timestamp: new Date(),
@@ -91,7 +92,7 @@ function App() {
       isOnline: true
     },
     {
-      id: '2',
+      id: '10',
       name: 'Jane Smith',
       lastMessage: 'The meeting is at 3 PM',
       timestamp: new Date(),
@@ -100,7 +101,7 @@ function App() {
       isOnline: false
     },
     {
-      id: '1',
+      id: '11',
       name: 'John Doe',
       lastMessage: 'Hey, how are you?',
       timestamp: new Date(),
@@ -109,7 +110,7 @@ function App() {
       isOnline: true
     },
     {
-      id: '2',
+      id: '13',
       name: 'Jane Smith',
       lastMessage: 'The meeting is at 3 PM',
       timestamp: new Date(),
@@ -156,6 +157,11 @@ function App() {
           onChatSelect={handleChatSelect}
           selectedChatId={selectedChatId}
         />
+      </div>
+
+      {/* Main Chat Area */}
+      <div className="flex-1 h-screen">
+        {!selectedChatId && <StartMessage />}
       </div>
     </div>
   );
