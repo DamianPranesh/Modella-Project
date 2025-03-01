@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import model1 from "../images/Image-8.png";
 import model2 from "../images/Image-9.png";
 import model3 from "../images/Image-10.png";
@@ -9,7 +9,7 @@ import model5 from "../images/Image-12.png";
 import model6 from "../images/Image-13.png";
 import model7 from "../images/Image-14.png";
 import model8 from "../images/Image-15.png";
-import { Menu } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import ComparisonModal from "./ComparisonModel";
 
 type Model = {
@@ -91,6 +91,28 @@ export function SavedList({
   const [showConfirmButtons, setShowConfirmButtons] = useState<boolean>(false);
   const [comparisonModalOpen, setComparisonModalOpen] =
     useState<boolean>(false);
+  const [tooManyModelsModalOpen, setTooManyModelsModalOpen] =
+    useState<boolean>(false);
+
+  // Prevent background scrolling when any modal is open
+  useEffect(() => {
+    if (comparisonModalOpen || tooManyModelsModalOpen) {
+      // Save the current scroll position
+      const scrollY = window.scrollY;
+      // Prevent scrolling on the body
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = "100%";
+
+      // Restore scrolling when component unmounts or modal closes
+      return () => {
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.width = "";
+        window.scrollTo(0, scrollY);
+      };
+    }
+  }, [comparisonModalOpen, tooManyModelsModalOpen]);
 
   const toggleModelSelection = (modelId: string) => {
     if (isSelectionActive) {
@@ -99,7 +121,7 @@ export function SavedList({
       } else if (selectedModels.length < 3) {
         setSelectedModels((prev) => [...prev, modelId]);
       } else {
-        alert("You can only compare up to 3 models at a time.");
+        setTooManyModelsModalOpen(true);
       }
     }
   };
@@ -127,6 +149,10 @@ export function SavedList({
 
   const closeModal = () => {
     setComparisonModalOpen(false);
+  };
+
+  const closeTooManyModelsModal = () => {
+    setTooManyModelsModalOpen(false);
   };
 
   return (
@@ -179,7 +205,7 @@ export function SavedList({
       </div>
 
       {/* Grid layout for displaying saved models */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {savedModels.map((model) => (
           <div key={model.id} className="group relative">
             <div className="aspect-[3/4] rounded-3xl overflow-hidden bg-gray-100">
@@ -225,6 +251,29 @@ export function SavedList({
           selectedModels.includes(model.id)
         )}
       />
+
+      {/* Too Many Models Modal - Updated to match the style of "Insufficient Models" modal */}
+      {tooManyModelsModalOpen && (
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50"
+          style={{ backdropFilter: "blur(8px)" }}
+        >
+          <div className="bg-white p-8 rounded-lg shadow-2xl max-w-md w-full mx-4 text-center relative">
+            <button
+              onClick={closeTooManyModelsModal}
+              className="absolute top-3 right-3 p-1 rounded-full hover:bg-gray-100"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5 text-gray-500" />
+            </button>
+
+            <h2 className="text-xl font-bold mb-4">Too Many Models</h2>
+            <p className="text-gray-600">
+              Please select no more than 3 models for comparison.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
