@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
 import random
-import string
 from bson import ObjectId
 from fastapi import HTTPException, status
 from models.User import User, UserUpdate
@@ -19,29 +18,18 @@ async def create_user(user: User):
     user_dict = {
         "name": user.name or None,
         "email": user.email,
-        "password_Hash": user.password_Hash or None,
-        "profile_Picture_URL": user.profile_Picture_URL or None,
-        "google_Id": user.google_Id or None,
-        "apple_Id": user.apple_Id or None,
         "auth_Method": user.auth_Method or None,
         "role": user.role,
         "created_At": user.created_At or datetime.now(timezone.utc),
         "updated_At": user.updated_At or None,
         "bio": user.bio or None,
-        "video_URL": user.video_URL or None,
-        "photo_URL": user.photo_URL or None,
-        "social_Media_URL": user.social_Media_URL or None,
-        "tags_Id": user.tags_Id or None,
-        "booking_Availability": user.booking_Availability or None,
-        "preference_Id": user.preference_Id or None,
-        "portfolio_URL": user.portfolio_URL or None 
     }
     
     # Insert the user and get the _id
     result = await user_collection.insert_one(user_dict)
     
     # Generate the user_Id using role and _id
-    generated_user_id = f"{user.role}_{str(result.inserted_id)}"
+    generated_user_id = f"{user.role}_{str(result.inserted_id)}" if user.role else f"user_{str(result.inserted_id)}"
     
     # Update the document with the generated user_Id
     await user_collection.update_one(
@@ -107,7 +95,7 @@ async def delete_all_users():
     """
     try:
         # First get the count of users for the return message
-        count = await user_collection.count_documents({})
+        await user_collection.count_documents({})
         
         # Delete all documents
         result = await user_collection.delete_many({})
@@ -146,27 +134,16 @@ async def generate_fake_users(num_users: int):
             "user_Id": user_id,  # Pre-generated user_Id to avoid null errors
             "name": f"Fake {user_id}",
             "email": f"{user_id}@gmail.com",  # Set correct email before inserting
-            "password_Hash": generate_secure_password(),
-            "profile_Picture_URL": None,
-            "google_Id": None,
-            "apple_Id": None,
             "auth_Method": None,
             "role": role,
             "created_At": datetime.now(timezone.utc),
             "updated_At": None,
-            "bio": None,
-            "video_URL": None,
-            "photo_URL": None,
-            "social_Media_URL": None,
-            "tags_Id": None,
-            "booking_Availability": None,
-            "preference_Id": None,
-            "portfolio_URL": None 
+            "bio": None
         }
         fake_users.append(user_dict)
 
     try:
-        result = await user_collection.insert_many(fake_users)  # Insert all at once
+        await user_collection.insert_many(fake_users)  # Insert all at once
         
         # Convert ObjectId to string for the response
         for user in fake_users:
@@ -181,14 +158,14 @@ async def generate_fake_users(num_users: int):
         )
 
 
-def generate_secure_password() -> str:
-    special_chars = "!@#$%^&*()-_=+[]{}|;:'\",.<>?/`~"
-    password_length = random.randint(12, 20)
-    password_chars = (
-        random.choice(string.ascii_uppercase) +
-        random.choice(string.ascii_lowercase) +
-        random.choice(string.digits) +
-        random.choice(special_chars) +
-        "".join(random.choices(string.ascii_letters + string.digits + special_chars, k=password_length - 4))
-    )
-    return "".join(random.sample(password_chars, len(password_chars)))
+# def generate_secure_password() -> str:
+#     special_chars = "!@#$%^&*()-_=+[]{}|;:'\",.<>?/`~"
+#     password_length = random.randint(12, 20)
+#     password_chars = (
+#         random.choice(string.ascii_uppercase) +
+#         random.choice(string.ascii_lowercase) +
+#         random.choice(string.digits) +
+#         random.choice(special_chars) +
+#         "".join(random.choices(string.ascii_letters + string.digits + special_chars, k=password_length - 4))
+#     )
+#     return "".join(random.sample(password_chars, len(password_chars)))
