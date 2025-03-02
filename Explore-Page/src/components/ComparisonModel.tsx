@@ -7,7 +7,12 @@ type Model = {
   age: number;
   type: string;
   image: string;
-  // Add more fields as needed
+  height: string;
+  eyeColor: string;
+  bodyType: string;
+  skinTone: string;
+  gender: string;
+  experience: string;
 };
 
 interface ComparisonModalProps {
@@ -54,7 +59,7 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({
         <div className="bg-white p-8 rounded-lg shadow-2xl max-w-md w-full mx-4 text-center relative">
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 p-1 rounded-full hover:bg-gray-100"
+            className="absolute top-3 right-3 p-1 rounded-full hover:bg-gray-100 cursor-pointer"
             aria-label="Close"
           >
             <X className="w-5 h-5 text-gray-500" />
@@ -107,7 +112,7 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({
           {/* X close button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-1 rounded-full hover:bg-gray-100 z-10"
+            className="absolute top-4 right-4 p-1 rounded-full hover:bg-gray-100 z-10 cursor-pointer"
             aria-label="Close"
           >
             <X className="w-6 h-6 text-gray-500" />
@@ -134,9 +139,40 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({
                   <h3 className="text-xl font-semibold text-[#DD8560]">
                     {model.name}
                   </h3>
-                  <p className="text-gray-700">Age: {model.age}</p>
-                  <p className="text-gray-700">Type: {model.type}</p>
-                  {/* Add more fields as needed */}
+                  <div className="grid grid-cols-1 gap-2 mt-3 text-sm">
+                    <p className="text-gray-700 flex justify-between border-b border-gray-200 pb-1">
+                      <span className="font-medium">Age:</span>
+                      <span>{model.age}</span>
+                    </p>
+                    <p className="text-gray-700 flex justify-between border-b border-gray-200 pb-1">
+                      <span className="font-medium">Type:</span>
+                      <span>{model.type}</span>
+                    </p>
+                    <p className="text-gray-700 flex justify-between border-b border-gray-200 pb-1">
+                      <span className="font-medium">Height:</span>
+                      <span>{model.height}</span>
+                    </p>
+                    <p className="text-gray-700 flex justify-between border-b border-gray-200 pb-1">
+                      <span className="font-medium">Gender:</span>
+                      <span>{model.gender}</span>
+                    </p>
+                    <p className="text-gray-700 flex justify-between border-b border-gray-200 pb-1">
+                      <span className="font-medium">Eye Color:</span>
+                      <span>{model.eyeColor}</span>
+                    </p>
+                    <p className="text-gray-700 flex justify-between border-b border-gray-200 pb-1">
+                      <span className="font-medium">Body Type:</span>
+                      <span>{model.bodyType}</span>
+                    </p>
+                    <p className="text-gray-700 flex justify-between border-b border-gray-200 pb-1">
+                      <span className="font-medium">Skin Tone:</span>
+                      <span>{model.skinTone}</span>
+                    </p>
+                    <p className="text-gray-700 flex justify-between pb-1">
+                      <span className="font-medium">Experience:</span>
+                      <span>{model.experience}</span>
+                    </p>
+                  </div>
                 </div>
               </div>
             ))}

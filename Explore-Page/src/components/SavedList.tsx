@@ -18,6 +18,12 @@ type Model = {
   age: number;
   type: string;
   image: string;
+  height: string;
+  eyeColor: string;
+  bodyType: string;
+  skinTone: string;
+  gender: string;
+  experience: string;
 };
 
 const savedModels: Model[] = [
@@ -27,6 +33,12 @@ const savedModels: Model[] = [
     age: 21,
     type: "EDITORIAL AND COMMERCIAL MODEL",
     image: model1,
+    height: "6'1\"",
+    eyeColor: "Brown",
+    bodyType: "Athletic",
+    skinTone: "Medium",
+    gender: "Male",
+    experience: "3 years",
   },
   {
     id: "2",
@@ -34,6 +46,12 @@ const savedModels: Model[] = [
     age: 21,
     type: "RUNWAY MODEL",
     image: model2,
+    height: "5'11\"",
+    eyeColor: "Blue",
+    bodyType: "Slim",
+    skinTone: "Fair",
+    gender: "Female",
+    experience: "2 years",
   },
   {
     id: "3",
@@ -41,6 +59,12 @@ const savedModels: Model[] = [
     age: 23,
     type: "BEAUTY MODEL",
     image: model3,
+    height: "5'9\"",
+    eyeColor: "Green",
+    bodyType: "Hourglass",
+    skinTone: "Medium",
+    gender: "Female",
+    experience: "4 years",
   },
   {
     id: "4",
@@ -48,6 +72,12 @@ const savedModels: Model[] = [
     age: 20,
     type: "COMMERCIAL MODEL",
     image: model4,
+    height: "6'0\"",
+    eyeColor: "Hazel",
+    bodyType: "Athletic",
+    skinTone: "Olive",
+    gender: "Male",
+    experience: "1 year",
   },
   {
     id: "5",
@@ -55,6 +85,12 @@ const savedModels: Model[] = [
     age: 22,
     type: "COMMERCIAL MODEL",
     image: model5,
+    height: "5'8\"",
+    eyeColor: "Brown",
+    bodyType: "Petite",
+    skinTone: "Tan",
+    gender: "Female",
+    experience: "3 years",
   },
   {
     id: "6",
@@ -62,6 +98,12 @@ const savedModels: Model[] = [
     age: 19,
     type: "EDITORIAL MODEL",
     image: model6,
+    height: "5'10\"",
+    eyeColor: "Blue",
+    bodyType: "Slim",
+    skinTone: "Fair",
+    gender: "Female",
+    experience: "1 year",
   },
   {
     id: "7",
@@ -69,6 +111,12 @@ const savedModels: Model[] = [
     age: 23,
     type: "LIFESTYLE MODEL",
     image: model7,
+    height: "6'2\"",
+    eyeColor: "Brown",
+    bodyType: "Muscular",
+    skinTone: "Deep",
+    gender: "Male",
+    experience: "5 years",
   },
   {
     id: "8",
@@ -76,6 +124,12 @@ const savedModels: Model[] = [
     age: 21,
     type: "RUNWAY MODEL",
     image: model8,
+    height: "5'11\"",
+    eyeColor: "Amber",
+    bodyType: "Slim",
+    skinTone: "Medium",
+    gender: "Female",
+    experience: "2 years",
   },
 ];
 
@@ -175,7 +229,7 @@ export function SavedList({
         <div className="flex items-center ml-auto">
           {/* Compare Button */}
           <button
-            className="px-6 py-2 rounded-full border border-[#DD8560] text-[#DD8560] hover:bg-[#DD8560] hover:text-white transition-colors"
+            className="px-6 py-2 rounded-full border border-[#DD8560] text-[#DD8560] hover:bg-[#DD8560] hover:text-white transition-colors cursor-pointer"
             onClick={handleCompareClick}
             style={{ marginTop: "-8px" }}
           >
@@ -186,14 +240,14 @@ export function SavedList({
           {showConfirmButtons && (
             <div className="flex ml-2">
               <button
-                className="px-4 py-2 rounded-full border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-colors mr-2"
+                className="px-4 py-2 rounded-full border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition-colors mr-2 cursor-pointer"
                 onClick={handleCancel}
                 style={{ marginTop: "-8px" }}
               >
                 Cancel
               </button>
               <button
-                className="px-4 py-2 rounded-full border border-green-500 text-green-500 hover:bg-green-500 hover:text-white transition-colors"
+                className="px-4 py-2 rounded-full border border-green-500 text-green-500 hover:bg-green-500 hover:text-white transition-colors cursor-pointer"
                 onClick={handleOk}
                 style={{ marginTop: "-8px" }}
               >
@@ -261,7 +315,7 @@ export function SavedList({
           <div className="bg-white p-8 rounded-lg shadow-2xl max-w-md w-full mx-4 text-center relative">
             <button
               onClick={closeTooManyModelsModal}
-              className="absolute top-3 right-3 p-1 rounded-full hover:bg-gray-100"
+              className="absolute top-3 right-3 p-1 rounded-full hover:bg-gray-100 cursor-pointer"
               aria-label="Close"
             >
               <X className="w-5 h-5 text-gray-500" />
