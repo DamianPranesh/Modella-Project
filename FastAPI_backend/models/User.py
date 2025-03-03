@@ -16,6 +16,7 @@ class User(BaseModel):
     role: str = Field(..., pattern=r"^(model|brand|admin)$")  # Made required and added validation
     created_At: Optional[datetime] = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_At: Optional[datetime] = None
+    description:Optional[str] = None
     bio: Optional[str] = None
     video_URL: Optional[List[str]] = None
     photo_URL: Optional[List[str]] = None
@@ -44,6 +45,7 @@ class UserUpdate(BaseModel):
     google_calendar_token: Optional[str] = None  # For Google Calendar access tokens
     google_refresh_token: Optional[str] = None  # For refreshing Calendar token
     auth_Method: Optional[str] = None
+    description:Optional[str] = None
     bio: Optional[str] = None
     video_URL: Optional[List[str]] = None
     photo_URL: Optional[List[str]] = None
