@@ -1,7 +1,7 @@
 from fastapi import APIRouter, UploadFile, File
 from typing import List, Optional
 from services.file_service import (
-    get_files_urls_by_folder, upload_file, get_files, download_file, delete_file, update_visibility, get_file_url
+    get_files_urls_by_folder, upload_file, get_files, download_file, delete_file, update_visibility, get_file_url, get_files_urls_by_user_folders
 )
 
 from models.file_model import FileMetadataOnURL
@@ -48,4 +48,14 @@ async def get_file_urls_by_user_id_and_folder_with_limit(user_id: Optional[str] 
     """
     # Call the get_file_url function to retrieve the file URLs
     files = await get_files_urls_by_folder(user_id=user_id, folder= folder, limit=limit)
+    return files
+
+@router.get("/urls-for-user-id-and-foldername-with-limits", response_model=List[FileMetadataOnURL])
+async def get_file_urls_by_user_id_and_folder_with_limits(user_id: str, folder: Optional[str] = None, limit: Optional[int] = None):
+    """
+    Get file URLs for a specific user or all public files if user_id is not provided.
+    Excludes private files unless the user is the owner.
+    """
+    # Call the get_file_url function to retrieve the file URLs
+    files = await get_files_urls_by_user_folders(user_id=user_id, folder= folder, limit=limit)
     return files

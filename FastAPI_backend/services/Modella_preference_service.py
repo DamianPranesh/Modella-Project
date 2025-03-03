@@ -442,8 +442,8 @@ async def filter_Model_brand_preference_matched_user_ids(data: ModelBrandPrefere
         # If rating_level filtering is needed
     if data.rating_level is not None:
         filtered_user_ids = []
-        for model in matched_tags:
-            user_id = model["user_Id"]
+        for brand in matched_tags:
+            user_id = brand["user_Id"]
             ratings = await get_ratings_by_level_service(user_id, data.rating_level)
             
             # If ratings exist, keep the user_id; otherwise, discard it
@@ -452,7 +452,7 @@ async def filter_Model_brand_preference_matched_user_ids(data: ModelBrandPrefere
 
         return filtered_user_ids  # Return only user IDs
 
-    return [model["user_Id"] for model in matched_tags]  # Return user IDs if no rating filter
+    return [brand["user_Id"] for brand in matched_tags]  # Return user IDs if no rating filter
 
 @router.post("/Model-brand-preference-matched-ids-by-user-id/{user_id}", response_model=List[str])
 async def filter_Model_brand_preference_by_user_id(user_id: str):

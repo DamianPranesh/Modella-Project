@@ -310,3 +310,65 @@ async def get_files_urls_by_folder(user_id: Optional[str] = None, folder: Option
 
     logger.info(f"Retrieved files for user: {user_id if user_id else 'all users'}, folder: {folder if folder else 'all folders'}")
     return files
+
+
+
+
+async def get_files_urls_by_user_folders(
+    user_id: str,  # Required parameter
+    folder: Optional[str] = None,  # Optional parameter
+    limit: Optional[int] = None    # Optional parameter
+):
+    """Retrieve file URLs based on user_id and optional folder, limiting the number of files if provided."""
+    
+    # Validate user if user_id is provided
+    if not await _validate_user(user_id):
+        logger.warning(f"File retrieval attempt by non-existent user: {user_id}")
+        raise HTTPException(status_code=404, detail="User not found")
+
+    pipeline = []
+
+    # Filtering based on user_id and folder
+    match_conditions = [
+        {"uploaded_by": user_id}  # User's own files (including private)
+    ]
+
+    if folder and folder in ALLOWED_FOLDERS:
+        match_conditions.append({"folder": folder})  # Filter by folder if provided
+
+    # Append the match condition to the pipeline
+    pipeline.append({"$match": {"$and": match_conditions}})
+
+    # Projection stage
+    pipeline.append({
+        "$project": {
+            "file_id": 1,
+            "file_name": 1,
+            "folder": 1,
+            "s3_url": 1,
+            "is_private": 1,
+            "uploaded_by": 1,
+            "file_type": 1
+        }
+    })
+
+    # Apply limit if provided
+    if limit and limit > 0:
+        pipeline.append({"$limit": limit})
+
+    # Perform the aggregation to get the files
+    files = await file_collection.aggregate(pipeline).to_list(None)
+
+    # Generate presigned URLs where needed
+    for file in files:
+        file_key = f"{file['folder']}/{file['file_id']}_{file['file_name']}"
+        file_type = file.get('file_type', 'application/octet-stream')
+
+        # Always generate the URL for the file, without checking privacy
+        try:
+            file["s3_url"] = generate_presigned_url(file_key, file_type)
+        except NoCredentialsError:
+            file["s3_url"] = None
+
+    logger.info(f"Retrieved files for user: {user_id}, folder: {folder if folder else 'all folders'}")
+    return files
