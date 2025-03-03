@@ -338,7 +338,12 @@ export function CategoryGrid() {
                     <p className="font-medium">NAME: {model.name}</p>
                     <p>AGE: {model.age}</p>
                   </div>
-                  <p className="text-sm text-gray-600">TYPE: {model.type}</p>
+                  <p className="text-sm text-gray-600">
+                    TYPE:{" "}
+                    {Array.isArray(model.type)
+                      ? model.type.join(", ")
+                      : model.type}
+                  </p>
                 </div>
               </div>
             ))}
@@ -355,7 +360,12 @@ export function CategoryGrid() {
                 </div>
                 <div className="mt-4 space-y-1">
                   <p className="font-medium">NAME: {business.name}</p>
-                  <p className="text-sm text-gray-600">TYPE: {business.type}</p>
+                  <p className="text-sm text-gray-600">
+                    TYPE:{" "}
+                    {Array.isArray(business.type)
+                      ? business.type.join(", ")
+                      : business.type}
+                  </p>
                   <p className="text-sm text-gray-600">
                     LOCATION: {business.location}
                   </p>
