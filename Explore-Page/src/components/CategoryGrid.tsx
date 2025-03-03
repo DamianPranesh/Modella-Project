@@ -12,29 +12,44 @@ import business1 from "../images/Image-16.jpg";
 import business2 from "../images/Image-17.jpg";
 import influencer1 from "../images/Image-18.jpg";
 
-type ModelInfo = {
+export type ModelInfo = {
   id: string;
   name: string;
   age: number;
   type: string;
   image: string;
+  height: string;
+  eyeColor: string;
+  bodyType: string;
+  workField: string;
+  gender: string;
+  skinTone: string;
+  experience: string;
 };
 
-type BusinessInfo = {
+export type BusinessInfo = {
   id: string;
   name: string;
   type: string;
   location: string;
   image: string;
+  workField: string;
 };
 
-const modelData: ModelInfo[] = [
+export const modelData: ModelInfo[] = [
   {
     id: "1",
     name: "CURTLY",
     age: 24,
     type: "EDITORIAL AND COMMERCIAL MODEL",
     image: model1,
+    height: "171-180 cm",
+    eyeColor: "Brown",
+    bodyType: "Straight Size Models",
+    workField: "Editorial Modeling",
+    gender: "Male",
+    skinTone: "Medium",
+    experience: "Experienced (3-5 years)",
   },
   {
     id: "2",
@@ -42,6 +57,13 @@ const modelData: ModelInfo[] = [
     age: 21,
     type: "RUNWAY MODEL",
     image: model2,
+    height: "171-180 cm",
+    eyeColor: "Blue",
+    bodyType: "Straight Size Models",
+    workField: "Runway Modeling",
+    gender: "Female",
+    skinTone: "Fair",
+    experience: "Intermediate (1-3 years)",
   },
   {
     id: "3",
@@ -49,6 +71,13 @@ const modelData: ModelInfo[] = [
     age: 23,
     type: "BEAUTY MODEL",
     image: model3,
+    height: "171-180 cm",
+    eyeColor: "Blue",
+    bodyType: "Straight Size Models",
+    workField: "Runway Modeling",
+    gender: "Female",
+    skinTone: "Fair",
+    experience: "Intermediate (1-3 years)",
   },
   {
     id: "4",
@@ -56,6 +85,13 @@ const modelData: ModelInfo[] = [
     age: 25,
     type: "COMMERCIAL MODEL",
     image: model4,
+    height: "181-190 cm",
+    eyeColor: "Blue",
+    bodyType: "Straight Size Models",
+    workField: "Runway Modeling",
+    gender: "Male",
+    skinTone: "Fair",
+    experience: "Intermediate (1-3 years)",
   },
   {
     id: "5",
@@ -63,6 +99,13 @@ const modelData: ModelInfo[] = [
     age: 22,
     type: "COMMERCIAL MODEL",
     image: model5,
+    height: "171-180 cm",
+    eyeColor: "Blue",
+    bodyType: "Straight Size Models",
+    workField: "Runway Modeling",
+    gender: "Female",
+    skinTone: "Fair",
+    experience: "Intermediate (1-3 years)",
   },
   {
     id: "6",
@@ -70,6 +113,13 @@ const modelData: ModelInfo[] = [
     age: 19,
     type: "EDITORIAL MODEL",
     image: model8,
+    height: "161-170 cm",
+    eyeColor: "Blue",
+    bodyType: "Straight Size Models",
+    workField: "Runway Modeling",
+    gender: "Female",
+    skinTone: "Fair",
+    experience: "Intermediate (1-3 years)",
   },
   {
     id: "7",
@@ -77,6 +127,13 @@ const modelData: ModelInfo[] = [
     age: 23,
     type: "LIFESTYLE MODEL",
     image: model6,
+    height: "171-180 cm",
+    eyeColor: "Blue",
+    bodyType: "Straight Size Models",
+    workField: "Fashion/Runway Modeling",
+    gender: "Male",
+    skinTone: "Fair",
+    experience: "Intermediate (1-3 years)",
   },
   {
     id: "8",
@@ -84,23 +141,32 @@ const modelData: ModelInfo[] = [
     age: 21,
     type: "RUNWAY MODEL",
     image: model7,
+    height: "171-180 cm",
+    eyeColor: "Blue",
+    bodyType: "Straight Size Models",
+    workField: "Runway Modeling",
+    gender: "Female",
+    skinTone: "Fair",
+    experience: "Intermediate (1-3 years)",
   },
 ];
 
-const businessData: BusinessInfo[] = [
+export const businessData: BusinessInfo[] = [
   {
     id: "b1",
     name: "VOGUE STUDIO",
     type: "PHOTOGRAPHY STUDIO",
-    location: "NEW YORK",
+    location: "London, United Kingdom",
     image: business1,
+    workField: "Fashion/Runway Modeling",
   },
   {
     id: "b2",
     name: "ELITE AGENCY",
     type: "MODELING AGENCY",
-    location: "LOS ANGELES",
+    location: "New York City, USA",
     image: business2,
+    workField: "Commercial Modeling",
   },
 ];
 
