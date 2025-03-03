@@ -210,6 +210,15 @@ export function SavedList({
     setTooManyModelsModalOpen(false);
   };
 
+  const handleModelClick = (model: Model) => {
+    if (isSelectionActive) {
+      toggleModelSelection(model.id);
+    } else {
+      setSelectedModelForDetail(model);
+      setModelDetailModalOpen(true);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Hamburger Menu and Compare Button */}
@@ -258,20 +267,34 @@ export function SavedList({
         {savedModels.map((model) => (
           <div
             key={model.id}
-            className="group relative cursor-pointer"
-            onClick={() => {
-              if (!isSelectionActive) {
-                setSelectedModelForDetail(model);
-                setModelDetailModalOpen(true);
-              }
-            }}
+            className={`group relative cursor-pointer transition-transform duration-300 hover:scale-[1.02]`}
+            onClick={() => handleModelClick(model)}
           >
             <div className="aspect-[3/4] rounded-3xl overflow-hidden bg-gray-100">
               <img
                 src={model.image || "/placeholder.svg"}
                 alt={model.name}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-105 ${
+                  isSelectionActive && selectedModels.includes(model.id)
+                    ? "brightness-90"
+                    : ""
+                }`}
               />
+              {isSelectionActive && (
+                <div
+                  className={`absolute top-4 right-4 w-6 h-6 rounded-full border-2 transition-all duration-200 ${
+                    selectedModels.includes(model.id)
+                      ? "bg-[#DD8560] border-[#DD8560] scale-110"
+                      : "bg-white/80 border-gray-400"
+                  }`}
+                >
+                  {selectedModels.includes(model.id) && (
+                    <span className="text-white flex items-center justify-center">
+                      ✓
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
             <div className="mt-4 space-y-1">
               <div className="flex items-center justify-between">
@@ -280,26 +303,6 @@ export function SavedList({
               </div>
               <p className="text-sm text-gray-600">TYPE: {model.type}</p>
             </div>
-            {isSelectionActive && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleModelSelection(model.id);
-                }}
-                className={`absolute top-4 right-4 w-6 h-6 rounded-full border-2 cursor-pointer ${
-                  selectedModels.includes(model.id)
-                    ? "bg-[#DD8560] border-[#DD8560]"
-                    : "bg-white/80 border-gray-400"
-                }`}
-                aria-label={`Select ${model.name} for comparison`}
-              >
-                {selectedModels.includes(model.id) && (
-                  <span className="text-white flex items-center justify-center">
-                    ✓
-                  </span>
-                )}
-              </button>
-            )}
           </div>
         ))}
       </div>
