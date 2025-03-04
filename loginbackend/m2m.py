@@ -1,12 +1,14 @@
 import requests
+import os
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
 
-auth0_client_id = os.environ.get("AUTH0_CLIENT_ID2")
-auth0_client_secret = os.environ.get("AUTH0_CLIENT_SECRET2")
+auth0_client_id = os.environ.get("AUTH0_CLIENT_ID")
+auth0_client_secret = os.environ.get("AUTH0_CLIENT_SECRET")
 auth0_audience = os.environ.get("AUTH0_AUDIENCE")
+auth0_domain = os.environ.get("AUTH0_DOMAIN")
 
 payload ={
     "client_id":auth0_client_id,
@@ -15,6 +17,6 @@ payload ={
     "grant_type":"client_credentials"
     }
 
-response = requests.post("https://modellaauth.us.auth0.com/oauth/token",json=payload)
+response = requests.post(f"https://{auth0_domain}/oauth/token", json=payload)
 
 print(response.json())

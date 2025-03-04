@@ -4,7 +4,7 @@ __pycache__/
 
 
 # Ignore virtual environments
-foenv/
+venv/
 
 # Ignore environment variables file
 .env
