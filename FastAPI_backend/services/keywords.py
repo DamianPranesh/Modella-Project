@@ -2,8 +2,12 @@ from typing import List
 
 import logging
 
+from fastapi import APIRouter
+
 # Create a logger specific to this module
 logger = logging.getLogger(__name__)
+
+router = APIRouter(prefix="/keywords", tags=["keywords"])
 
 keywords = {
     "natural_eye_colors": [
@@ -63,3 +67,9 @@ def get_keywords(category: str) -> List[str]:
     if normalized_category not in keywords_normalized:
         logger.warning(f"Requested unknown category: {category}")
     return keywords_normalized.get(normalized_category, [])
+
+
+@router.get("/filters/{category}", response_model=List[str])
+def get_allowed_values(category: str):
+    """Fetch allowed values for a given category"""
+    return keywords.get(category.lower(), [])
