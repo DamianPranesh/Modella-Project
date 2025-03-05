@@ -45,6 +45,7 @@ class UserUpdate(BaseModel):
     google_calendar_token: Optional[str] = None  # For Google Calendar access tokens
     google_refresh_token: Optional[str] = None  # For refreshing Calendar token
     auth_Method: Optional[str] = None
+    updated_At: Optional[datetime] = Field(default_factory=lambda: datetime.now(timezone.utc))
     description:Optional[str] = None
     bio: Optional[str] = None
     video_URL: Optional[List[str]] = None
