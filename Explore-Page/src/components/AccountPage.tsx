@@ -10,12 +10,23 @@ import projectImage3 from "../images/Image-22.jpg";
 import projectImage4 from "../images/Image-23.jpg";
 import projectImage5 from "../images/Image-24.jpg";
 import projectImage6 from "../images/Image-25.jpg";
+import ProjectDetailModal from "./ProjectDetailModal";
 
 type Tab = "PROJECTS" | "VIDEOS" | "IMAGES";
 
 // Add type definitions
 type ImageType = string;
 type VideoType = string;
+
+// Add this type definition
+type Project = {
+  name: string;
+  image: string;
+  description: string;
+  tags: string[];
+  minAge: string;
+  maxAge: string;
+};
 
 export function AccountPage({
   toggleSidebar,
@@ -26,11 +37,21 @@ export function AccountPage({
 }) {
   const [activeTab, setActiveTab] = useState<Tab>("PROJECTS");
   const [isProjectPopoverOpen, setIsProjectPopoverOpen] = useState(false);
+  const [isProfilePicturePopoverOpen, setIsProfilePicturePopoverOpen] =
+    useState(false);
   const [projectImage, setProjectImage] = useState<File | null>(null);
+  const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [projectDescription, setProjectDescription] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [minAge, setMinAge] = useState("");
   const [maxAge, setMaxAge] = useState("");
+  const [currentProfilePicture, setCurrentProfilePicture] =
+    useState(CarnageLogo);
+  const [isImagePopoverOpen, setIsImagePopoverOpen] = useState(false);
+  const [imageUpload, setImageUpload] = useState<File | null>(null);
+  const [imageDescription, setImageDescription] = useState("");
+  const [projectName, setProjectName] = useState("");
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   // Array of project images
   const projectImages = [
@@ -64,11 +85,49 @@ export function AccountPage({
     "Lifestyle Modeling",
   ];
 
+  // Add sample project data (in a real app, this would come from your backend)
+  const projects: Project[] = projectImages.map((image, index) => ({
+    name: `Project ${index + 1}`,
+    image: image,
+    description:
+      "This is a sample project description. It showcases our latest work in fashion and modeling.",
+    tags: [
+      "Fashion/Runway Modeling",
+      "Commercial Modeling",
+      "Editorial Modeling",
+    ],
+    minAge: "18",
+    maxAge: "25",
+  }));
+
   // Handle image upload
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setProjectImage(e.target.files[0]);
     }
+  };
+
+  // Handle profile picture upload
+  const handleProfilePictureUpload = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (e.target.files && e.target.files[0]) {
+      setProfilePicture(e.target.files[0]);
+    }
+  };
+
+  // Handle profile picture update
+  const handleUpdateProfilePicture = () => {
+    if (profilePicture) {
+      // In a real app, you would upload the image to a server here
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCurrentProfilePicture(reader.result as string);
+      };
+      reader.readAsDataURL(profilePicture);
+    }
+    setIsProfilePicturePopoverOpen(false);
+    setProfilePicture(null);
   };
 
   // Handle tag selection
@@ -80,21 +139,32 @@ export function AccountPage({
 
   // Handle project submission
   const handlePostProject = () => {
-    // Here you would typically send the project data to a backend
     console.log({
+      name: projectName,
       image: projectImage,
       description: projectDescription,
       tags: selectedTags,
       minAge,
       maxAge,
     });
-    // Reset form and close popover
+    setProjectName("");
     setProjectImage(null);
     setProjectDescription("");
     setSelectedTags([]);
     setMinAge("");
     setMaxAge("");
     setIsProjectPopoverOpen(false);
+  };
+
+  // Add this new handler
+  const handleImagePost = () => {
+    console.log({
+      image: imageUpload,
+      description: imageDescription,
+    });
+    setImageUpload(null);
+    setImageDescription("");
+    setIsImagePopoverOpen(false);
   };
 
   return (
@@ -108,9 +178,12 @@ export function AccountPage({
       </button>
 
       <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-        <div className="w-48 h-48 rounded-full overflow-hidden bg-black flex items-center justify-center">
+        <div
+          className="w-48 h-48 rounded-full overflow-hidden bg-black flex items-center justify-center cursor-pointer hover:opacity-75 transition-opacity"
+          onClick={() => setIsProfilePicturePopoverOpen(true)}
+        >
           <img
-            src={CarnageLogo}
+            src={currentProfilePicture}
             alt="Carnage Logo"
             className="w-full h-full object-cover"
           />
@@ -120,14 +193,17 @@ export function AccountPage({
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-medium">Carnage.lk</h1>
             <div className="flex gap-3">
-              <button className="px-4 py-2 bg-[#DD8560] text-white rounded-full hover:bg-opacity-90 transition-colors hover:scale-105 cursor-pointer">
-                Edit Profile
+              <button
+                onClick={() => setIsImagePopoverOpen(true)}
+                className="px-4 py-2 bg-[#DD8560] text-white rounded-full hover:bg-opacity-90 transition-colors hover:scale-105 cursor-pointer"
+              >
+                Image +
               </button>
               <button
                 onClick={() => setIsProjectPopoverOpen(true)}
                 className="px-4 py-2 bg-[#DD8560] text-white rounded-full hover:bg-opacity-90 transition-colors hover:scale-105 cursor-pointer"
               >
-                Projects +
+                Project +
               </button>
             </div>
           </div>
@@ -175,13 +251,26 @@ export function AccountPage({
               <div className="space-y-4">
                 <div className="mb-4">
                   <label className="block mb-2 text-sm font-medium">
+                    Project Name
+                  </label>
+                  <input
+                    type="text"
+                    value={projectName}
+                    onChange={(e) => setProjectName(e.target.value)}
+                    className="w-full border rounded p-2"
+                    placeholder="Enter project name..."
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label className="block mb-2 text-sm font-medium">
                     Project Image
                   </label>
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handleImageUpload}
-                    className="w-full border rounded p-2"
+                    className="w-full border rounded p-2 cursor-pointer"
                   />
                   {projectImage && (
                     <p className="text-sm text-gray-600 mt-2">
@@ -239,7 +328,7 @@ export function AccountPage({
                     <button
                       key={tag}
                       onClick={() => handleTagToggle(tag)}
-                      className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                      className={`px-3 py-1 rounded-full text-sm transition-colors cursor-pointer ${
                         selectedTags.includes(tag)
                           ? "bg-[#DD8560] text-white"
                           : "bg-gray-200 text-gray-700"
@@ -255,16 +344,149 @@ export function AccountPage({
             <div className="flex justify-end gap-4 mt-6">
               <button
                 onClick={() => setIsProjectPopoverOpen(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition-colors"
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition-colors cursor-pointer"
               >
                 Discard
               </button>
               <button
                 onClick={handlePostProject}
-                className="px-4 py-2 bg-[#DD8560] text-white rounded-full hover:bg-opacity-90 transition-colors"
+                className="px-4 py-2 bg-[#DD8560] text-white rounded-full hover:bg-opacity-90 transition-colors cursor-pointer"
               >
                 Post Project
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Picture Upload Modal */}
+      {isProfilePicturePopoverOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/30 backdrop-blur-md">
+          <div className="bg-white rounded-lg p-6 w-full max-w-3xl relative shadow-xl">
+            <button
+              onClick={() => setIsProfilePicturePopoverOpen(false)}
+              className="absolute top-4 right-4 text-gray-600 hover:text-[#DD8560]"
+            >
+              <X className="w-6 h-6 cursor-pointer" />
+            </button>
+
+            <h2 className="text-2xl font-medium mb-4 text-[#DD8560]">
+              Update Profile Picture
+            </h2>
+
+            <div className="space-y-4">
+              <div className="mb-4">
+                <label className="block mb-2 text-sm font-medium">
+                  Upload Profile Picture
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleProfilePictureUpload}
+                  className="w-full border rounded p-2 cursor-pointer"
+                />
+                {profilePicture && (
+                  <div className="mt-4 flex justify-center">
+                    <img
+                      src={URL.createObjectURL(profilePicture)}
+                      alt="Preview"
+                      className="max-w-64 max-h-64 object-cover rounded"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-4 mt-6">
+              <button
+                onClick={() => {
+                  setIsProfilePicturePopoverOpen(false);
+                  setProfilePicture(null);
+                }}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition-colors cursor-pointer"
+              >
+                Discard
+              </button>
+              <button
+                onClick={handleUpdateProfilePicture}
+                disabled={!profilePicture}
+                className="px-4 py-2 bg-[#DD8560] text-white rounded-full hover:bg-opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Update Image
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add this new Image Upload Popover */}
+      {isImagePopoverOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/30 backdrop-blur-md">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl relative shadow-xl">
+            <button
+              onClick={() => setIsImagePopoverOpen(false)}
+              className="absolute top-4 right-4 text-gray-600 hover:text-[#DD8560] cursor-pointer"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            <h2 className="text-2xl font-medium mb-4 text-[#DD8560]">
+              Upload Image
+            </h2>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block mb-2 text-sm font-medium">
+                  Select Image
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setImageUpload(e.target.files[0]);
+                    }
+                  }}
+                  className="w-full border rounded p-2 cursor-pointer"
+                />
+                {imageUpload && (
+                  <div className="mt-4 flex justify-center">
+                    <img
+                      src={URL.createObjectURL(imageUpload)}
+                      alt="Preview"
+                      className="max-w-64 max-h-64 object-cover rounded"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block mb-2 text-sm font-medium">
+                  Description
+                </label>
+                <textarea
+                  value={imageDescription}
+                  onChange={(e) => setImageDescription(e.target.value)}
+                  className="w-full border rounded p-2 h-24"
+                  placeholder="Add a description for your image..."
+                />
+              </div>
+
+              <div className="flex justify-end gap-4">
+                <button
+                  onClick={() => setIsImagePopoverOpen(false)}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition-colors cursor-pointer"
+                >
+                  Discard
+                </button>
+                <button
+                  onClick={handleImagePost}
+                  disabled={!imageUpload}
+                  className="px-4 py-2 bg-[#DD8560] text-white rounded-full hover:bg-opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  Post Image
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -290,15 +512,16 @@ export function AccountPage({
       </div>
 
       <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-        {activeTab === "PROJECTS" && projectImages.length > 0 ? (
-          projectImages.map((image, index) => (
+        {activeTab === "PROJECTS" && projects.length > 0 ? (
+          projects.map((project, index) => (
             <div
               key={index}
               className="aspect-square rounded-lg overflow-hidden bg-gray-100 hover:scale-105 transition-transform duration-300 cursor-pointer"
+              onClick={() => setSelectedProject(project)}
             >
               <img
-                src={image}
-                alt={`Project ${index + 1}`}
+                src={project.image}
+                alt={project.name}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -339,6 +562,13 @@ export function AccountPage({
           </div>
         )}
       </div>
+
+      {/* Add the ProjectDetailModal */}
+      <ProjectDetailModal
+        isOpen={selectedProject !== null}
+        onClose={() => setSelectedProject(null)}
+        project={selectedProject!}
+      />
     </div>
   );
 }
