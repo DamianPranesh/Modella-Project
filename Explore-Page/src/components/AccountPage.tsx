@@ -98,24 +98,23 @@ export function AccountPage({
 
     fetchUser();
   }, []);
+  const fetchProfilePicture = async () => {
+    try {
+      const response = await fetchData(
+        `files/files/latest?user_id=${user_id}&folder=profile-pic`
+      );
 
-  useEffect(() => {
-    const fetchProfilePicture = async () => {
-      try {
-        const response = await fetchData(
-          `files/files/latest?user_id=${user_id}&folder=profile-pic`
-        );
-
-        if (response && response.s3_url) {
-          setProfilePicture(response.s3_url);
-          // setProfilePicture(`${response.s3_url}?t=${new Date().getTime()}`);
-        }
-      } catch (error) {
-        console.error("Failed to fetch profile picture:", error);
-      } finally {
-        setIsLoading(false);
+      if (response && response.s3_url) {
+        setProfilePicture(response.s3_url);
+        // setProfilePicture(`${response.s3_url}?t=${new Date().getTime()}`);
       }
-    };
+    } catch (error) {
+      console.error("Failed to fetch profile picture:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  useEffect(() => {
     fetchProfilePicture();
   }, []);
 
@@ -178,48 +177,48 @@ export function AccountPage({
   //   setProfilePicture(null);
   // };
 
-  // const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  // const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  // // Handle profile picture file selection
-  // const handleProfilePictureUpload = (
-  //   e: React.ChangeEvent<HTMLInputElement>
-  // ) => {
-  //   if (e.target.files && e.target.files[0]) {
-  //     const file = e.target.files[0];
-  //     setSelectedFile(file);
-  //     setImagePreview(URL.createObjectURL(file)); // Temporary preview
-  //   }
-  // };
+  // Handle profile picture file selection
+  const handleProfilePictureUpload = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      setImagePreview(URL.createObjectURL(file)); // Temporary preview
+    }
+  };
 
-  // // Upload profile picture to backend
-  // const handleUpdateProfilePicture = async () => {
-  //   if (!selectedFile) return;
+  // Upload profile picture to backend
+  const handleUpdateProfilePicture = async () => {
+    if (!selectedFile) return;
 
-  //   const formData = new FormData();
-  //   formData.append("file", selectedFile);
-  //   formData.append("user_id", user_id);
-  //   formData.append("folder", "profile-pic");
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+    formData.append("user_id", user_id);
+    formData.append("folder", "profile-pic");
 
-  //   try {
-  //     const response = await fetchData(`files/upload/`, {
-  //       method: "POST",
-  //       body: formData,
-  //     });
+    try {
+      const response = await fetchData(`files/upload/`, {
+        method: "POST",
+        body: formData,
+      });
 
-  //     if (!response.ok) {
-  //       throw new Error("Failed to upload profile picture");
-  //     }
+      if (!response.ok) {
+        throw new Error("Failed to upload profile picture");
+      }
 
-  //     console.log("Profile picture uploaded successfully!");
-  //     //fetchProfilePicture(); // Refresh to get latest profile picture
-  //     setIsProfilePicturePopoverOpen(false); // Close modal
-  //     setSelectedFile(null);
-  //     setImagePreview(null);
-  //   } catch (error) {
-  //     console.error("Error uploading profile picture:", error);
-  //   }
-  // };
+      console.log("Profile picture uploaded successfully!");
+      fetchProfilePicture(); // Refresh to get latest profile picture
+      setIsProfilePicturePopoverOpen(false); // Close modal
+      setSelectedFile(null);
+      setImagePreview(null);
+    } catch (error) {
+      console.error("Error uploading profile picture:", error);
+    }
+  };
 
   // Handle tag selection
   const handleTagToggle = (tag: string) => {
@@ -451,7 +450,7 @@ export function AccountPage({
       )}
 
       {/* Profile Picture Upload Modal */}
-      {/* {isProfilePicturePopoverOpen && (
+      {isProfilePicturePopoverOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/30 backdrop-blur-md">
           <div className="bg-white rounded-lg p-6 w-full max-w-3xl relative shadow-xl">
             <button
@@ -476,7 +475,7 @@ export function AccountPage({
                   onChange={handleProfilePictureUpload}
                   className="w-full border rounded p-2 cursor-pointer"
                 />
-                {profilePicture && (
+                {/* {profilePicture && (
                   <div className="mt-4 flex justify-center">
                     <img
                       src={profilePicture}
@@ -484,7 +483,7 @@ export function AccountPage({
                       className="max-w-64 max-h-64 object-cover rounded"
                     />
                   </div>
-                )}
+                )} */}
                 {imagePreview && (
                   <div className="mt-4 flex justify-center">
                     <img
@@ -517,7 +516,7 @@ export function AccountPage({
             </div>
           </div>
         </div>
-      )} */}
+      )}
 
       {/* Add this new Image Upload Popover */}
       {isImagePopoverOpen && (

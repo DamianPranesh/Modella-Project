@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import {
   motion,
   useMotionValue,
@@ -16,22 +16,240 @@ import {
   Menu,
 } from "lucide-react";
 
+import { fetchData } from "../api/api";
+
 // Define the props type
 interface SwipeCardsProps {
   toggleSidebar: () => void; // Function to toggle sidebar
   isSidebarOpen: boolean; // State of the sidebar
 }
 
+const fetchRecentReviews = async (userId: string) => {
+  try {
+    const response = await fetchData(`ratings/recent/${userId}`, {
+      method: "GET",
+    });
+    console.log("Fetched reviews:", response);
+    return response;
+  } catch (error) {
+    console.error("Error fetching recent reviews:", error);
+    return [];
+  }
+};
+
+const fetchMatchedUserIds = async (userId: string) => {
+  try {
+    console.log("Fetching matched user IDs for:", userId);
+    const response = await fetchData(
+      `ModellaPreference/brand-Model-preference-matched-ids-by-user-id/${userId}`,
+      {
+        method: "POST",
+        body: JSON.stringify({}), // If your API requires a body, add it here
+      }
+    );
+    console.log("API Response:", response);
+    return response;
+  } catch (error) {
+    console.error("Error fetching matched user IDs:", error);
+    return [];
+  }
+};
+
+// const fetchUserDetails = async (userId: string) => {
+//   return fetchData(`users/${userId}`); // Calls /api/v1/{user_Id}
+// };
+
+// const fetchUserProfileImage = async (userId: string) => {
+//   return fetchData(
+//     `files/urls-for-user-id-and-foldername-with-limits?user_id=${userId}&folder=profile-pic&limit=1`
+//   );
+// };
+
+// const fetchUserTags = async (userId: string) => {
+//   return fetchData(`ModellaTag/tags/models/${userId}`);
+// };
+
+// Fetch user details with error handling
+const fetchUserDetails = async (userId: string) => {
+  try {
+    const data = await fetchData(`users/${userId}`);
+    return data; // Return the user details if the request is successful
+  } catch (error: any) {
+    console.error(
+      `Error fetching user details for ${userId}:`,
+      error.message || error
+    );
+    //throw new Error(`Unable to fetch user details for ${userId}. Please try again later.`);
+  }
+};
+
+// Fetch user profile image with error handling
+const fetchUserProfileImage = async (userId: string) => {
+  try {
+    const data = await fetchData(
+      `files/urls-for-user-id-and-foldername-with-limits?user_id=${userId}&folder=profile-pic&limit=1`
+    );
+    return data; // Return the profile image URL data if successful
+  } catch (error: any) {
+    console.error(
+      `Error fetching profile image for ${userId}:`,
+      error.message || error
+    );
+    //throw new Error(`Unable to fetch profile image for ${userId}. Please try again later.`);
+  }
+};
+
+// Fetch user tags with error handling
+const fetchUserTags = async (userId: string) => {
+  try {
+    const data = await fetchData(`ModellaTag/tags/models/${userId}`);
+    return data; // Return the user tags data if successful
+  } catch (error: any) {
+    console.error(`Error fetching tags for ${userId}:`, error.message || error);
+    //throw new Error(`Unable to fetch tags for ${userId}. Please try again later.`);
+  }
+};
+
 const SwipeCards: React.FC<SwipeCardsProps> = ({
   toggleSidebar,
   isSidebarOpen,
 }) => {
-  const [cards, setCards] = useState<Card[]>(cardData);
+  const [cards, setCards] = useState<Card[]>([]);
+  // const [cards, setCards] = useState<Card[]>(cardData);
   const [currentIndex, setCurrentIndex] = useState(cards.length - 1);
   const [savedCards, setSavedCards] = useState<Card[]>([]);
   const [rejectedCards, setRejectedCards] = useState<Card[]>([]);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [showLegend, setShowLegend] = useState(false);
+
+  const [userIds, setUserIds] = useState<string[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const userId = "brand_67c5b2c43ae5b4ccb85b9a11";
+
+  // useEffect(() => {
+  //   const getMatchedUserIds = async () => {
+  //     setLoading(true);
+  //     const ids = await fetchMatchedUserIds(userId);
+  //     console.log("Fetched ids:", ids);
+  //     setUserIds(ids);
+  //     setLoading(false);
+  //   };
+
+  //   getMatchedUserIds();
+  // }, [userId]);
+
+  // useEffect(() => {
+  //   const loadCards = async () => {
+  //     setLoading(true);
+  //     try {
+  //       // Step 1: Get matched user IDs
+  //       const userIds = await fetchMatchedUserIds(userId);
+  //       console.log("Fetched user IDs:", userIds);
+
+  //       // Step 2: Fetch details for each user
+  //       const cardPromises = userIds.map(async (id: string) => {
+  //         const userDetails = await fetchUserDetails(id);
+  //         const imageResponse = await fetchUserProfileImage(id);
+  //         const userTags = await fetchUserTags(id);
+  //         // Step 3: Fetch reviews for each matched user
+  //         const reviews = await fetchRecentReviews(id);
+  //         // Step 4: Map reviews to testimonials
+  //         const testimonialsData = await Promise.all(
+  //           reviews.map(async (review: any) => {
+  //             const authorDetails = await fetchUserDetails(review.ratedBy_Id);
+  //             const authorName = authorDetails?.name || "Unknown author"; // Handle no name scenario
+  //             return {
+  //               text: review.review || "No review text",
+  //               author: `${authorName}, Reviewer`, // Customizable format
+  //             };
+  //           })
+  //         );
+
+  //         const card = {
+  //           id: userDetails.user_Id,
+  //           name: userDetails.name,
+  //           description: userDetails.description || "No description available.",
+  //           aboutMe: userDetails.bio || "No bio available.",
+  //           imageUrl: imageResponse.length > 0 ? imageResponse[0].s3_url : null, // Extract profile image
+  //           age: userTags.age || "unknown",
+  //           interest: userTags.work_Field || "empty",
+  //           testimonials: testimonialsData,
+  //         };
+
+  //         console.log("Fetched card:", card); // Log each card
+  //         return card;
+  //       });
+
+  //       // Step 3: Resolve all user data and set state
+  //       const cardsData = await Promise.all(cardPromises);
+  //       console.log("All cards fetched:", cardsData);
+  //       setCards(cardsData);
+  //     } catch (error: any) {
+  //       console.error("Error loading cards:", error);
+  //     }
+  //     setLoading(false);
+  //   };
+
+  //   loadCards();
+  // }, [userId]);
+
+  const fetchCardData = async (id: string) => {
+    try {
+      const [userDetails, imageResponse, userTags, reviews] = await Promise.all(
+        [
+          fetchUserDetails(id),
+          fetchUserProfileImage(id),
+          fetchUserTags(id),
+          fetchRecentReviews(id),
+        ]
+      );
+
+      const testimonialsData = await Promise.all(
+        reviews.map(async (review: any) => {
+          const authorDetails = await fetchUserDetails(review.ratedBy_Id);
+          return {
+            text: review.review || "No review text",
+            author: `${authorDetails?.name || "Unknown author"}, Reviewer`,
+          };
+        })
+      );
+
+      return {
+        id: userDetails.user_Id,
+        name: userDetails.name,
+        description: userDetails.description || "No description available.",
+        aboutMe: userDetails.bio || "No bio available.",
+        imageUrl: imageResponse?.[0]?.s3_url || null,
+        age: userTags.age || "unknown",
+        interest: userTags.work_Field || "empty",
+        testimonials: testimonialsData,
+      };
+    } catch (error) {
+      console.error(`Error fetching card data for ${id}:`, error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    const loadCards = async () => {
+      setLoading(true);
+      try {
+        const userIds = await fetchMatchedUserIds(userId);
+        const cardsData = await Promise.all(userIds.map(fetchCardData));
+        const filteredCards = cardsData.filter(Boolean); // Remove null values
+        setCards(filteredCards);
+
+        setCurrentIndex(filteredCards.length - 1);
+        // Log the fetched cards
+        console.log("Loaded Cards:", filteredCards);
+      } catch (error) {
+        console.error("Error loading cards:", error);
+      }
+      setLoading(false);
+    };
+
+    loadCards();
+  }, [userId]); // Dependency array ensures it runs when userId changes
 
   const navigateCards = (direction: "prev" | "next") => {
     if (direction === "prev" && currentIndex > 0) {
