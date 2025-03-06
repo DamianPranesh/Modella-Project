@@ -372,3 +372,61 @@ async def get_files_urls_by_user_folders(
 
     logger.info(f"Retrieved files for user: {user_id}, folder: {folder if folder else 'all folders'}")
     return files
+
+
+async def get_latest_file_by_user_folder(user_id: str, folder: Optional[str] = None):
+    """Retrieve the latest file added by the user to a specific folder."""
+    
+    # Validate user existence
+    if not await _validate_user(user_id):
+        logger.warning(f"File retrieval attempt by non-existent user: {user_id}")
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    pipeline = []
+    
+    # Filtering based on user_id and optional folder
+    match_conditions = [{"uploaded_by": user_id}]
+    
+    if folder and folder in ALLOWED_FOLDERS:
+        match_conditions.append({"folder": folder})
+    
+    pipeline.append({"$match": {"$and": match_conditions}})
+    
+    # Sorting to get the latest file
+    pipeline.append({"$sort": {"uploaded_at": -1}})  # Assuming 'uploaded_at' field exists
+    
+    # Limiting to the most recent file
+    pipeline.append({"$limit": 1})
+    
+    # Projection stage
+    pipeline.append({
+        "$project": {
+            "file_id": 1,
+            "file_name": 1,
+            "folder": 1,
+            "s3_url": 1,
+            "is_private": 1,
+            "uploaded_by": 1,
+            "file_type": 1,
+            "uploaded_at": 1
+        }
+    })
+    
+    # Perform the aggregation
+    latest_file = await file_collection.aggregate(pipeline).to_list(1)
+    
+    if not latest_file:
+        return None  # No file found
+    
+    file = latest_file[0]
+    file_key = f"{file['folder']}/{file['file_id']}_{file['file_name']}"
+    file_type = file.get('file_type', 'application/octet-stream')
+    
+    # Generate presigned URL
+    try:
+        file["s3_url"] = generate_presigned_url(file_key, file_type)
+    except NoCredentialsError:
+        file["s3_url"] = None
+    
+    logger.info(f"Retrieved latest file for user: {user_id}, folder: {folder if folder else 'all folders'}")
+    return file
