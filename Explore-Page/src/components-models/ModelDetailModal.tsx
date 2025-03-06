@@ -14,24 +14,25 @@ import {
 type Model = {
   id: string;
   name: string;
-  age: number;
+  minAge: number;
+  maxAge: number;
   type: string;
   image: string;
-  height: string;
+  minHeight: string;
+  maxHeight: string;
   eyeColor: string;
   bodyType: string;
   skinTone: string;
   gender: string;
-  experience: string;
 };
 
 // Extra data for the enhanced profile
 const additionalModelData = {
-  bio: "Professional model with international experience in fashion shows and editorial work. Passionate about sustainable fashion and lifestyle photography.",
-  location: "New York, NY",
+  bio: "Sri Lanka's No. 1 active and lifestyle brand. Our products are a reflection of the pride we take in our work.",
+  location: "Sri Lanka, CMB",
   profileImages: [
-    "/api/placeholder/800/1000",
-    "/api/placeholder/800/1000",
+    "https://i.imgur.com/3JhCoyw.jpeg",
+    "https://i.imgur.com/XIVOqmT.jpeg",
     "/api/placeholder/800/1000",
   ],
   recentWork: [
@@ -229,7 +230,7 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
                     : "text-gray-500 hover:text-gray-700"
                 }`}
               >
-                Portfolio
+                Business
               </button>
               <button
                 onClick={() => setActiveTab("details")}
@@ -281,7 +282,7 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
                     {/* Social media links */}
                     <div className="bg-gradient-to-r from-gray-50 to-pink-50 rounded-xl p-4 mb-6 shadow-sm">
                       <h3 className="font-semibold text-gray-800 mb-3 text-sm uppercase tracking-wider">
-                        Find Me Online
+                        Find Us Online
                       </h3>
                       <div className="flex flex-wrap gap-3">
                         <a
@@ -324,14 +325,6 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
                           {model.type}
                         </p>
                       </div>
-                      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow">
-                        <h4 className="text-xs uppercase text-gray-500 tracking-wider font-medium mb-3">
-                          Experience
-                        </h4>
-                        <p className="font-semibold text-gray-900">
-                          {model.experience}
-                        </p>
-                      </div>
                     </div>
                   </>
                 )}
@@ -341,17 +334,17 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
                     {/* Model details */}
                     <div className="mb-6">
                       <h3 className="text-xs uppercase tracking-wider text-gray-500 font-medium mb-4">
-                        Model Details
+                        Model Requirements
                       </h3>
                       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
                         <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-x sm:divide-y-0 divide-gray-100">
                           <div className="p-4">
-                            <p className="text-xs text-gray-500 mb-1">Height</p>
-                            <p className="font-semibold">{model.height}</p>
+                            <p className="text-xs text-gray-500 mb-1">Height Range</p>
+                            <p className="font-semibold">{model.minHeight} - {model.maxHeight}</p>
                           </div>
                           <div className="p-4">
-                            <p className="text-xs text-gray-500 mb-1">Age</p>
-                            <p className="font-semibold">{model.age}</p>
+                            <p className="text-xs text-gray-500 mb-1">Age Range</p>
+                            <p className="font-semibold">{model.minAge} - {model.maxAge}</p>
                           </div>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-x sm:divide-y-0 divide-gray-100 border-t border-gray-100">

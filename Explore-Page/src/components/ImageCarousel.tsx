@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Import your images
@@ -16,6 +16,7 @@ const images = [image1, image2, image3, image4, image5];
 export function ImageCarousel() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [direction, setDirection] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Add autoplay functionality
   useEffect(() => {
@@ -87,7 +88,8 @@ export function ImageCarousel() {
                   paginate(-1);
                 }
               }}
-              className="absolute w-[80%] h-full left-1/2 -translate-x-1/2 scale-85"
+              className="absolute w-[80%] h-full left-1/2 -translate-x-1/2 scale-85 cursor-pointer"
+              onClick={() => setIsModalOpen(true)}
             >
               <img
                 src={images[activeIndex] || "/placeholder.svg"}
@@ -152,6 +154,34 @@ export function ImageCarousel() {
           />
         ))}
       </div>
+
+      {/* Image Modal */}
+      {isModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 sm:p-6 overflow-y-auto"
+          style={{ backdropFilter: "blur(8px)" }}
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div className="bg-white w-full max-w-5xl h-[80vh] overflow-hidden rounded-2xl shadow-2xl flex relative my-auto">
+            {/* Close button */}
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-4 right-4 z-20 bg-white/90 rounded-full p-2 hover:bg-white transition-all shadow-lg cursor-pointer"
+            >
+              <X className="w-5 h-5 text-gray-800" />
+            </button>
+
+            {/* Image */}
+            <div className="w-full h-full bg-gray-100 relative">
+              <img
+                src={images[activeIndex] || "/placeholder.svg"}
+                alt={`Slide ${activeIndex + 1}`}
+                className="w-full h-full object-contain"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

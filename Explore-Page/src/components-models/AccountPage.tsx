@@ -4,39 +4,26 @@ import { Menu, X } from "lucide-react";
 import CarnageLogo from "../images/Image-19.png";
 
 // Import your images
-import ProjectDetailModal from "./ProjectDetailModal";
+import projectImage1 from "../images/Image-20.jpg";
+import projectImage2 from "../images/Image-21.jpg";
+import projectImage3 from "../images/Image-22.jpg";
+import projectImage4 from "../images/Image-23.jpg";
+import projectImage5 from "../images/Image-24.jpg";
+import projectImage6 from "../images/Image-25.jpg";
 
-type Tab = "PROJECTS" | "VIDEOS" | "IMAGES";
+type Tab = "IMAGES" | "VIDEOS";
 
 // Add type definitions
-type ImageType = {
+type ImageType = string;
+type VideoType = string;
+
+// Add new type for media item
+type MediaItem = {
   url: string;
   description: string;
-};
-type VideoType = {
-  url: string;
-  description: string;
+  type: 'image' | 'video';
 };
 
-// Add this type definition
-type Project = {
-  name: string;
-  image: string;
-  description: string;
-  tags: string[];
-  minAge: string;
-  maxAge: string;
-};
-
-/**
- * AccountPage Component
- * 
- * A comprehensive profile page component that allows users to:
- * - View and update their profile picture
- * - Upload and manage projects, images, and videos
- * - View their content in a grid layout
- * - Interact with media through a modal view
- */
 export function AccountPage({
   toggleSidebar,
   isSidebarOpen,
@@ -44,66 +31,29 @@ export function AccountPage({
   toggleSidebar: () => void;
   isSidebarOpen: boolean;
 }) {
-  // State management for UI controls and data
-  const [activeTab, setActiveTab] = useState<Tab>("PROJECTS");
-  const [isProjectPopoverOpen, setIsProjectPopoverOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<Tab>("IMAGES");
   const [isProfilePicturePopoverOpen, setIsProfilePicturePopoverOpen] =
     useState(false);
-  const [projectImage, setProjectImage] = useState<File | null>(null);
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
-  const [projectDescription, setProjectDescription] = useState("");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [minAge, setMinAge] = useState("");
-  const [maxAge, setMaxAge] = useState("");
   const [currentProfilePicture, setCurrentProfilePicture] =
     useState(CarnageLogo);
   const [isImagePopoverOpen, setIsImagePopoverOpen] = useState(false);
   const [imageUpload, setImageUpload] = useState<File | null>(null);
   const [imageDescription, setImageDescription] = useState("");
-  const [projectName, setProjectName] = useState("");
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isVideoPopoverOpen, setIsVideoPopoverOpen] = useState(false);
   const [videoUpload, setVideoUpload] = useState<File | null>(null);
   const [videoDescription, setVideoDescription] = useState("");
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [images, setImages] = useState<ImageType[]>([]);
-  const [videos, setVideos] = useState<VideoType[]>([]);
-  const [selectedImage, setSelectedImage] = useState<ImageType | null>(null);
-  const [selectedVideo, setSelectedVideo] = useState<VideoType | null>(null);
+  const [uploadedImages, setUploadedImages] = useState<MediaItem[]>([]);
+  const [uploadedVideos, setUploadedVideos] = useState<MediaItem[]>([]);
+  const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
+  
 
-  // Tags for modeling categories
-  const modelingTags = [
-    "Fashion/Runway Modeling",
-    "Commercial Modeling",
-    "Beauty Modeling",
-    "Lingerie/Swimsuit Modeling",
-    "Fitness Modeling",
-    "Plus-Size Modeling",
-    "Editorial Modeling",
-    "Child Modeling",
-    "Parts Modeling",
-    "Catalog Modeling",
-    "Runway Modeling",
-    "Commercial Print Modeling",
-    "Virtual Modeling",
-    "Lifestyle Modeling",
-  ];
+  // Explicitly type the arrays
+  const images: ImageType[] = []; // Add image URLs here if available
+  const videos: VideoType[] = []; // Add video URLs here if available
 
-  /**
-   * Handles image file selection for project upload
-   * @param e - Change event from file input
-   */
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setProjectImage(e.target.files[0]);
-    }
-  };
-
-  /**
-   * Handles profile picture file selection
-   * @param e - Change event from file input
-   */
+  // Handle profile picture upload
   const handleProfilePictureUpload = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -112,10 +62,7 @@ export function AccountPage({
     }
   };
 
-  /**
-   * Updates the profile picture with the selected image
-   * In a real app, this would upload to a server
-   */
+  // Handle profile picture update
   const handleUpdateProfilePicture = () => {
     if (profilePicture) {
       // In a real app, you would upload the image to a server here
@@ -129,117 +76,38 @@ export function AccountPage({
     setProfilePicture(null);
   };
 
-  /**
-   * Toggles the selection state of a modeling tag
-   * @param tag - The tag to toggle
-   */
-  const handleTagToggle = (tag: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    );
-  };
-
-  /**
-   * Handles the submission of a new project
-   * Creates a new project with the selected image and details
-   */
-  const handlePostProject = () => {
-    if (projectImage && projectName) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const newProject: Project = {
-          name: projectName,
-          image: reader.result as string,
-          description: projectDescription,
-          tags: selectedTags,
-          minAge,
-          maxAge,
-        };
-        setProjects([...projects, newProject]);
-      };
-      reader.readAsDataURL(projectImage);
-    }
-    setProjectName("");
-    setProjectImage(null);
-    setProjectDescription("");
-    setSelectedTags([]);
-    setMinAge("");
-    setMaxAge("");
-    setIsProjectPopoverOpen(false);
-  };
-
-  /**
-   * Handles the submission of a new image
-   * Adds the image to the images array with its description
-   */
+  // Add this new handler
   const handleImagePost = () => {
     if (imageUpload) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImages([...images, {
-          url: reader.result as string,
-          description: imageDescription
-        }]);
-      };
-      reader.readAsDataURL(imageUpload);
-    }
-    setImageUpload(null);
-    setImageDescription("");
-    setIsImagePopoverOpen(false);
-  };
-
-  /**
-   * Handles video file selection
-   * @param e - Change event from file input
-   */
-  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setVideoUpload(e.target.files[0]);
+      const imageUrl = URL.createObjectURL(imageUpload);
+      setUploadedImages(prev => [...prev, { url: imageUrl, description: imageDescription, type: 'image' }]);
+      setImageUpload(null);
+      setImageDescription("");
+      setIsImagePopoverOpen(false);
     }
   };
 
-  /**
-   * Handles the submission of a new video
-   * Adds the video to the videos array with its description
-   */
+  // Add this new handler
   const handleVideoPost = () => {
     if (videoUpload) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setVideos([...videos, {
-          url: reader.result as string,
-          description: videoDescription
-        }]);
-      };
-      reader.readAsDataURL(videoUpload);
+      const videoUrl = URL.createObjectURL(videoUpload);
+      setUploadedVideos(prev => [...prev, { url: videoUrl, description: videoDescription, type: 'video' }]);
+      setVideoUpload(null);
+      setVideoDescription("");
+      setIsVideoPopoverOpen(false);
     }
-    setVideoUpload(null);
-    setVideoDescription("");
-    setIsVideoPopoverOpen(false);
   };
 
-  /**
-   * Handles clicking on media items (images or videos)
-   * Opens the media modal with the selected content
-   * @param media - The selected media item
-   * @param type - The type of media ('image' or 'video')
-   */
-  const handleMediaClick = (media: ImageType | VideoType, type: 'image' | 'video') => {
-    if (type === 'image') {
-      setSelectedImage(media);
-    } else {
-      setSelectedVideo(media);
-    }
+  // Add new handler for media click
+  const handleMediaClick = (media: MediaItem) => {
+    setSelectedMedia(media);
     setIsMediaModalOpen(true);
   };
 
-  /**
-   * Closes the media modal and resets selected media
-   */
+  // Add new handler for closing media modal
   const handleCloseMediaModal = () => {
     setIsMediaModalOpen(false);
-    setSelectedImage(null);
-    setSelectedVideo(null);
+    setSelectedMedia(null);
   };
 
   return (
@@ -266,14 +134,8 @@ export function AccountPage({
 
         <div className="flex-1">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-medium">Carnage.lk</h1>
+            <h1 className="text-2xl font-medium">Model Name</h1>
             <div className="flex gap-3">
-              <button
-                onClick={() => setIsProjectPopoverOpen(true)}
-                className="px-4 py-2 bg-[#DD8560] text-white rounded-full hover:bg-opacity-90 transition-colors hover:scale-105 cursor-pointer"
-              >
-                Project +
-              </button>
               <button
                 onClick={() => setIsImagePopoverOpen(true)}
                 className="px-4 py-2 bg-[#DD8560] text-white rounded-full hover:bg-opacity-90 transition-colors hover:scale-105 cursor-pointer"
@@ -291,154 +153,21 @@ export function AccountPage({
 
           <div className="flex gap-8 mb-6">
             <div className="text-center md:text-left hover:text-[#DD8560] transition-colors cursor-pointer">
-              <span className="font-medium">{projects.length}</span> Projects
+              <span className="font-medium">{uploadedImages.length}</span> Images
             </div>
             <div className="text-center md:text-left hover:text-[#DD8560] transition-colors cursor-pointer">
-              <span className="font-medium">{images.length}</span> Images
-            </div>
-            <div className="text-center md:text-left hover:text-[#DD8560] transition-colors cursor-pointer">
-              <span className="font-medium">{videos.length}</span> Videos
+              <span className="font-medium">{uploadedVideos.length}</span> Videos
             </div>
           </div>
 
           <div className="mb-6">
-            <h2 className="text-xl font-medium mb-2">CARNAGE</h2>
+            <h2 className="text-xl font-medium mb-2">Name</h2>
             <p className="text-gray-600">
-              Step into style with Carnage - Sri Lanka's #1 active and lifestyle
-              brand, crafted for fashion models who demand comfort and
-              versatility. From oversized tees and premium joggers to leggings
-              and biker shorts, our high-quality pieces keep you runway-ready
-              every day. Elevate your look and own the spotlight with Carnage.
+             Bringing style to life with every shot. Passionate, versatile, and always on trend.
             </p>
           </div>
         </div>
       </div>
-
-      {isProjectPopoverOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/30 backdrop-blur-md">
-          <div className="bg-white rounded-lg p-6 w-full max-w-3xl relative shadow-xl">
-            <button
-              onClick={() => setIsProjectPopoverOpen(false)}
-              className="absolute top-4 right-4 text-gray-600 hover:text-[#DD8560]"
-            >
-              <X className="w-6 h-6" />
-            </button>
-
-            <h2 className="text-2xl font-medium mb-4 text-[#DD8560]">
-              Upload Project
-            </h2>
-
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="mb-4">
-                  <label className="block mb-2 text-sm font-medium">
-                    Project Name
-                  </label>
-                  <input
-                    type="text"
-                    value={projectName}
-                    onChange={(e) => setProjectName(e.target.value)}
-                    className="w-full border rounded p-2"
-                    placeholder="Enter project name..."
-                  />
-                </div>
-
-                <div className="mb-4">
-                  <label className="block mb-2 text-sm font-medium">
-                    Project Image
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="w-full border rounded p-2 cursor-pointer"
-                  />
-                  {projectImage && (
-                    <p className="text-sm text-gray-600 mt-2">
-                      {projectImage.name}
-                    </p>
-                  )}
-                </div>
-
-                <div className="mb-4">
-                  <label className="block mb-2 text-sm font-medium">
-                    Description
-                  </label>
-                  <textarea
-                    value={projectDescription}
-                    onChange={(e) => setProjectDescription(e.target.value)}
-                    className="w-full border rounded p-2 h-24"
-                    placeholder="Describe your project..."
-                  />
-                </div>
-
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <label className="block mb-2 text-sm font-medium">
-                      Min Age
-                    </label>
-                    <input
-                      type="number"
-                      value={minAge}
-                      onChange={(e) => setMinAge(e.target.value)}
-                      className="w-full border rounded p-2"
-                      placeholder="Min Age"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label className="block mb-2 text-sm font-medium">
-                      Max Age
-                    </label>
-                    <input
-                      type="number"
-                      value={maxAge}
-                      onChange={(e) => setMaxAge(e.target.value)}
-                      className="w-full border rounded p-2"
-                      placeholder="Max Age"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block mb-2 text-sm font-medium">
-                  Modeling Categories
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {modelingTags.map((tag) => (
-                    <button
-                      key={tag}
-                      onClick={() => handleTagToggle(tag)}
-                      className={`px-3 py-1 rounded-full text-sm transition-colors cursor-pointer ${
-                        selectedTags.includes(tag)
-                          ? "bg-[#DD8560] text-white"
-                          : "bg-gray-200 text-gray-700"
-                      }`}
-                    >
-                      {tag}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-4 mt-6">
-              <button
-                onClick={() => setIsProjectPopoverOpen(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition-colors cursor-pointer"
-              >
-                Discard
-              </button>
-              <button
-                onClick={handlePostProject}
-                className="px-4 py-2 bg-[#DD8560] text-white rounded-full hover:bg-opacity-90 transition-colors cursor-pointer"
-              >
-                Post Project
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Profile Picture Upload Modal */}
       {isProfilePicturePopoverOpen && (
@@ -573,7 +302,7 @@ export function AccountPage({
         </div>
       )}
 
-      {/* Add Video Upload Popover */}
+      {/* Add this new Video Upload Popover */}
       {isVideoPopoverOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/30 backdrop-blur-md">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl relative shadow-xl">
@@ -596,7 +325,11 @@ export function AccountPage({
                 <input
                   type="file"
                   accept="video/*"
-                  onChange={handleVideoUpload}
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setVideoUpload(e.target.files[0]);
+                    }
+                  }}
                   className="w-full border rounded p-2 cursor-pointer"
                 />
                 {videoUpload && (
@@ -644,7 +377,7 @@ export function AccountPage({
 
       <div className="border-t mt-8">
         <div className="flex justify-center gap-8 mt-4">
-          {(["PROJECTS", "IMAGES", "VIDEOS"] as Tab[]).map((tab) => (
+          {(["IMAGES", "VIDEOS"] as Tab[]).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -662,26 +395,12 @@ export function AccountPage({
       </div>
 
       <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-        {activeTab === "PROJECTS" && projects.length > 0 ? (
-          projects.map((project, index) => (
+        {activeTab === "IMAGES" && uploadedImages.length > 0 ? (
+          uploadedImages.map((image, index) => (
             <div
               key={index}
               className="aspect-square rounded-lg overflow-hidden bg-gray-100 hover:scale-105 transition-transform duration-300 cursor-pointer"
-              onClick={() => setSelectedProject(project)}
-            >
-              <img
-                src={project.image}
-                alt={project.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          ))
-        ) : activeTab === "IMAGES" && images.length > 0 ? (
-          images.map((image, index) => (
-            <div
-              key={index}
-              className="aspect-square rounded-lg overflow-hidden bg-gray-100 hover:scale-105 transition-transform duration-300 cursor-pointer"
-              onClick={() => handleMediaClick(image, 'image')}
+              onClick={() => handleMediaClick(image)}
             >
               <img
                 src={image.url}
@@ -690,12 +409,12 @@ export function AccountPage({
               />
             </div>
           ))
-        ) : activeTab === "VIDEOS" && videos.length > 0 ? (
-          videos.map((video, index) => (
+        ) : activeTab === "VIDEOS" && uploadedVideos.length > 0 ? (
+          uploadedVideos.map((video, index) => (
             <div
               key={index}
               className="aspect-square rounded-lg overflow-hidden bg-gray-100 hover:scale-105 transition-transform duration-300 cursor-pointer"
-              onClick={() => handleMediaClick(video, 'video')}
+              onClick={() => handleMediaClick(video)}
             >
               <video
                 src={video.url}
@@ -708,22 +427,13 @@ export function AccountPage({
           <div className="col-span-full text-center text-gray-600">
             {activeTab === "IMAGES"
               ? "No Images posted"
-              : activeTab === "VIDEOS"
-              ? "No Videos found"
-              : "No Projects available"}
+              : "No Videos found"}
           </div>
         )}
       </div>
 
-      {/* Project Detail Modal */}
-      <ProjectDetailModal
-        isOpen={selectedProject !== null}
-        onClose={() => setSelectedProject(null)}
-        project={selectedProject!}
-      />
-
       {/* Media Detail Modal */}
-      {isMediaModalOpen && (
+      {isMediaModalOpen && selectedMedia && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 sm:p-6 overflow-y-auto"
           style={{ backdropFilter: "blur(8px)" }}
@@ -742,19 +452,19 @@ export function AccountPage({
 
             {/* Media column - larger */}
             <div className="w-2/3 h-full bg-gray-100 relative">
-              {selectedVideo ? (
+              {selectedMedia.type === 'video' ? (
                 <video
-                  src={selectedVideo.url}
+                  src={selectedMedia.url}
                   controls
                   className="w-full h-full object-cover"
                 />
-              ) : selectedImage ? (
+              ) : (
                 <img
-                  src={selectedImage.url}
+                  src={selectedMedia.url}
                   alt="Selected media"
                   className="w-full h-full object-cover"
                 />
-              ) : null}
+              )}
             </div>
 
             {/* Details column - smaller */}
@@ -765,7 +475,7 @@ export function AccountPage({
                   Description
                 </h3>
                 <p className="text-gray-700 leading-relaxed">
-                  {selectedImage?.description || selectedVideo?.description || "No description provided"}
+                  {selectedMedia.description || "No description provided"}
                 </p>
               </div>
             </div>
