@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, MoreVertical, Paperclip } from 'lucide-react';
+import { ReportModal } from './ReportModal';
 
 interface Message {
   id: string;
@@ -9,6 +10,20 @@ interface Message {
   senderName: string;
   senderAvatar: string;
   type: 'text' | 'document' | 'image';
+  fileName?: string;
+}
+
+// Add new interface for API response
+interface MessageResponse {
+  id: string;
+  content: string;
+  timestamp: string;
+  sender: {
+    id: string;
+    name: string;
+    avatar: string;
+  };
+  messageType: 'text' | 'document' | 'image';
   fileName?: string;
 }
 
@@ -32,6 +47,7 @@ export function ChatPage({ selectedChat, currentUserId, onMessageSent, onRemoveC
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState<{
     show: boolean;
     action: RemoveAction | null;
@@ -122,14 +138,16 @@ export function ChatPage({ selectedChat, currentUserId, onMessageSent, onRemoveC
   };
 
   const handleRemoveAction = (action: RemoveAction) => {
+    if (action === 'unmatch_and_report') {
+      setShowReportModal(true);
+      setShowDropdown(false);
+      return;
+    }
+
     const confirmationMessages = {
       unmatch: {
         title: 'Confirm Unmatch',
         message: 'Are you sure you want to unmatch with this person? This action cannot be undone.'
-      },
-      unmatch_and_report: {
-        title: 'Confirm Unmatch & Report',
-        message: 'Are you sure you want to unmatch and report this person? This action cannot be undone.'
       },
       delete: {
         title: 'Clear Chat History',
@@ -144,6 +162,15 @@ export function ChatPage({ selectedChat, currentUserId, onMessageSent, onRemoveC
       message: confirmationMessages[action].message
     });
     setShowDropdown(false);
+  };
+
+  const handleReport = (reason: string) => {
+    if (selectedChat) {
+      // Here you would typically make an API call to report the user
+      console.log(`Reporting user ${selectedChat.id} for reason: ${reason}`);
+      onRemoveChat(selectedChat.id, 'unmatch_and_report');
+      setShowReportModal(false);
+    }
   };
 
   const handleConfirmAction = () => {
@@ -161,6 +188,52 @@ export function ChatPage({ selectedChat, currentUserId, onMessageSent, onRemoveC
   const handleImageClick = (imageUrl: string) => {
     setSelectedImage(imageUrl);
   };
+
+  // Add function to handle incoming messages
+  const handleIncomingMessage = (messageData: MessageResponse) => {
+    const newMessage: Message = {
+      id: messageData.id,
+      content: messageData.content,
+      timestamp: new Date(messageData.timestamp),
+      senderId: messageData.sender.id,
+      senderName: messageData.sender.name,
+      senderAvatar: messageData.sender.avatar,
+      type: messageData.messageType,
+      fileName: messageData.fileName
+    };
+
+    setMessages(prevMessages => [...prevMessages, newMessage]);
+  };
+
+  // Example of how to fetch messages
+  useEffect(() => {
+    if (selectedChat?.id) {
+      // Example API call
+      const fetchMessages = async () => {
+        try {
+          const response = await fetch(`/api/messages/${selectedChat.id}`);
+          const data: MessageResponse[] = await response.json();
+          
+          const formattedMessages = data.map(msg => ({
+            id: msg.id,
+            content: msg.content,
+            timestamp: new Date(msg.timestamp),
+            senderId: msg.sender.id,
+            senderName: msg.sender.name,
+            senderAvatar: msg.sender.avatar,
+            type: msg.messageType,
+            fileName: msg.fileName
+          }));
+
+          setMessages(formattedMessages);
+        } catch (error) {
+          console.error('Error fetching messages:', error);
+        }
+      };
+
+      fetchMessages();
+    }
+  }, [selectedChat?.id]);
 
   if (!selectedChat) {
     return (
@@ -187,8 +260,8 @@ export function ChatPage({ selectedChat, currentUserId, onMessageSent, onRemoveC
       )}
 
       {showConfirmation.show && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4 shadow-xl">
             <h3 className="text-lg font-semibold text-black mb-2">
               {showConfirmation.title}
             </h3>
@@ -205,7 +278,7 @@ export function ChatPage({ selectedChat, currentUserId, onMessageSent, onRemoveC
               </button>
               <button
                 onClick={handleConfirmAction}
-                className="px-4 py-2 bg-white text-black rounded-lg hover:bg-gray-50 text-sm border border-gray-300"
+                className="px-4 py-2 bg-white text-[#DD8560] rounded-lg hover:bg-gray-50 text-sm border border-gray-300"
                 style={{ backgroundColor: 'white' }}
               >
                 Confirm
@@ -213,6 +286,14 @@ export function ChatPage({ selectedChat, currentUserId, onMessageSent, onRemoveC
             </div>
           </div>
         </div>
+      )}
+
+      {showReportModal && (
+        <ReportModal
+          isOpen={showReportModal}
+          onClose={() => setShowReportModal(false)}
+          onReport={handleReport}
+        />
       )}
 
       {/* Chat Header */}
@@ -255,14 +336,14 @@ export function ChatPage({ selectedChat, currentUserId, onMessageSent, onRemoveC
               </button>
               <button
                 onClick={() => handleRemoveAction('unmatch_and_report')}
-                className="w-full text-left px-4 py-2 hover:bg-gray-50 text-black text-sm border-t border-gray-200 bg-white"
+                className="w-full text-left px-4 py-2 hover:bg-gray-50 text-black text-sm border-t border-gray-200 bg-black"
                 style={{ backgroundColor: 'white' }}
               >
                 Unmatch & Report
               </button>
               <button
                 onClick={() => handleRemoveAction('delete')}
-                className="w-full text-left px-4 py-2 hover:bg-gray-50 text-red-600 text-sm border-t border-gray-200 bg-white"
+                className="w-full text-left px-4 py-2 hover:bg-white text-red-600 text-sm border-t border-gray-200 bg-white"
                 style={{ backgroundColor: 'white' }}
               >
                 Clear Chat History
@@ -273,7 +354,7 @@ export function ChatPage({ selectedChat, currentUserId, onMessageSent, onRemoveC
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-8 space-y-8 min-h-[calc(100vh-100px)]">
+      <div className="flex-1 overflow-y-auto p-8 space-y-8 min-h-[calc(100vh-100px)] scrollbar-thin scrollbar-thumb-[#DD8560] scrollbar-track-gray-100 hover:scrollbar-thumb-[#c77754]">
         {messages.map((message) => (
           <div
             key={message.id}
