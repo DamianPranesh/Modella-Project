@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
+import { fetchData } from "../api/api";
 
 import CarnageLogo from "../images/Image-19.png";
 
@@ -40,7 +41,7 @@ export function AccountPage({
   const [isProfilePicturePopoverOpen, setIsProfilePicturePopoverOpen] =
     useState(false);
   const [projectImage, setProjectImage] = useState<File | null>(null);
-  const [profilePicture, setProfilePicture] = useState<File | null>(null);
+
   const [projectDescription, setProjectDescription] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [minAge, setMinAge] = useState("");
@@ -52,6 +53,71 @@ export function AccountPage({
   const [imageDescription, setImageDescription] = useState("");
   const [projectName, setProjectName] = useState("");
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+
+  const user_id = "brand_67c5b2c43ae5b4ccb85b9a11";
+
+  const [modelingTags, setModelingTags] = useState<string[]>([]);
+
+  const [user, setUser] = useState<{ name: string; bio: string | null }>({
+    name: "",
+    bio: null,
+  });
+
+  // const [profilePicture, setProfilePicture] = useState<File | null>(null);
+  const [profilePicture, setProfilePicture] = useState<string | null>(
+    CarnageLogo
+  );
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchModelingTags = async () => {
+      try {
+        const tags = await fetchData("keywords/filters/work_fields");
+        console.log("Fetched modeling tags:", tags);
+        setModelingTags(tags);
+      } catch (error) {
+        console.error("Failed to fetch modeling tags:", error);
+      }
+    };
+
+    fetchModelingTags();
+  }, []);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const userData = await fetchData(`users/${user_id}`);
+        setUser({
+          name: userData.name,
+          bio: userData.bio,
+        });
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    const fetchProfilePicture = async () => {
+      try {
+        const response = await fetchData(
+          `files/files/latest?user_id=${user_id}&folder=profile-pic`
+        );
+
+        if (response && response.s3_url) {
+          setProfilePicture(response.s3_url);
+          // setProfilePicture(`${response.s3_url}?t=${new Date().getTime()}`);
+        }
+      } catch (error) {
+        console.error("Failed to fetch profile picture:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProfilePicture();
+  }, []);
 
   // Array of project images
   const projectImages = [
@@ -66,24 +132,6 @@ export function AccountPage({
   // Explicitly type the arrays
   const images: ImageType[] = []; // Add image URLs here if available
   const videos: VideoType[] = []; // Add video URLs here if available
-
-  // Tags for modeling categories
-  const modelingTags = [
-    "Fashion/Runway Modeling",
-    "Commercial Modeling",
-    "Beauty Modeling",
-    "Lingerie/Swimsuit Modeling",
-    "Fitness Modeling",
-    "Plus-Size Modeling",
-    "Editorial Modeling",
-    "Child Modeling",
-    "Parts Modeling",
-    "Catalog Modeling",
-    "Runway Modeling",
-    "Commercial Print Modeling",
-    "Virtual Modeling",
-    "Lifestyle Modeling",
-  ];
 
   // Add sample project data (in a real app, this would come from your backend)
   const projects: Project[] = projectImages.map((image, index) => ({
@@ -107,28 +155,71 @@ export function AccountPage({
     }
   };
 
-  // Handle profile picture upload
-  const handleProfilePictureUpload = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    if (e.target.files && e.target.files[0]) {
-      setProfilePicture(e.target.files[0]);
-    }
-  };
+  // // Handle profile picture upload
+  // const handleProfilePictureUpload = (
+  //   e: React.ChangeEvent<HTMLInputElement>
+  // ) => {
+  //   if (e.target.files && e.target.files[0]) {
+  //     setProfilePicture(e.target.files[0]);
+  //   }
+  // };
 
-  // Handle profile picture update
-  const handleUpdateProfilePicture = () => {
-    if (profilePicture) {
-      // In a real app, you would upload the image to a server here
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setCurrentProfilePicture(reader.result as string);
-      };
-      reader.readAsDataURL(profilePicture);
-    }
-    setIsProfilePicturePopoverOpen(false);
-    setProfilePicture(null);
-  };
+  // // Handle profile picture update
+  // const handleUpdateProfilePicture = () => {
+  //   if (profilePicture) {
+  //     // In a real app, you would upload the image to a server here
+  //     const reader = new FileReader();
+  //     reader.onloadend = () => {
+  //       setCurrentProfilePicture(reader.result as string);
+  //     };
+  //     reader.readAsDataURL(profilePicture);
+  //   }
+  //   setIsProfilePicturePopoverOpen(false);
+  //   setProfilePicture(null);
+  // };
+
+  // const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  // const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  // // Handle profile picture file selection
+  // const handleProfilePictureUpload = (
+  //   e: React.ChangeEvent<HTMLInputElement>
+  // ) => {
+  //   if (e.target.files && e.target.files[0]) {
+  //     const file = e.target.files[0];
+  //     setSelectedFile(file);
+  //     setImagePreview(URL.createObjectURL(file)); // Temporary preview
+  //   }
+  // };
+
+  // // Upload profile picture to backend
+  // const handleUpdateProfilePicture = async () => {
+  //   if (!selectedFile) return;
+
+  //   const formData = new FormData();
+  //   formData.append("file", selectedFile);
+  //   formData.append("user_id", user_id);
+  //   formData.append("folder", "profile-pic");
+
+  //   try {
+  //     const response = await fetchData(`files/upload/`, {
+  //       method: "POST",
+  //       body: formData,
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error("Failed to upload profile picture");
+  //     }
+
+  //     console.log("Profile picture uploaded successfully!");
+  //     //fetchProfilePicture(); // Refresh to get latest profile picture
+  //     setIsProfilePicturePopoverOpen(false); // Close modal
+  //     setSelectedFile(null);
+  //     setImagePreview(null);
+  //   } catch (error) {
+  //     console.error("Error uploading profile picture:", error);
+  //   }
+  // };
 
   // Handle tag selection
   const handleTagToggle = (tag: string) => {
@@ -182,16 +273,22 @@ export function AccountPage({
           className="w-48 h-48 rounded-full overflow-hidden bg-black flex items-center justify-center cursor-pointer hover:opacity-75 transition-opacity"
           onClick={() => setIsProfilePicturePopoverOpen(true)}
         >
-          <img
-            src={currentProfilePicture}
-            alt="Carnage Logo"
-            className="w-full h-full object-cover"
-          />
+          {isLoading ? (
+            <p className="text-gray-500">Loading...</p> // Show loading text while fetching
+          ) : profilePicture ? (
+            <img
+              src={profilePicture}
+              alt="Profile Picture"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <p className="text-gray-500">No Image</p> // Show fallback text if no image is available
+          )}
         </div>
 
         <div className="flex-1">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-medium">Carnage.lk</h1>
+            <h1 className="text-2xl font-medium">{user.name}</h1>
             <div className="flex gap-3">
               <button
                 onClick={() => setIsImagePopoverOpen(true)}
@@ -221,14 +318,8 @@ export function AccountPage({
           </div>
 
           <div className="mb-6">
-            <h2 className="text-xl font-medium mb-2">CARNAGE</h2>
-            <p className="text-gray-600">
-              Step into style with Carnage - Sri Lanka's #1 active and lifestyle
-              brand, crafted for fashion models who demand comfort and
-              versatility. From oversized tees and premium joggers to leggings
-              and biker shorts, our high-quality pieces keep you runway-ready
-              every day. Elevate your look and own the spotlight with Carnage.
-            </p>
+            <h2 className="text-xl font-medium mb-2">{user.name}</h2>
+            <p className="text-gray-600">{user.bio || "No bio available"}</p>
           </div>
         </div>
       </div>
@@ -360,7 +451,7 @@ export function AccountPage({
       )}
 
       {/* Profile Picture Upload Modal */}
-      {isProfilePicturePopoverOpen && (
+      {/* {isProfilePicturePopoverOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/30 backdrop-blur-md">
           <div className="bg-white rounded-lg p-6 w-full max-w-3xl relative shadow-xl">
             <button
@@ -388,7 +479,16 @@ export function AccountPage({
                 {profilePicture && (
                   <div className="mt-4 flex justify-center">
                     <img
-                      src={URL.createObjectURL(profilePicture)}
+                      src={profilePicture}
+                      alt="Preview"
+                      className="max-w-64 max-h-64 object-cover rounded"
+                    />
+                  </div>
+                )}
+                {imagePreview && (
+                  <div className="mt-4 flex justify-center">
+                    <img
+                      src={imagePreview}
                       alt="Preview"
                       className="max-w-64 max-h-64 object-cover rounded"
                     />
@@ -409,7 +509,7 @@ export function AccountPage({
               </button>
               <button
                 onClick={handleUpdateProfilePicture}
-                disabled={!profilePicture}
+                disabled={!selectedFile}
                 className="px-4 py-2 bg-[#DD8560] text-white rounded-full hover:bg-opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 Update Image
@@ -417,7 +517,7 @@ export function AccountPage({
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Add this new Image Upload Popover */}
       {isImagePopoverOpen && (
