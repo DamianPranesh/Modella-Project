@@ -9,15 +9,22 @@ import { fetchData } from "../api/api";
 type Model = {
   id: string;
   name: string;
+  bio: string;
   age: number;
   type: string[];
-  image: string;
+  image: string[];
+  socialUrls: string[];
   height: string;
   eyeColor: string;
   bodyType: string;
   skinTone: string;
   gender: string;
   experience: string;
+  location: string;
+  bust: string;
+  waist: string;
+  hips: string;
+  shoeSize: string;
 };
 
 const userId = "brand_67c5b2c43ae5b4ccb85b9a11";
@@ -82,7 +89,7 @@ export function SavedList({
         for (let id of savedUserIds) {
           // Fetch basic user data
           const userResponse = await fetchData(`users/${id}`);
-          const { user_Id, name } = userResponse;
+          const { user_Id, name, bio, social_Media_URL } = userResponse;
 
           // Fetch additional model tag data from ModellaTag endpoint
           const tagResponse = await fetchData(`ModellaTag/tags/models/${id}`);
@@ -90,23 +97,37 @@ export function SavedList({
 
           // Fetch the profile image URL
           const fileUrlResponse = await fetchData(
-            `files/urls-for-user-id-and-foldername-with-limits?user_id=${id}&folder=profile-pic&limit=1`
+            `files/urls-for-user-id-and-foldername-with-limits?user_id=${id}&folder=profile-pic&limit=4`
           );
-          const profileImage = fileUrlResponse && fileUrlResponse[0]?.s3_url;
+          // const profileImage = fileUrlResponse && fileUrlResponse[0]?.s3_url;
+          const profileImage = Array.isArray(fileUrlResponse)
+            ? fileUrlResponse.map((file) => file.s3_url)
+            : [];
 
           // Step 3: Create a model object and add it to the newModels array
           newModels.push({
             id: user_Id,
             name: name,
+            bio: bio,
             age: modelTag.age || 0,
             type: modelTag.work_Field || "Unknown",
             image: profileImage || "",
-            height: modelTag.height || "Unknown",
+            socialUrls: social_Media_URL || [
+              "@modellahandle",
+              "@modellahandle",
+              "www.modelportfolio.com",
+            ],
+            height: modelTag.height || "?",
             eyeColor: modelTag.natural_eye_color || "Unknown",
             bodyType: modelTag.body_Type || "Unknown",
             skinTone: modelTag.skin_Tone || "Unknown",
             gender: modelTag.gender || "Unknown",
             experience: modelTag.experience_Level || "Unknown",
+            location: modelTag.location || "Unknown",
+            bust: modelTag.bust_chest || "?",
+            waist: modelTag.waist || "?",
+            hips: modelTag.hips || "?",
+            shoeSize: modelTag.shoe_Size || "?",
           });
 
           // Optionally log to the console as well
@@ -251,7 +272,7 @@ export function SavedList({
             >
               <div className="aspect-[3/4] rounded-3xl overflow-hidden bg-gray-100">
                 <img
-                  src={model.image || "/placeholder.svg"}
+                  src={model.image[0] || "/placeholder.svg"}
                   alt={model.name}
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
