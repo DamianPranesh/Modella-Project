@@ -177,101 +177,145 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
     }
   };
 
-  //  const handleAccept = () => {
-  //     const currentCard = cards[currentIndex];
+  // const handleAccept = () => {
+  //   if (cards.length === 0) return; // Prevent errors if no cards are left
 
-  //     // Update the saved cards state
-  //     const updatedSavedCards = [...savedCards, currentCard];
-  //     setSavedCards(updatedSavedCards);
+  //   const currentCard = cards[currentIndex];
 
-  //     // Log the saved cards
-  //     console.log("Saved Cards:", updatedSavedCards);
+  //   // Add the card to the saved list and remove it from the displayed cards
+  //   const updatedSavedCards = [...savedCards, currentCard];
+  //   const updatedCards = cards.filter((_, index) => index !== currentIndex);
 
-  //     // setSavedCards([...savedCards, currentCard]);
-  //     toast.success(`${currentCard.name} has been added to your matches! 💕`, {
-  //       icon: "✅",
-  //       duration: 2000,
-  //     });
-  //     if (currentIndex > 0) {
-  //       setCurrentIndex(currentIndex - 1);
-  //     }
-  //   };
+  //   setSavedCards(updatedSavedCards);
+  //   setCards(updatedCards);
 
-  //   const handleReject = () => {
-  //     const currentCard = cards[currentIndex];
+  //   console.log("Saved Cards:", updatedSavedCards);
 
-  //     // Update the rejected cards state
-  //     const updatedRejectedCards = [...rejectedCards, currentCard];
-  //     setRejectedCards(updatedRejectedCards);
+  //   toast.success(`${currentCard.name} has been added to your matches! 💕`, {
+  //     icon: "✅",
+  //     duration: 2000,
+  //   });
 
-  //     // Log the rejected cards
-  //     console.log("Rejected Cards:", updatedRejectedCards);
+  //   // If no more cards are left, reload new cards
+  //   if (updatedCards.length === 0) {
+  //     loadCards();
+  //   } else {
+  //     setCurrentIndex(updatedCards.length - 1);
+  //   }
+  // };
 
-  //     // setRejectedCards([...rejectedCards, currentCard]);
-  //     toast.error(`${currentCard.name} has been rejected`, {
-  //       icon: "❌",
-  //       duration: 2000,
-  //     });
-  //     if (currentIndex > 0) {
-  //       setCurrentIndex(currentIndex - 1);
-  //     }
-  //   };
+  // const handleReject = () => {
+  //   if (cards.length === 0) return; // Prevent errors if no cards are left
 
-  const handleAccept = () => {
+  //   const currentCard = cards[currentIndex];
+
+  //   // Add the card to the rejected list and remove it from the displayed cards
+  //   const updatedRejectedCards = [...rejectedCards, currentCard];
+  //   const updatedCards = cards.filter((_, index) => index !== currentIndex);
+
+  //   setRejectedCards(updatedRejectedCards);
+  //   setCards(updatedCards);
+
+  //   console.log("Rejected Cards:", updatedRejectedCards);
+
+  //   toast.error(`${currentCard.name} has been rejected`, {
+  //     icon: "❌",
+  //     duration: 2000,
+  //   });
+
+  //   // If no more cards are left, reload new cards
+  //   if (updatedCards.length === 0) {
+  //     loadCards();
+  //   } else {
+  //     setCurrentIndex(updatedCards.length - 1);
+  //   }
+  // };
+
+  const handleAccept = async () => {
     if (cards.length === 0) return; // Prevent errors if no cards are left
 
     const currentCard = cards[currentIndex];
+    const currentCardId = currentCard.id; // Extract user ID of the accepted profile
 
-    // Add the card to the saved list and remove it from the displayed cards
-    const updatedSavedCards = [...savedCards, currentCard];
-    const updatedCards = cards.filter((_, index) => index !== currentIndex);
+    try {
+      const response = await fetchData(`savedList/add?user_id=${userId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify([currentCardId]), // Sending the accepted card's user_id
+      });
 
-    setSavedCards(updatedSavedCards);
-    setCards(updatedCards);
+      // const data = await response.json();
+      // if (!response.ok) throw new Error(data.detail || "Error saving match");
 
-    console.log("Saved Cards:", updatedSavedCards);
+      console.log("Saved match:", response);
+      toast.success(`${currentCard.name} has been added to your matches! 💕`, {
+        icon: "✅",
+        duration: 2000,
+      });
 
-    toast.success(`${currentCard.name} has been added to your matches! 💕`, {
-      icon: "✅",
-      duration: 2000,
-    });
+      const updatedSavedCards = [...savedCards, currentCard];
+      // Remove the card from the list
+      const updatedCards = cards.filter((_, index) => index !== currentIndex);
+      setCards(updatedCards);
+      setSavedCards(updatedSavedCards);
 
-    // // Adjust currentIndex to prevent out-of-bounds errors
-    // setCurrentIndex(updatedCards.length - 1);
-    // If no more cards are left, reload new cards
-    if (updatedCards.length === 0) {
-      loadCards();
-    } else {
-      setCurrentIndex(updatedCards.length - 1);
+      console.log("Saved Cards:", updatedSavedCards);
+
+      // Adjust index or reload new cards
+      if (updatedCards.length === 0) {
+        loadCards();
+      } else {
+        setCurrentIndex(updatedCards.length - 1);
+      }
+    } catch (error) {
+      console.error("Error saving match:", error);
+      toast.error("Failed to save match. Please try again.");
     }
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
     if (cards.length === 0) return; // Prevent errors if no cards are left
 
     const currentCard = cards[currentIndex];
+    const currentCardId = currentCard.id; // Extract user ID of the rejected profile
 
-    // Add the card to the rejected list and remove it from the displayed cards
-    const updatedRejectedCards = [...rejectedCards, currentCard];
-    const updatedCards = cards.filter((_, index) => index !== currentIndex);
+    try {
+      const response = await fetchData(`savedList/remove?user_id=${userId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify([currentCardId]), // Sending the rejected card's user_id
+      });
 
-    setRejectedCards(updatedRejectedCards);
-    setCards(updatedCards);
+      // const data = await response.json();
+      // if (!response.ok) throw new Error(data.detail || "Error removing match");
 
-    console.log("Rejected Cards:", updatedRejectedCards);
+      console.log("Removed match:", response);
+      toast.error(`${currentCard.name} has been rejected`, {
+        icon: "❌",
+        duration: 2000,
+      });
 
-    toast.error(`${currentCard.name} has been rejected`, {
-      icon: "❌",
-      duration: 2000,
-    });
+      const updatedRejectedCards = [...rejectedCards, currentCard];
+      // Remove the card from the list
+      const updatedCards = cards.filter((_, index) => index !== currentIndex);
+      setCards(updatedCards);
+      setRejectedCards(updatedRejectedCards);
 
-    // // Adjust currentIndex to prevent out-of-bounds errors
-    // setCurrentIndex(updatedCards.length - 1);
-    // If no more cards are left, reload new cards
-    if (updatedCards.length === 0) {
-      loadCards();
-    } else {
-      setCurrentIndex(updatedCards.length - 1);
+      console.log("Rejected Cards:", updatedRejectedCards);
+
+      // Adjust index or reload new cards
+      if (updatedCards.length === 0) {
+        loadCards();
+      } else {
+        setCurrentIndex(updatedCards.length - 1);
+      }
+    } catch (error) {
+      console.error("Error removing match:", error);
+      toast.error("Failed to remove match. Please try again.");
     }
   };
 
