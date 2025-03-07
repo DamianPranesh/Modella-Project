@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from config.setting import saved_list_collection, user_collection
@@ -70,7 +70,8 @@ async def remove_saved_id(user_id: str, remove_id: List[str]):
         )
         return {"message": "ID removed successfully"}
     else:
-        raise HTTPException(status_code=400, detail="ID not found in saved list")
+        # raise HTTPException(status_code=400, detail="ID not found in saved list")
+        return {"message": "ID not found in saved list"}
 
 
 @router.get("/{user_id}")
