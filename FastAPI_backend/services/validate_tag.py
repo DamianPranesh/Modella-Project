@@ -56,4 +56,7 @@ def validate_tag_data(tag):
     validate_numeric("age", getattr(tag, "age", None), 8, 100)
     validate_numeric("height", getattr(tag, "height", None), 116, 191)
     validate_numeric("shoe_Size", getattr(tag, "shoe_Size", None), 31, 50)
+    validate_numeric("bust_chest", getattr(tag, "bust_chest", None), 61, 117)
+    validate_numeric("waist", getattr(tag, "waist", None), 51, 91)
+    validate_numeric("hips", getattr(tag, "hips", None), 61, 107)
 

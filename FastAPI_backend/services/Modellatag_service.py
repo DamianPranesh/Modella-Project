@@ -58,7 +58,7 @@ async def create_brand_tag(tag: BrandTagData):
 
 @router.post("/tags/projects/", response_model=ProjectTagData)
 async def create_project_tag(tag: ProjectTagData):
-    # tag.project_Id = f"project_{ObjectId()}" # Unique ID generation
+    tag.project_Id = f"project_{ObjectId()}" # Unique ID generation
 
     existing_tag = await project_tags_collection.find_one({"project_id": tag.project_Id})
     if existing_tag:
@@ -390,6 +390,9 @@ async def generate_tag(tag_type: str):
             gender=choice(get_keywords("genders")),
             location=choice(get_keywords("locations")),
             shoe_Size=randint(31, 50),  # Random shoe size
+            bust_chest=randint(61, 117),
+            waist=randint(51, 91),
+            hips=randint(61, 107),
             saved_time=datetime.now(timezone.utc)
         )
 
@@ -419,6 +422,9 @@ async def generate_tag(tag_type: str):
             gender=sample(get_keywords("genders"), 2),  # Sample 2 genders
             location=choice(get_keywords("locations")),
             shoe_Size=((randint(31, 35), randint(36, 50))),  # Shoe size range
+            bust_chest=((randint(61, 70), randint(71, 117))),
+            waist=((randint(51, 65), randint(66, 91))),
+            hips=((randint(61, 70), randint(71, 107))),
             saved_time=datetime.now(timezone.utc)
         )
     

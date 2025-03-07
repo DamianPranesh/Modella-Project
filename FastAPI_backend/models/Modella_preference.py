@@ -19,6 +19,9 @@ class ModelProjectPreferenceData(BaseModel):
     gender: Optional[List[str]] = None
     location: Optional[str] = None
     shoe_Size: Optional[Tuple[int,int]] = None
+    bust_chest: Optional[Tuple[int,int]] = None
+    waist: Optional[Tuple[int,int]] = None
+    hips: Optional[Tuple[int,int]] = None
     saved_time: Optional[datetime] = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     
@@ -36,6 +39,9 @@ class ModelProjectPreferenceFilterRequest(BaseModel):
     gender: Optional[List[str]] = None
     location: Optional[str] = None
     shoe_Size: Optional[Tuple[int,int]] = None
+    bust_chest: Optional[Tuple[int,int]] = None
+    waist: Optional[Tuple[int,int]] = None
+    hips: Optional[Tuple[int,int]] = None
 
 
 
@@ -54,6 +60,9 @@ class BrandModelPreferenceData(BaseModel):
     gender: Optional[List[str]] = None
     location: Optional[str] = None
     shoe_Size: Optional[Tuple[int,int]] = None
+    bust_chest: Optional[Tuple[int,int]] = None
+    waist: Optional[Tuple[int,int]] = None
+    hips: Optional[Tuple[int,int]] = None
     rating_level: Optional[int] = None
     saved_time: Optional[datetime] = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -77,6 +86,9 @@ class BrandModelPreferenceFilterRequest(BaseModel):
     gender: Optional[List[str]] = None
     location: Optional[str] = None
     shoe_Size: Optional[Tuple[int,int]] = None
+    bust_chest: Optional[Tuple[int,int]] = None
+    waist: Optional[Tuple[int,int]] = None
+    hips: Optional[Tuple[int,int]] = None
     rating_level: Optional[int] = None
 
     @field_validator("rating_level")

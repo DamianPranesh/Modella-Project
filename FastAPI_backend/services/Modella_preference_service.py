@@ -586,6 +586,9 @@ async def generate_pref(tag_type: str):
             gender=sample(get_keywords("genders"), 2),  # Sample 2 genders
             location=choice(get_keywords("locations")),
             shoe_Size=(randint(30, 35), randint(36, 50)),  # Shoe size range
+            bust_chest=((randint(61, 70), randint(71, 117))),
+            waist=((randint(51, 65), randint(66, 91))),
+            hips=((randint(61, 70), randint(71, 107))),
             saved_time=datetime.now(timezone.utc)
         )
     elif tag_type == "Model":
@@ -604,6 +607,9 @@ async def generate_pref(tag_type: str):
             gender=sample(get_keywords("genders"), 2),  # Sample 2 genders
             location=choice(get_keywords("locations")),
             shoe_Size=(randint(30, 35), randint(36, 50)),  # Shoe size range
+            bust_chest=((randint(61, 70), randint(71, 117))),
+            waist=((randint(51, 65), randint(66, 91))),
+            hips=((randint(61, 70), randint(71, 107))),
             rating_level = randint(1,5),
             saved_time=datetime.now(timezone.utc)
         )
