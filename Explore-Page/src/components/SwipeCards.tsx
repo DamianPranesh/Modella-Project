@@ -80,7 +80,6 @@ const fetchUserProfileImage = async (userId: string) => {
       `Error fetching profile image for ${userId}:`,
       error.message || error
     );
-    //throw new Error(`Unable to fetch profile image for ${userId}. Please try again later.`);
   }
 };
 
@@ -91,7 +90,6 @@ const fetchUserTags = async (userId: string) => {
     return data; // Return the user tags data if successful
   } catch (error: any) {
     console.error(`Error fetching tags for ${userId}:`, error.message || error);
-    //throw new Error(`Unable to fetch tags for ${userId}. Please try again later.`);
   }
 };
 
@@ -100,10 +98,7 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
   isSidebarOpen,
 }) => {
   const [cards, setCards] = useState<Card[]>([]);
-  // const [cards, setCards] = useState<Card[]>(cardData);
   const [currentIndex, setCurrentIndex] = useState(cards.length - 1);
-  const [savedCards, setSavedCards] = useState<Card[]>([]);
-  const [rejectedCards, setRejectedCards] = useState<Card[]>([]);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [showLegend, setShowLegend] = useState(false);
 
@@ -177,60 +172,6 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
     }
   };
 
-  // const handleAccept = () => {
-  //   if (cards.length === 0) return; // Prevent errors if no cards are left
-
-  //   const currentCard = cards[currentIndex];
-
-  //   // Add the card to the saved list and remove it from the displayed cards
-  //   const updatedSavedCards = [...savedCards, currentCard];
-  //   const updatedCards = cards.filter((_, index) => index !== currentIndex);
-
-  //   setSavedCards(updatedSavedCards);
-  //   setCards(updatedCards);
-
-  //   console.log("Saved Cards:", updatedSavedCards);
-
-  //   toast.success(`${currentCard.name} has been added to your matches! 💕`, {
-  //     icon: "✅",
-  //     duration: 2000,
-  //   });
-
-  //   // If no more cards are left, reload new cards
-  //   if (updatedCards.length === 0) {
-  //     loadCards();
-  //   } else {
-  //     setCurrentIndex(updatedCards.length - 1);
-  //   }
-  // };
-
-  // const handleReject = () => {
-  //   if (cards.length === 0) return; // Prevent errors if no cards are left
-
-  //   const currentCard = cards[currentIndex];
-
-  //   // Add the card to the rejected list and remove it from the displayed cards
-  //   const updatedRejectedCards = [...rejectedCards, currentCard];
-  //   const updatedCards = cards.filter((_, index) => index !== currentIndex);
-
-  //   setRejectedCards(updatedRejectedCards);
-  //   setCards(updatedCards);
-
-  //   console.log("Rejected Cards:", updatedRejectedCards);
-
-  //   toast.error(`${currentCard.name} has been rejected`, {
-  //     icon: "❌",
-  //     duration: 2000,
-  //   });
-
-  //   // If no more cards are left, reload new cards
-  //   if (updatedCards.length === 0) {
-  //     loadCards();
-  //   } else {
-  //     setCurrentIndex(updatedCards.length - 1);
-  //   }
-  // };
-
   const handleAccept = async () => {
     if (cards.length === 0) return; // Prevent errors if no cards are left
 
@@ -246,22 +187,15 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
         body: JSON.stringify([currentCardId]), // Sending the accepted card's user_id
       });
 
-      // const data = await response.json();
-      // if (!response.ok) throw new Error(data.detail || "Error saving match");
-
       console.log("Saved match:", response);
       toast.success(`${currentCard.name} has been added to your matches! 💕`, {
         icon: "✅",
         duration: 2000,
       });
 
-      const updatedSavedCards = [...savedCards, currentCard];
       // Remove the card from the list
       const updatedCards = cards.filter((_, index) => index !== currentIndex);
       setCards(updatedCards);
-      setSavedCards(updatedSavedCards);
-
-      console.log("Saved Cards:", updatedSavedCards);
 
       // Adjust index or reload new cards
       if (updatedCards.length === 0) {
@@ -290,22 +224,15 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
         body: JSON.stringify([currentCardId]), // Sending the rejected card's user_id
       });
 
-      // const data = await response.json();
-      // if (!response.ok) throw new Error(data.detail || "Error removing match");
-
       console.log("Removed match:", response);
       toast.error(`${currentCard.name} has been rejected`, {
         icon: "❌",
         duration: 2000,
       });
 
-      const updatedRejectedCards = [...rejectedCards, currentCard];
       // Remove the card from the list
       const updatedCards = cards.filter((_, index) => index !== currentIndex);
       setCards(updatedCards);
-      setRejectedCards(updatedRejectedCards);
-
-      console.log("Rejected Cards:", updatedRejectedCards);
 
       // Adjust index or reload new cards
       if (updatedCards.length === 0) {
