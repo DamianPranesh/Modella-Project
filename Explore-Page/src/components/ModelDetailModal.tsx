@@ -15,7 +15,7 @@ type Model = {
   id: string;
   name: string;
   age: number;
-  type: string;
+  type: string[];
   image: string;
   height: string;
   eyeColor: string;
@@ -321,7 +321,7 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
                           Type
                         </h4>
                         <p className="font-semibold text-gray-900">
-                          {model.type}
+                          {model.type.join(", ")}
                         </p>
                       </div>
                       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow">

@@ -5,7 +5,7 @@ type Model = {
   id: string;
   name: string;
   age: number;
-  type: string;
+  type: string[];
   image: string;
   height: string;
   eyeColor: string;
@@ -146,7 +146,7 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({
                     </p>
                     <p className="text-gray-700 flex justify-between border-b border-gray-200 pb-1">
                       <span className="font-medium">Type:</span>
-                      <span>{model.type}</span>
+                      <span>{model.type.join(", ")}</span>
                     </p>
                     <p className="text-gray-700 flex justify-between border-b border-gray-200 pb-1">
                       <span className="font-medium">Height:</span>

@@ -2,22 +2,15 @@
 
 import React, { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
-import model1 from "../images/Image-8.png";
-import model2 from "../images/Image-9.png";
-import model3 from "../images/Image-10.png";
-import model4 from "../images/Image-11.png";
-import model5 from "../images/Image-12.png";
-import model6 from "../images/Image-13.png";
-import model7 from "../images/Image-14.png";
-import model8 from "../images/Image-15.png";
 import ComparisonModal from "./ComparisonModel";
 import ModelDetailModal from "./ModelDetailModal";
+import { fetchData } from "../api/api";
 
 type Model = {
   id: string;
   name: string;
   age: number;
-  type: string;
+  type: string[];
   image: string;
   height: string;
   eyeColor: string;
@@ -27,112 +20,7 @@ type Model = {
   experience: string;
 };
 
-const savedModels: Model[] = [
-  {
-    id: "1",
-    name: "CURTLY",
-    age: 21,
-    type: "EDITORIAL AND COMMERCIAL MODEL",
-    image: model1,
-    height: "6'1\"",
-    eyeColor: "Brown",
-    bodyType: "Athletic",
-    skinTone: "Medium",
-    gender: "Male",
-    experience: "3 years",
-  },
-  {
-    id: "2",
-    name: "MIA",
-    age: 21,
-    type: "RUNWAY MODEL",
-    image: model2,
-    height: "5'11\"",
-    eyeColor: "Blue",
-    bodyType: "Slim",
-    skinTone: "Fair",
-    gender: "Female",
-    experience: "2 years",
-  },
-  {
-    id: "3",
-    name: "EMMA",
-    age: 23,
-    type: "BEAUTY MODEL",
-    image: model3,
-    height: "5'9\"",
-    eyeColor: "Green",
-    bodyType: "Hourglass",
-    skinTone: "Medium",
-    gender: "Female",
-    experience: "4 years",
-  },
-  {
-    id: "4",
-    name: "NOAH",
-    age: 20,
-    type: "COMMERCIAL MODEL",
-    image: model4,
-    height: "6'0\"",
-    eyeColor: "Hazel",
-    bodyType: "Athletic",
-    skinTone: "Olive",
-    gender: "Male",
-    experience: "1 year",
-  },
-  {
-    id: "5",
-    name: "ZOE",
-    age: 22,
-    type: "COMMERCIAL MODEL",
-    image: model5,
-    height: "5'8\"",
-    eyeColor: "Brown",
-    bodyType: "Petite",
-    skinTone: "Tan",
-    gender: "Female",
-    experience: "3 years",
-  },
-  {
-    id: "6",
-    name: "LILY",
-    age: 19,
-    type: "EDITORIAL MODEL",
-    image: model6,
-    height: "5'10\"",
-    eyeColor: "Blue",
-    bodyType: "Slim",
-    skinTone: "Fair",
-    gender: "Female",
-    experience: "1 year",
-  },
-  {
-    id: "7",
-    name: "LIAM",
-    age: 23,
-    type: "LIFESTYLE MODEL",
-    image: model7,
-    height: "6'2\"",
-    eyeColor: "Brown",
-    bodyType: "Muscular",
-    skinTone: "Deep",
-    gender: "Male",
-    experience: "5 years",
-  },
-  {
-    id: "8",
-    name: "GIA",
-    age: 21,
-    type: "RUNWAY MODEL",
-    image: model8,
-    height: "5'11\"",
-    eyeColor: "Amber",
-    bodyType: "Slim",
-    skinTone: "Medium",
-    gender: "Female",
-    experience: "2 years",
-  },
-];
+const userId = "brand_67c5b2c43ae5b4ccb85b9a11";
 
 export function SavedList({
   toggleSidebar,
@@ -152,6 +40,96 @@ export function SavedList({
     useState<boolean>(false);
   const [selectedModelForDetail, setSelectedModelForDetail] =
     useState<Model | null>(null);
+
+  //Dynamic modification
+  const [savedUserIds, setSavedUserIds] = useState<string[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [savedModels, setSavedModels] = useState<Model[]>([]);
+
+  useEffect(() => {
+    const fetchSavedUserIds = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch saved user IDs
+        const savedListResponse = await fetchData(`savedList/${userId}`);
+        const ids = savedListResponse.saved_Ids || [];
+
+        console.log("Fetched saved user IDs:", ids); // Log to console
+        setSavedUserIds(ids);
+      } catch (error) {
+        setError("Failed to load saved user IDs.");
+        console.error("Error fetching saved user IDs:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSavedUserIds();
+  }, []);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Step 2: Iterate over savedUserIds and fetch user data for each user_Id
+        const newModels: Model[] = []; // New array to store the fetched models
+
+        for (let id of savedUserIds) {
+          // Fetch basic user data
+          const userResponse = await fetchData(`users/${id}`);
+          const { user_Id, name } = userResponse;
+
+          // Fetch additional model tag data from ModellaTag endpoint
+          const tagResponse = await fetchData(`ModellaTag/tags/models/${id}`);
+          const modelTag = tagResponse ? tagResponse : {};
+
+          // Fetch the profile image URL
+          const fileUrlResponse = await fetchData(
+            `files/urls-for-user-id-and-foldername-with-limits?user_id=${id}&folder=profile-pic&limit=1`
+          );
+          const profileImage = fileUrlResponse && fileUrlResponse[0]?.s3_url;
+
+          // Step 3: Create a model object and add it to the newModels array
+          newModels.push({
+            id: user_Id,
+            name: name,
+            age: modelTag.age || 0,
+            type: modelTag.work_Field || "Unknown",
+            image: profileImage || "",
+            height: modelTag.height || "Unknown",
+            eyeColor: modelTag.natural_eye_color || "Unknown",
+            bodyType: modelTag.body_Type || "Unknown",
+            skinTone: modelTag.skin_Tone || "Unknown",
+            gender: modelTag.gender || "Unknown",
+            experience: modelTag.experience_Level || "Unknown",
+          });
+
+          // Optionally log to the console as well
+          console.log(
+            `User ID: ${user_Id}, Name: ${name}, Profile Image: ${profileImage}, Model Data:`,
+            modelTag
+          );
+        }
+
+        // Step 4: Update the fetchedModels state with the new models
+        setSavedModels(newModels);
+      } catch (error) {
+        setError("Failed to load user data.");
+        console.error("Error fetching user data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (savedUserIds.length > 0) {
+      fetchUserData();
+    }
+  }, [savedUserIds]);
 
   // Prevent background scrolling when any modal is open
   useEffect(() => {
@@ -254,55 +232,63 @@ export function SavedList({
       </div>
 
       {/* Grid layout for saved models */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {savedModels.map((model) => (
-          <div
-            key={model.id}
-            className="group relative cursor-pointer"
-            onClick={() => {
-              if (!isSelectionActive) {
-                setSelectedModelForDetail(model);
-                setModelDetailModalOpen(true);
-              }
-            }}
-          >
-            <div className="aspect-[3/4] rounded-3xl overflow-hidden bg-gray-100">
-              <img
-                src={model.image || "/placeholder.svg"}
-                alt={model.name}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-            </div>
-            <div className="mt-4 space-y-1">
-              <div className="flex items-center justify-between">
-                <p className="font-medium">NAME: {model.name}</p>
-                <p>AGE: {model.age}</p>
+      {savedUserIds.length === 0 ? (
+        <p className="text-gray-500 text-center mt-6">
+          No saved items in the Saved List
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {savedModels.map((model) => (
+            <div
+              key={model.id}
+              className="group relative cursor-pointer"
+              onClick={() => {
+                if (!isSelectionActive) {
+                  setSelectedModelForDetail(model);
+                  setModelDetailModalOpen(true);
+                }
+              }}
+            >
+              <div className="aspect-[3/4] rounded-3xl overflow-hidden bg-gray-100">
+                <img
+                  src={model.image || "/placeholder.svg"}
+                  alt={model.name}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
               </div>
-              <p className="text-sm text-gray-600">TYPE: {model.type}</p>
+              <div className="mt-4 space-y-1">
+                <div className="flex items-center justify-between">
+                  <p className="font-medium">NAME: {model.name}</p>
+                  <p>AGE: {model.age}</p>
+                </div>
+                <p className="text-sm text-gray-600">
+                  TYPE: {model.type.join(", ")}
+                </p>
+              </div>
+              {isSelectionActive && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleModelSelection(model.id);
+                  }}
+                  className={`absolute top-4 right-4 w-6 h-6 rounded-full border-2 cursor-pointer ${
+                    selectedModels.includes(model.id)
+                      ? "bg-[#DD8560] border-[#DD8560]"
+                      : "bg-white/80 border-gray-400"
+                  }`}
+                  aria-label={`Select ${model.name} for comparison`}
+                >
+                  {selectedModels.includes(model.id) && (
+                    <span className="text-white flex items-center justify-center">
+                      ✓
+                    </span>
+                  )}
+                </button>
+              )}
             </div>
-            {isSelectionActive && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleModelSelection(model.id);
-                }}
-                className={`absolute top-4 right-4 w-6 h-6 rounded-full border-2 cursor-pointer ${
-                  selectedModels.includes(model.id)
-                    ? "bg-[#DD8560] border-[#DD8560]"
-                    : "bg-white/80 border-gray-400"
-                }`}
-                aria-label={`Select ${model.name} for comparison`}
-              >
-                {selectedModels.includes(model.id) && (
-                  <span className="text-white flex items-center justify-center">
-                    ✓
-                  </span>
-                )}
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Comparison Modal */}
       <ComparisonModal
