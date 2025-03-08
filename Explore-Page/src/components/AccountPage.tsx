@@ -180,6 +180,79 @@ export function AccountPage({
     fetchVideos();
   }, []);
 
+  const fetchProjects = async () => {
+    try {
+      // Step 1: Get all projects
+      const projectList = await fetchData("Brandprojects/projects/");
+      if (!projectList) return;
+
+      // Step 2: Fetch all project images at once (order-dependent)
+      const imageResponse = await fetchData(
+        `files/urls-for-user-id-and-foldername-with-limits?user_id=${user_id}&folder=project`
+      );
+
+      // Step 3: Fetch all project tags at once
+      const projectTags = await Promise.all(
+        projectList.map(async (project: any) => {
+          try {
+            return await fetchData(
+              `ModellaTag/tags/projects/${project.user_Id}/${project.project_Id}`
+            );
+          } catch {
+            return {
+              project_Id: project.project_Id,
+              age: null,
+              work_Field: [],
+            };
+          }
+        })
+      );
+
+      // Map tags to project IDs
+      const projectTagMap = projectTags.reduce(
+        (acc: Record<string, any>, tag: any) => {
+          acc[tag.project_Id] = tag;
+          return acc;
+        },
+        {}
+      );
+
+      // Step 4: Assign images based on order
+      // const projectsWithDetails = projectList.map(
+      //   (project: any, index: number) => ({
+      //     ...project,
+      //     image: imageResponse[index]?.s3_url || "", // Assign image based on order
+      //     age: projectTagMap[project.project_Id]?.age || null,
+      //     work_Field: projectTagMap[project.project_Id]?.work_Field || [],
+      //   })
+      // );
+
+      const projectsWithDetails: Project[] = projectList.map(
+        (project: any, index: number) => ({
+          name: project.name || "Untitled Project",
+          image: imageResponse[index]?.s3_url || "", // Assign image based on order
+          description: project.description || "No description provided.",
+          tags: projectTagMap[project.project_Id]?.work_Field || [], // Modeling categories
+          minAge: projectTagMap[project.project_Id]?.age
+            ? String(projectTagMap[project.project_Id].age[0])
+            : "", // Convert to string
+          maxAge: projectTagMap[project.project_Id]?.age
+            ? String(projectTagMap[project.project_Id].age[1])
+            : "", // Convert to string
+        })
+      );
+
+      setProjects(projectsWithDetails);
+    } catch (error) {
+      console.error("Failed to fetch projects:", error);
+    }
+  };
+
+  // Fetch projects on component mount
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
   /**
    * Handles image file selection for project upload
    * @param e - Change event from file input
@@ -248,29 +321,96 @@ export function AccountPage({
    * Handles the submission of a new project
    * Creates a new project with the selected image and details
    */
-  const handlePostProject = () => {
-    if (projectImage && projectName) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const newProject: Project = {
-          name: projectName,
-          image: reader.result as string,
-          description: projectDescription,
-          tags: selectedTags,
-          minAge,
-          maxAge,
-        };
-        setProjects([...projects, newProject]);
+  // const handlePostProject = () => {
+  //   if (projectImage && projectName) {
+  //     const reader = new FileReader();
+  //     reader.onloadend = () => {
+  //       const newProject: Project = {
+  //         name: projectName,
+  //         image: reader.result as string,
+  //         description: projectDescription,
+  //         tags: selectedTags,
+  //         minAge,
+  //         maxAge,
+  //       };
+  //       setProjects([...projects, newProject]);
+  //     };
+  //     reader.readAsDataURL(projectImage);
+  //   }
+  //   setProjectName("");
+  //   setProjectImage(null);
+  //   setProjectDescription("");
+  //   setSelectedTags([]);
+  //   setMinAge("");
+  //   setMaxAge("");
+  //   setIsProjectPopoverOpen(false);
+  // };
+
+  const handlePostProject = async () => {
+    if (!projectName || !projectDescription || !projectImage) return;
+
+    try {
+      // Step 1: Create the project
+      const projectPayload = {
+        user_Id: user_id,
+        name: projectName,
+        description: projectDescription,
       };
-      reader.readAsDataURL(projectImage);
+
+      const createdProject = await fetchData("Brandprojects/projects/", {
+        method: "POST",
+        body: JSON.stringify(projectPayload),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!createdProject || !createdProject.project_Id) {
+        throw new Error("Project creation failed");
+      }
+
+      const project_Id = createdProject.project_Id; // Get the generated project ID
+
+      // Step 2: Upload project image
+      const formData = new FormData();
+      formData.append("file", projectImage);
+
+      const imageUploadUrl = `files/upload/?user_id=${user_id}&folder=project&is_private=false&description=${projectDescription}`;
+
+      await fetchData(imageUploadUrl, {
+        method: "POST",
+        body: formData,
+      });
+
+      console.log("Project image uploaded successfully");
+
+      // Step 3: Create project tags (Age & Modeling Categories)
+      const tagPayload = {
+        user_Id: user_id,
+        project_Id: project_Id,
+        age: [parseInt(minAge), parseInt(maxAge)], // Convert age to tuple
+        work_Field: selectedTags, // Modeling categories
+      };
+
+      await fetchData("ModellaTag/tags/projects/", {
+        method: "POST",
+        body: JSON.stringify(tagPayload),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      console.log("Project tags added successfully");
+
+      // Step 4: Refresh project list
+      fetchProjects();
+    } catch (error) {
+      console.error("Error uploading project:", error);
+    } finally {
+      setProjectName("");
+      setProjectImage(null);
+      setProjectDescription("");
+      setSelectedTags([]);
+      setMinAge("");
+      setMaxAge("");
+      setIsProjectPopoverOpen(false);
     }
-    setProjectName("");
-    setProjectImage(null);
-    setProjectDescription("");
-    setSelectedTags([]);
-    setMinAge("");
-    setMaxAge("");
-    setIsProjectPopoverOpen(false);
   };
 
   /**
