@@ -132,6 +132,54 @@ export function AccountPage({
     fetchProfilePicture();
   }, []);
 
+  const fetchImages = async () => {
+    try {
+      const response = await fetchData(
+        `files/urls-for-user-id-and-foldername-with-limits?user_id=${user_id}&folder=image`
+      );
+
+      if (response) {
+        const formattedImages = response.map((file: any) => ({
+          url: file.s3_url,
+          description: file.description,
+        }));
+
+        setImages(formattedImages);
+      }
+    } catch (error) {
+      console.error("Failed to fetch images:", error);
+    }
+  };
+
+  // Fetch images on component mount
+  useEffect(() => {
+    fetchImages();
+  }, []);
+
+  const fetchVideos = async () => {
+    try {
+      const response = await fetchData(
+        `files/urls-for-user-id-and-foldername-with-limits?user_id=${user_id}&folder=video`
+      );
+
+      if (response) {
+        const formattedVideos = response.map((file: any) => ({
+          url: file.s3_url,
+          description: file.description,
+        }));
+
+        setVideos(formattedVideos);
+      }
+    } catch (error) {
+      console.error("Failed to fetch videos:", error);
+    }
+  };
+
+  // Fetch videos on component mount
+  useEffect(() => {
+    fetchVideos();
+  }, []);
+
   /**
    * Handles image file selection for project upload
    * @param e - Change event from file input
@@ -229,23 +277,58 @@ export function AccountPage({
    * Handles the submission of a new image
    * Adds the image to the images array with its description
    */
-  const handleImagePost = () => {
-    if (imageUpload) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImages([
-          ...images,
-          {
-            url: reader.result as string,
-            description: imageDescription,
-          },
-        ]);
-      };
-      reader.readAsDataURL(imageUpload);
+  // const handleImagePost = () => {
+  //   if (imageUpload) {
+  //     const reader = new FileReader();
+  //     reader.onloadend = () => {
+  //       setImages([
+  //         ...images,
+  //         {
+  //           url: reader.result as string,
+  //           description: imageDescription,
+  //         },
+  //       ]);
+  //     };
+  //     reader.readAsDataURL(imageUpload);
+  //   }
+  //   setImageUpload(null);
+  //   setImageDescription("");
+  //   setIsImagePopoverOpen(false);
+  // };
+
+  const handleImagePost = async () => {
+    if (!imageUpload) return;
+
+    const formData = new FormData();
+    formData.append("file", imageUpload);
+
+    // Construct query parameters
+    const queryParams = new URLSearchParams({
+      user_id: user_id,
+      folder: "image",
+      is_private: "false",
+      description: imageDescription || "No description",
+    }).toString();
+
+    try {
+      console.log("Uploading image:", imageUpload.name);
+
+      await fetchData(`files/upload/?${queryParams}`, {
+        method: "POST",
+        body: formData, // Only the file is in formData
+      });
+
+      console.log("Image uploaded successfully");
+
+      // Fetch updated images after upload
+      fetchImages();
+    } catch (error) {
+      console.error("Failed to upload image:", error);
+    } finally {
+      setImageUpload(null);
+      setImageDescription("");
+      setIsImagePopoverOpen(false);
     }
-    setImageUpload(null);
-    setImageDescription("");
-    setIsImagePopoverOpen(false);
   };
 
   /**
@@ -262,23 +345,58 @@ export function AccountPage({
    * Handles the submission of a new video
    * Adds the video to the videos array with its description
    */
-  const handleVideoPost = () => {
-    if (videoUpload) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setVideos([
-          ...videos,
-          {
-            url: reader.result as string,
-            description: videoDescription,
-          },
-        ]);
-      };
-      reader.readAsDataURL(videoUpload);
+  // const handleVideoPost = () => {
+  //   if (videoUpload) {
+  //     const reader = new FileReader();
+  //     reader.onloadend = () => {
+  //       setVideos([
+  //         ...videos,
+  //         {
+  //           url: reader.result as string,
+  //           description: videoDescription,
+  //         },
+  //       ]);
+  //     };
+  //     reader.readAsDataURL(videoUpload);
+  //   }
+  //   setVideoUpload(null);
+  //   setVideoDescription("");
+  //   setIsVideoPopoverOpen(false);
+  // };
+
+  const handleVideoPost = async () => {
+    if (!videoUpload) return;
+
+    const formData = new FormData();
+    formData.append("file", videoUpload);
+
+    // Construct query parameters for the API call
+    const queryParams = new URLSearchParams({
+      user_id: user_id,
+      folder: "video", // <-- Using "video" instead of "image"
+      is_private: "false",
+      description: videoDescription || "No description",
+    }).toString();
+
+    try {
+      console.log("Uploading video:", videoUpload.name);
+
+      await fetchData(`files/upload/?${queryParams}`, {
+        method: "POST",
+        body: formData, // Sending form data for the file upload
+      });
+
+      console.log("Video uploaded successfully");
+
+      // Fetch updated video list after upload
+      fetchVideos();
+    } catch (error) {
+      console.error("Failed to upload video:", error);
+    } finally {
+      setVideoUpload(null);
+      setVideoDescription("");
+      setIsVideoPopoverOpen(false);
     }
-    setVideoUpload(null);
-    setVideoDescription("");
-    setIsVideoPopoverOpen(false);
   };
 
   /**
