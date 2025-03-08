@@ -31,7 +31,7 @@ async def _validate_user(user_id: str) -> bool:
     user = await user_collection.find_one({"user_Id": user_id})
     return user is not None
 
-async def upload_file(file, user_id: str, folder: str, is_private: bool = False):
+async def upload_file(file, user_id: str, folder: str, is_private: bool = False, description: str ="No description"):
     """ Upload a file to AWS S3 and store metadata in MongoDB """
     # Validate user existence
     if not await _validate_user(user_id):
@@ -76,7 +76,8 @@ async def upload_file(file, user_id: str, folder: str, is_private: bool = False)
         "s3_url": s3_url,
         "uploaded_by": user_id,
         "folder": folder,
-        "is_private": is_private
+        "is_private": is_private,
+        "description": description
     }
     await file_collection.insert_one(file_metadata)
     logger.info(f"File uploaded successfully by {user_id}: {file_name} (Private: {is_private})")
@@ -203,7 +204,8 @@ async def get_file_url(user_id: Optional[str] = None):
             "s3_url": 1,
             "is_private": 1,
             "uploaded_by": 1,
-            "file_type": 1
+            "file_type": 1,
+            "description": {"$ifNull": ["$description", "No description"]} 
         }
     })
 
@@ -281,7 +283,8 @@ async def get_files_urls_by_folder(user_id: Optional[str] = None, folder: Option
             "s3_url": 1,
             "is_private": 1,
             "uploaded_by": 1,
-            "file_type": 1
+            "file_type": 1,
+            "description": {"$ifNull": ["$description", "No description"]} 
         }
     })
 
@@ -348,7 +351,8 @@ async def get_files_urls_by_user_folders(
             "s3_url": 1,
             "is_private": 1,
             "uploaded_by": 1,
-            "file_type": 1
+            "file_type": 1,
+            "description": {"$ifNull": ["$description", "No description"]} 
         }
     })
 
@@ -408,7 +412,8 @@ async def get_latest_file_by_user_folder(user_id: str, folder: Optional[str] = N
             "is_private": 1,
             "uploaded_by": 1,
             "file_type": 1,
-            "uploaded_at": 1
+            "uploaded_at": 1,
+            "description": {"$ifNull": ["$description", "No description"]} 
         }
     })
     

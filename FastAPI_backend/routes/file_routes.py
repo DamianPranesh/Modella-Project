@@ -9,8 +9,8 @@ from models.file_model import FileMetadataOnURL
 router = APIRouter(prefix="/files", tags=["File Management"])
 
 @router.post("/upload/")
-async def upload(file: UploadFile = File(...), user_id: str = "default_user", folder: str = "image", is_private: bool = False):
-    return await upload_file(file, user_id, folder, is_private)
+async def upload(file: UploadFile = File(...), user_id: str = "default_user", folder: str = "image", is_private: bool = False, description: str ="No description"):
+    return await upload_file(file, user_id, folder, is_private, description)
 
 @router.get("/files/", response_model=List[dict])
 async def list_files(user_id: str = None):
