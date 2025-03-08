@@ -1,22 +1,23 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
+import { fetchData } from "../api/api";
+
+import CarnageLogo from "../images/Image-19.png";
 
 // Import your images
+import projectImage1 from "../images/Image-20.jpg";
+import projectImage2 from "../images/Image-21.jpg";
+import projectImage3 from "../images/Image-22.jpg";
+import projectImage4 from "../images/Image-23.jpg";
+import projectImage5 from "../images/Image-24.jpg";
+import projectImage6 from "../images/Image-25.jpg";
 import ProjectDetailModal from "./ProjectDetailModal";
-
-import { fetchData } from "../api/api";
 
 type Tab = "PROJECTS" | "VIDEOS" | "IMAGES";
 
 // Add type definitions
-type ImageType = {
-  url: string;
-  description: string;
-};
-type VideoType = {
-  url: string;
-  description: string;
-};
+type ImageType = string;
+type VideoType = string;
 
 // Add this type definition
 type Project = {
@@ -28,15 +29,6 @@ type Project = {
   maxAge: string;
 };
 
-/**
- * AccountPage Component
- *
- * A comprehensive profile page component that allows users to:
- * - View and update their profile picture
- * - Upload and manage projects, images, and videos
- * - View their content in a grid layout
- * - Interact with media through a modal view
- */
 export function AccountPage({
   toggleSidebar,
   isSidebarOpen,
@@ -44,32 +36,23 @@ export function AccountPage({
   toggleSidebar: () => void;
   isSidebarOpen: boolean;
 }) {
-  // State management for UI controls and data
   const [activeTab, setActiveTab] = useState<Tab>("PROJECTS");
   const [isProjectPopoverOpen, setIsProjectPopoverOpen] = useState(false);
   const [isProfilePicturePopoverOpen, setIsProfilePicturePopoverOpen] =
     useState(false);
   const [projectImage, setProjectImage] = useState<File | null>(null);
-  const [profilePicture, setProfilePicture] = useState<File | null>(null);
+
   const [projectDescription, setProjectDescription] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [minAge, setMinAge] = useState("");
   const [maxAge, setMaxAge] = useState("");
-  const [currentProfilePicture, setCurrentProfilePicture] = useState("");
+  const [currentProfilePicture, setCurrentProfilePicture] =
+    useState(CarnageLogo);
   const [isImagePopoverOpen, setIsImagePopoverOpen] = useState(false);
   const [imageUpload, setImageUpload] = useState<File | null>(null);
   const [imageDescription, setImageDescription] = useState("");
   const [projectName, setProjectName] = useState("");
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [isVideoPopoverOpen, setIsVideoPopoverOpen] = useState(false);
-  const [videoUpload, setVideoUpload] = useState<File | null>(null);
-  const [videoDescription, setVideoDescription] = useState("");
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [images, setImages] = useState<ImageType[]>([]);
-  const [videos, setVideos] = useState<VideoType[]>([]);
-  const [selectedImage, setSelectedImage] = useState<ImageType | null>(null);
-  const [selectedVideo, setSelectedVideo] = useState<VideoType | null>(null);
-  const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
 
   const user_id = "brand_67c5b2c43ae5b4ccb85b9a11";
 
@@ -80,6 +63,10 @@ export function AccountPage({
     bio: null,
   });
 
+  // const [profilePicture, setProfilePicture] = useState<File | null>(null);
+  const [profilePicture, setProfilePicture] = useState<string | null>(
+    CarnageLogo
+  );
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -111,7 +98,6 @@ export function AccountPage({
 
     fetchUser();
   }, []);
-
   const fetchProfilePicture = async () => {
     try {
       const response = await fetchData(
@@ -119,7 +105,8 @@ export function AccountPage({
       );
 
       if (response && response.s3_url) {
-        setCurrentProfilePicture(response.s3_url);
+        setProfilePicture(response.s3_url);
+        // setProfilePicture(`${response.s3_url}?t=${new Date().getTime()}`);
       }
     } catch (error) {
       console.error("Failed to fetch profile picture:", error);
@@ -127,95 +114,129 @@ export function AccountPage({
       setIsLoading(false);
     }
   };
-
   useEffect(() => {
     fetchProfilePicture();
   }, []);
 
-  /**
-   * Handles image file selection for project upload
-   * @param e - Change event from file input
-   */
+  // Array of project images
+  const projectImages = [
+    projectImage1,
+    projectImage2,
+    projectImage3,
+    projectImage4,
+    projectImage5,
+    projectImage6,
+  ];
+
+  // Explicitly type the arrays
+  const images: ImageType[] = []; // Add image URLs here if available
+  const videos: VideoType[] = []; // Add video URLs here if available
+
+  // Add sample project data (in a real app, this would come from your backend)
+  const projects: Project[] = projectImages.map((image, index) => ({
+    name: `Project ${index + 1}`,
+    image: image,
+    description:
+      "This is a sample project description. It showcases our latest work in fashion and modeling.",
+    tags: [
+      "Fashion/Runway Modeling",
+      "Commercial Modeling",
+      "Editorial Modeling",
+    ],
+    minAge: "18",
+    maxAge: "25",
+  }));
+
+  // Handle image upload
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setProjectImage(e.target.files[0]);
     }
   };
 
-  /**
-   * Handles profile picture file selection
-   * @param e - Change event from file input
-   */
+  // // Handle profile picture upload
+  // const handleProfilePictureUpload = (
+  //   e: React.ChangeEvent<HTMLInputElement>
+  // ) => {
+  //   if (e.target.files && e.target.files[0]) {
+  //     setProfilePicture(e.target.files[0]);
+  //   }
+  // };
+
+  // // Handle profile picture update
+  // const handleUpdateProfilePicture = () => {
+  //   if (profilePicture) {
+  //     // In a real app, you would upload the image to a server here
+  //     const reader = new FileReader();
+  //     reader.onloadend = () => {
+  //       setCurrentProfilePicture(reader.result as string);
+  //     };
+  //     reader.readAsDataURL(profilePicture);
+  //   }
+  //   setIsProfilePicturePopoverOpen(false);
+  //   setProfilePicture(null);
+  // };
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  // Handle profile picture file selection
   const handleProfilePictureUpload = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     if (e.target.files && e.target.files[0]) {
-      setProfilePicture(e.target.files[0]);
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      setImagePreview(URL.createObjectURL(file)); // Temporary preview
     }
   };
 
+  // Upload profile picture to backend
   const handleUpdateProfilePicture = async () => {
-    if (!profilePicture) return;
+    if (!selectedFile) return;
 
     const formData = new FormData();
-    formData.append("file", profilePicture); // Only file is added here
-
-    // Construct the query string for parameters
-    const queryParams = new URLSearchParams({
-      user_id: user_id,
-      folder: "profile-pic",
-      is_private: "false", // Ensure it's a string, since URLSearchParams requires strings
-    }).toString();
+    formData.append("file", selectedFile);
+    formData.append("user_id", user_id);
+    formData.append("folder", "profile-pic");
 
     try {
-      console.log("Uploading profile picture:", profilePicture);
-
-      const uploadResponse = await fetchData(`files/upload/?${queryParams}`, {
+      const response = await fetchData(`files/upload/`, {
         method: "POST",
-        body: formData, // Only formData, so browser sets correct headers
+        body: formData,
       });
 
-      console.log("Upload successful:", uploadResponse);
+      if (!response.ok) {
+        throw new Error("Failed to upload profile picture");
+      }
 
-      await fetchProfilePicture();
+      console.log("Profile picture uploaded successfully!");
+      fetchProfilePicture(); // Refresh to get latest profile picture
+      setIsProfilePicturePopoverOpen(false); // Close modal
+      setSelectedFile(null);
+      setImagePreview(null);
     } catch (error) {
-      console.error("Error updating profile picture:", error);
-    } finally {
-      setIsProfilePicturePopoverOpen(false);
-      setProfilePicture(null);
+      console.error("Error uploading profile picture:", error);
     }
   };
 
-  /**
-   * Toggles the selection state of a modeling tag
-   * @param tag - The tag to toggle
-   */
+  // Handle tag selection
   const handleTagToggle = (tag: string) => {
     setSelectedTags((prev) =>
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
     );
   };
 
-  /**
-   * Handles the submission of a new project
-   * Creates a new project with the selected image and details
-   */
+  // Handle project submission
   const handlePostProject = () => {
-    if (projectImage && projectName) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const newProject: Project = {
-          name: projectName,
-          image: reader.result as string,
-          description: projectDescription,
-          tags: selectedTags,
-          minAge,
-          maxAge,
-        };
-        setProjects([...projects, newProject]);
-      };
-      reader.readAsDataURL(projectImage);
-    }
+    console.log({
+      name: projectName,
+      image: projectImage,
+      description: projectDescription,
+      tags: selectedTags,
+      minAge,
+      maxAge,
+    });
     setProjectName("");
     setProjectImage(null);
     setProjectDescription("");
@@ -225,87 +246,15 @@ export function AccountPage({
     setIsProjectPopoverOpen(false);
   };
 
-  /**
-   * Handles the submission of a new image
-   * Adds the image to the images array with its description
-   */
+  // Add this new handler
   const handleImagePost = () => {
-    if (imageUpload) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImages([
-          ...images,
-          {
-            url: reader.result as string,
-            description: imageDescription,
-          },
-        ]);
-      };
-      reader.readAsDataURL(imageUpload);
-    }
+    console.log({
+      image: imageUpload,
+      description: imageDescription,
+    });
     setImageUpload(null);
     setImageDescription("");
     setIsImagePopoverOpen(false);
-  };
-
-  /**
-   * Handles video file selection
-   * @param e - Change event from file input
-   */
-  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setVideoUpload(e.target.files[0]);
-    }
-  };
-
-  /**
-   * Handles the submission of a new video
-   * Adds the video to the videos array with its description
-   */
-  const handleVideoPost = () => {
-    if (videoUpload) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setVideos([
-          ...videos,
-          {
-            url: reader.result as string,
-            description: videoDescription,
-          },
-        ]);
-      };
-      reader.readAsDataURL(videoUpload);
-    }
-    setVideoUpload(null);
-    setVideoDescription("");
-    setIsVideoPopoverOpen(false);
-  };
-
-  /**
-   * Handles clicking on media items (images or videos)
-   * Opens the media modal with the selected content
-   * @param media - The selected media item
-   * @param type - The type of media ('image' or 'video')
-   */
-  const handleMediaClick = (
-    media: ImageType | VideoType,
-    type: "image" | "video"
-  ) => {
-    if (type === "image") {
-      setSelectedImage(media);
-    } else {
-      setSelectedVideo(media);
-    }
-    setIsMediaModalOpen(true);
-  };
-
-  /**
-   * Closes the media modal and resets selected media
-   */
-  const handleCloseMediaModal = () => {
-    setIsMediaModalOpen(false);
-    setSelectedImage(null);
-    setSelectedVideo(null);
   };
 
   return (
@@ -323,25 +272,23 @@ export function AccountPage({
           className="w-48 h-48 rounded-full overflow-hidden bg-black flex items-center justify-center cursor-pointer hover:opacity-75 transition-opacity"
           onClick={() => setIsProfilePicturePopoverOpen(true)}
         >
-          <img
-            src={currentProfilePicture}
-            alt="Carnage Logo"
-            className="w-full h-full object-cover"
-          />
+          {isLoading ? (
+            <p className="text-gray-500">Loading...</p> // Show loading text while fetching
+          ) : profilePicture ? (
+            <img
+              src={profilePicture}
+              alt="Profile Picture"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <p className="text-gray-500">No Image</p> // Show fallback text if no image is available
+          )}
         </div>
 
         <div className="flex-1">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-medium">
-              {user.name || "Default User"}
-            </h1>
+            <h1 className="text-2xl font-medium">{user.name}</h1>
             <div className="flex gap-3">
-              <button
-                onClick={() => setIsProjectPopoverOpen(true)}
-                className="px-4 py-2 bg-[#DD8560] text-white rounded-full hover:bg-opacity-90 transition-colors hover:scale-105 cursor-pointer"
-              >
-                Project +
-              </button>
               <button
                 onClick={() => setIsImagePopoverOpen(true)}
                 className="px-4 py-2 bg-[#DD8560] text-white rounded-full hover:bg-opacity-90 transition-colors hover:scale-105 cursor-pointer"
@@ -349,30 +296,28 @@ export function AccountPage({
                 Image +
               </button>
               <button
-                onClick={() => setIsVideoPopoverOpen(true)}
+                onClick={() => setIsProjectPopoverOpen(true)}
                 className="px-4 py-2 bg-[#DD8560] text-white rounded-full hover:bg-opacity-90 transition-colors hover:scale-105 cursor-pointer"
               >
-                Video +
+                Project +
               </button>
             </div>
           </div>
 
           <div className="flex gap-8 mb-6">
             <div className="text-center md:text-left hover:text-[#DD8560] transition-colors cursor-pointer">
-              <span className="font-medium">{projects.length}</span> Projects
+              <span className="font-medium">6</span> Projects
             </div>
             <div className="text-center md:text-left hover:text-[#DD8560] transition-colors cursor-pointer">
-              <span className="font-medium">{images.length}</span> Images
+              <span className="font-medium">0</span> Images
             </div>
             <div className="text-center md:text-left hover:text-[#DD8560] transition-colors cursor-pointer">
-              <span className="font-medium">{videos.length}</span> Videos
+              <span className="font-medium">0</span> Videos
             </div>
           </div>
 
           <div className="mb-6">
-            <h2 className="text-xl font-medium mb-2">
-              {user.name || "Default User"}
-            </h2>
+            <h2 className="text-xl font-medium mb-2">{user.name}</h2>
             <p className="text-gray-600">{user.bio || "No bio available"}</p>
           </div>
         </div>
@@ -530,10 +475,19 @@ export function AccountPage({
                   onChange={handleProfilePictureUpload}
                   className="w-full border rounded p-2 cursor-pointer"
                 />
-                {profilePicture && (
+                {/* {profilePicture && (
                   <div className="mt-4 flex justify-center">
                     <img
-                      src={URL.createObjectURL(profilePicture)}
+                      src={profilePicture}
+                      alt="Preview"
+                      className="max-w-64 max-h-64 object-cover rounded"
+                    />
+                  </div>
+                )} */}
+                {imagePreview && (
+                  <div className="mt-4 flex justify-center">
+                    <img
+                      src={imagePreview}
                       alt="Preview"
                       className="max-w-64 max-h-64 object-cover rounded"
                     />
@@ -554,7 +508,7 @@ export function AccountPage({
               </button>
               <button
                 onClick={handleUpdateProfilePicture}
-                disabled={!profilePicture}
+                disabled={!selectedFile}
                 className="px-4 py-2 bg-[#DD8560] text-white rounded-full hover:bg-opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 Update Image
@@ -637,78 +591,9 @@ export function AccountPage({
         </div>
       )}
 
-      {/* Add Video Upload Popover */}
-      {isVideoPopoverOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/30 backdrop-blur-md">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl relative shadow-xl">
-            <button
-              onClick={() => setIsVideoPopoverOpen(false)}
-              className="absolute top-4 right-4 text-gray-600 hover:text-[#DD8560] cursor-pointer"
-            >
-              <X className="w-6 h-6" />
-            </button>
-
-            <h2 className="text-2xl font-medium mb-4 text-[#DD8560]">
-              Upload Video
-            </h2>
-
-            <div className="space-y-6">
-              <div>
-                <label className="block mb-2 text-sm font-medium">
-                  Select Video
-                </label>
-                <input
-                  type="file"
-                  accept="video/*"
-                  onChange={handleVideoUpload}
-                  className="w-full border rounded p-2 cursor-pointer"
-                />
-                {videoUpload && (
-                  <div className="mt-4 flex justify-center">
-                    <video
-                      src={URL.createObjectURL(videoUpload)}
-                      controls
-                      className="max-w-64 max-h-64 object-cover rounded"
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block mb-2 text-sm font-medium">
-                  Description
-                </label>
-                <textarea
-                  value={videoDescription}
-                  onChange={(e) => setVideoDescription(e.target.value)}
-                  className="w-full border rounded p-2 h-24"
-                  placeholder="Add a description for your video..."
-                />
-              </div>
-
-              <div className="flex justify-end gap-4">
-                <button
-                  onClick={() => setIsVideoPopoverOpen(false)}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition-colors cursor-pointer"
-                >
-                  Discard
-                </button>
-                <button
-                  onClick={handleVideoPost}
-                  disabled={!videoUpload}
-                  className="px-4 py-2 bg-[#DD8560] text-white rounded-full hover:bg-opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                >
-                  Post Video
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="border-t mt-8">
         <div className="flex justify-center gap-8 mt-4">
-          {(["PROJECTS", "IMAGES", "VIDEOS"] as Tab[]).map((tab) => (
+          {(["PROJECTS", "VIDEOS", "IMAGES"] as Tab[]).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -745,10 +630,9 @@ export function AccountPage({
             <div
               key={index}
               className="aspect-square rounded-lg overflow-hidden bg-gray-100 hover:scale-105 transition-transform duration-300 cursor-pointer"
-              onClick={() => handleMediaClick(image, "image")}
             >
               <img
-                src={image.url}
+                src={image}
                 alt={`Image ${index + 1}`}
                 className="w-full h-full object-cover"
               />
@@ -759,10 +643,9 @@ export function AccountPage({
             <div
               key={index}
               className="aspect-square rounded-lg overflow-hidden bg-gray-100 hover:scale-105 transition-transform duration-300 cursor-pointer"
-              onClick={() => handleMediaClick(video, "video")}
             >
               <video
-                src={video.url}
+                src={video}
                 controls
                 className="w-full h-full object-cover"
               />
@@ -779,65 +662,12 @@ export function AccountPage({
         )}
       </div>
 
-      {/* Project Detail Modal */}
+      {/* Add the ProjectDetailModal */}
       <ProjectDetailModal
         isOpen={selectedProject !== null}
         onClose={() => setSelectedProject(null)}
         project={selectedProject!}
       />
-
-      {/* Media Detail Modal */}
-      {isMediaModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 sm:p-6 overflow-y-auto"
-          style={{ backdropFilter: "blur(8px)" }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) handleCloseMediaModal();
-          }}
-        >
-          <div className="bg-white w-full max-w-5xl h-[80vh] overflow-hidden rounded-2xl shadow-2xl flex relative my-auto">
-            {/* Close button */}
-            <button
-              onClick={handleCloseMediaModal}
-              className="absolute top-4 right-4 z-20 bg-white/90 rounded-full p-2 hover:bg-white transition-all shadow-lg cursor-pointer"
-            >
-              <X className="w-5 h-5 text-gray-800" />
-            </button>
-
-            {/* Media column - larger */}
-            <div className="w-2/3 h-full bg-gray-100 relative">
-              {selectedVideo ? (
-                <video
-                  src={selectedVideo.url}
-                  controls
-                  className="w-full h-full object-cover"
-                />
-              ) : selectedImage ? (
-                <img
-                  src={selectedImage.url}
-                  alt="Selected media"
-                  className="w-full h-full object-cover"
-                />
-              ) : null}
-            </div>
-
-            {/* Details column - smaller */}
-            <div className="w-1/3 h-full flex flex-col p-6 overflow-y-auto">
-              {/* Description */}
-              <div className="mb-6">
-                <h3 className="text-sm font-medium text-gray-500 mb-2">
-                  Description
-                </h3>
-                <p className="text-gray-700 leading-relaxed">
-                  {selectedImage?.description ||
-                    selectedVideo?.description ||
-                    "No description provided"}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
