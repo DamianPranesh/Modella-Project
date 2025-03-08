@@ -58,7 +58,7 @@ async def create_brand_tag(tag: BrandTagData):
 
 @router.post("/tags/projects/", response_model=ProjectTagData)
 async def create_project_tag(tag: ProjectTagData):
-    tag.project_Id = f"project_{ObjectId()}" # Unique ID generation
+    #tag.project_Id = f"project_{ObjectId()}" # Unique ID generation
 
     existing_tag = await project_tags_collection.find_one({"project_id": tag.project_Id})
     if existing_tag:
@@ -408,6 +408,7 @@ async def generate_tag(tag_type: str):
     
     elif tag_type == "Project":
         tag = ProjectTagData(
+            project_Id = f"project_{ObjectId()}",
             user_Id=user_id,
             is_project=True,
             age=((randint(18, 25), randint(26, 35))),  # Age range for project tags

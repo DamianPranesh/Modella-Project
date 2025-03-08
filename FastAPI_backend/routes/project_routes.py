@@ -27,7 +27,7 @@ async def create_project(project: Project):
     if existing:
         raise HTTPException(status_code=400, detail="Project already exists")
     
-    await project_collection.insert_one(project.dict())
+    await project_collection.insert_one(project.model_dump())
     return project
 
 # Retrieve All Projects

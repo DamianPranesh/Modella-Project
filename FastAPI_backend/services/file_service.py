@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 # Define allowed folders
-ALLOWED_FOLDERS = {"image", "profile-pic", "portfolio", "video"}
+ALLOWED_FOLDERS = {"image", "profile-pic", "portfolio", "video","project"}
 
 # Allowed MIME types
 ALLOWED_FILE_TYPES = {
