@@ -134,7 +134,7 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
         aboutMe: userDetails.bio || "No bio available.",
         imageUrl: imageResponse?.[0]?.s3_url || null,
         age: userTags.age || "unknown",
-        interest: userTags.work_Field || "empty",
+        interests: userTags.work_Field || "empty",
         testimonials: testimonialsData,
       };
     } catch (error) {
