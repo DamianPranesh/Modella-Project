@@ -2,9 +2,11 @@ import base64
 import json
 import os
 from pathlib import Path
+from routes.role_management import router as role_router
 
 import requests
 from fastapi import FastAPI, Depends, HTTPException, Response, Request
+from fastapi.middleware.cors import CORSMiddleware  # Add this import
 from jose import jws, jwt, ExpiredSignatureError, JWTError, JWSError
 from jose.exceptions import JWTClaimsError
 from pydantic import BaseModel
@@ -15,6 +17,21 @@ from dotenv import load_dotenv
 load_dotenv()
 
 server = FastAPI()
+
+# Add CORS middleware
+server.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://modella.vercel.app",
+        "http://localhost:5173"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include the role management router
+server.include_router(router=role_router, prefix="/api")
 
 # Load configuration from environment
 jwks_endpoint = os.environ.get("JWKS_ENDPOINT")
