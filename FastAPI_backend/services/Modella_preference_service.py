@@ -575,7 +575,7 @@ async def generate_pref(tag_type: str):
             user_Id=user_id,
             is_project=True,
             age=(randint(18, 25), randint(26, 35)),  # Age range for project tags
-            height=(randint(150, 170), randint(171, 200)),  # Height range for project tags
+            height=(randint(150, 170), randint(171, 191)),  # Height range for project tags
             natural_eye_color=sample(get_keywords("natural_eye_colors"), 2),  # Sample 2 eye colors
             body_Type=sample(get_keywords("body_types"), 2),  # Sample 2 body types
             work_Field=sample(get_keywords("work_fields"), 3),  # Random 3 work fields
@@ -596,7 +596,7 @@ async def generate_pref(tag_type: str):
             client_Type=client_type,
             user_Id=user_id,
             age=(randint(18, 25), randint(26, 35)),  # Age range for project tags
-            height=(randint(150, 170), randint(171, 200)),  # Height range for project tags
+            height=(randint(150, 170), randint(171, 191)),  # Height range for project tags
             natural_eye_color=sample(get_keywords("natural_eye_colors"), 2),  # Sample 2 eye colors
             body_Type=sample(get_keywords("body_types"), 2),  # Sample 2 body types
             work_Field=sample(get_keywords("work_fields"), 3),  # Random 3 work fields
