@@ -217,16 +217,6 @@ export function AccountPage({
         {}
       );
 
-      // Step 4: Assign images based on order
-      // const projectsWithDetails = projectList.map(
-      //   (project: any, index: number) => ({
-      //     ...project,
-      //     image: imageResponse[index]?.s3_url || "", // Assign image based on order
-      //     age: projectTagMap[project.project_Id]?.age || null,
-      //     work_Field: projectTagMap[project.project_Id]?.work_Field || [],
-      //   })
-      // );
-
       const projectsWithDetails: Project[] = projectList.map(
         (project: any, index: number) => ({
           name: project.name || "Untitled Project",
@@ -317,35 +307,6 @@ export function AccountPage({
     );
   };
 
-  /**
-   * Handles the submission of a new project
-   * Creates a new project with the selected image and details
-   */
-  // const handlePostProject = () => {
-  //   if (projectImage && projectName) {
-  //     const reader = new FileReader();
-  //     reader.onloadend = () => {
-  //       const newProject: Project = {
-  //         name: projectName,
-  //         image: reader.result as string,
-  //         description: projectDescription,
-  //         tags: selectedTags,
-  //         minAge,
-  //         maxAge,
-  //       };
-  //       setProjects([...projects, newProject]);
-  //     };
-  //     reader.readAsDataURL(projectImage);
-  //   }
-  //   setProjectName("");
-  //   setProjectImage(null);
-  //   setProjectDescription("");
-  //   setSelectedTags([]);
-  //   setMinAge("");
-  //   setMaxAge("");
-  //   setIsProjectPopoverOpen(false);
-  // };
-
   const handlePostProject = async () => {
     if (!projectName || !projectDescription || !projectImage) return;
 
@@ -413,29 +374,6 @@ export function AccountPage({
     }
   };
 
-  /**
-   * Handles the submission of a new image
-   * Adds the image to the images array with its description
-   */
-  // const handleImagePost = () => {
-  //   if (imageUpload) {
-  //     const reader = new FileReader();
-  //     reader.onloadend = () => {
-  //       setImages([
-  //         ...images,
-  //         {
-  //           url: reader.result as string,
-  //           description: imageDescription,
-  //         },
-  //       ]);
-  //     };
-  //     reader.readAsDataURL(imageUpload);
-  //   }
-  //   setImageUpload(null);
-  //   setImageDescription("");
-  //   setIsImagePopoverOpen(false);
-  // };
-
   const handleImagePost = async () => {
     if (!imageUpload) return;
 
@@ -480,29 +418,6 @@ export function AccountPage({
       setVideoUpload(e.target.files[0]);
     }
   };
-
-  /**
-   * Handles the submission of a new video
-   * Adds the video to the videos array with its description
-   */
-  // const handleVideoPost = () => {
-  //   if (videoUpload) {
-  //     const reader = new FileReader();
-  //     reader.onloadend = () => {
-  //       setVideos([
-  //         ...videos,
-  //         {
-  //           url: reader.result as string,
-  //           description: videoDescription,
-  //         },
-  //       ]);
-  //     };
-  //     reader.readAsDataURL(videoUpload);
-  //   }
-  //   setVideoUpload(null);
-  //   setVideoDescription("");
-  //   setIsVideoPopoverOpen(false);
-  // };
 
   const handleVideoPost = async () => {
     if (!videoUpload) return;
