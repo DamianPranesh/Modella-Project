@@ -2,15 +2,19 @@ from typing import List
 
 import logging
 
+from fastapi import APIRouter
+
 # Create a logger specific to this module
 logger = logging.getLogger(__name__)
 
+router = APIRouter(prefix="/keywords", tags=["keywords"])
+
 keywords = {
-    "eye_colors": [
+    "natural_eye_colors": [
         "Brown", "Blue", "Hazel", "Green", "Gray", "Amber", "Red", "Violet", "Heterochromia"
     ],
     "body_types": [
-        "Straight Size Models", "Plus-Size Models", "Petite Models", "Fitness Models",
+        "Straight Size Models", "Plus-Size Models","Straight Size Models", "Plus-Size Models", "Petite Models", "Fitness Models",
         "Glamour Models", "Mature Models", "Alternative Models", "Parts Models", 
         "Child Models", "Body-Positive Models", "Androgynous Models", "Fit Models"
     ],
@@ -30,7 +34,7 @@ keywords = {
         "Mediterranean", "Nordic", "East Asian (Chinese, Japanese, Korean)", 
         "Southeast Asian (Thai, Filipino, Vietnamese, etc.)", "Caribbean"
     ],
-    "hair_types": [
+    "natural_hair_types": [
         "Straight", "Wavy", "Curly", "Coily", "Kinky", "Textured", "Afro", "Braided",
         "Buzz Cut", "Shaved", "Dyed/Colored Hair", "Gray/White Hair", "Bald"
     ],
@@ -63,3 +67,9 @@ def get_keywords(category: str) -> List[str]:
     if normalized_category not in keywords_normalized:
         logger.warning(f"Requested unknown category: {category}")
     return keywords_normalized.get(normalized_category, [])
+
+
+@router.get("/filters/{category}", response_model=List[str])
+def get_allowed_values(category: str):
+    """Fetch allowed values for a given category"""
+    return keywords.get(category.lower(), [])
