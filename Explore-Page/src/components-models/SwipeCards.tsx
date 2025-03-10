@@ -111,6 +111,16 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
+                    <ChevronLeft className="text-[rgb(221,133,96)]" size={20} />
+                    <ChevronRight
+                      className="text-[rgb(221,133,96)]"
+                      size={20}
+                    />
+                    <span className="text-sm text-gray-600">
+                      Navigate between cards
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
                     <X className="text-red-500" size={20} />
                     <span className="text-sm text-gray-600">
                       Reject profile
@@ -129,6 +139,21 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
         </div>
 
         <div className="relative mb-12 flex items-center justify-center">
+          {/* Add the Previous button here */}
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => {
+              if (currentIndex > 0) {
+                setCurrentIndex(currentIndex - 1);
+              }
+            }}
+            className="absolute left-[-20px] z-10 rounded-full bg-[rgb(221,133,96)] p-3 shadow-lg text-white hover:bg-[rgb(201,113,76)] transition-colors duration-200 disabled:opacity-50 disabled:hover:bg-[rgb(221,133,96)] md:left-[-60px] md:p-4 cursor-pointer"
+            disabled={currentIndex === 0}
+          >
+            <ChevronLeft size={24} />
+          </motion.button>
+
           <AnimatePresence mode="wait">
             {cards.map((card, index) => (
               <Card
@@ -142,6 +167,21 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
               />
             ))}
           </AnimatePresence>
+
+          {/* Add the Next button here */}
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => {
+              if (currentIndex < cards.length - 1) {
+                setCurrentIndex(currentIndex + 1);
+              }
+            }}
+            className="absolute right-[-20px] z-10 rounded-full bg-[rgb(221,133,96)] p-3 shadow-lg text-white hover:bg-[rgb(201,113,76)] transition-colors duration-200 disabled:opacity-50 disabled:hover:bg-[rgb(221,133,96)] md:right-[-60px] md:p-4 cursor-pointer"
+            disabled={currentIndex === cards.length - 1}
+          >
+            <ChevronRight size={24} />
+          </motion.button>
         </div>
 
         <div className="flex justify-center gap-6 md:gap-12">

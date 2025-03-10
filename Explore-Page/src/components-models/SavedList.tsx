@@ -227,6 +227,8 @@ export function SavedList({
               if (!isSelectionActive) {
                 setSelectedModelForDetail(model);
                 setModelDetailModalOpen(true);
+              } else {
+                toggleModelSelection(model.id);
               }
             }}
           >
@@ -293,9 +295,9 @@ export function SavedList({
             >
               <X className="w-5 h-5 text-gray-500" />
             </button>
-            <h2 className="text-xl font-bold mb-4">Too Many Models</h2>
+            <h2 className="text-xl font-bold mb-4">Too Many Projects</h2>
             <p className="text-gray-600">
-              Please select no more than 3 models for comparison.
+              Please select no more than 3 Projects for comparison.
             </p>
           </div>
         </div>

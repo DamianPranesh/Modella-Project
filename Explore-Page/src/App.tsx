@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Route,
@@ -65,6 +65,9 @@ function App() {
           }`}
         >
           <Routes>
+            {/* Redirect root path to /explore */}
+            <Route path="/" element={<Navigate to="/explore" />} />
+
             {/* Common route */}
             <Route
               path="/explore"
