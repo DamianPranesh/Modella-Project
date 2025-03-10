@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import ComparisonModal from "./ComparisonModel";
 import ModelDetailModal from "./ModelDetailModal";
 import { fetchData } from "../api/api";
 
+// Define the Model type
 type Model = {
   id: string;
   name: string;
@@ -27,8 +28,10 @@ type Model = {
   shoeSize: string;
 };
 
+// List of saved models
 const userId = "brand_67c5b2c43ae5b4ccb85b9a11";
 
+// Define the SavedList component
 export function SavedList({
   toggleSidebar,
   isSidebarOpen,
@@ -36,6 +39,7 @@ export function SavedList({
   toggleSidebar: () => void;
   isSidebarOpen: boolean;
 }) {
+  // State variables
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [isSelectionActive, setIsSelectionActive] = useState<boolean>(false);
   const [showConfirmButtons, setShowConfirmButtons] = useState<boolean>(false);
@@ -168,6 +172,7 @@ export function SavedList({
     }
   }, [comparisonModalOpen, tooManyModelsModalOpen, modelDetailModalOpen]);
 
+  // Toggle model selection
   const toggleModelSelection = (modelId: string) => {
     if (isSelectionActive) {
       if (selectedModels.includes(modelId)) {
@@ -180,6 +185,7 @@ export function SavedList({
     }
   };
 
+  // Handle compare button click
   const handleCompareClick = () => {
     if (showConfirmButtons) {
       setIsSelectionActive(false);
@@ -191,20 +197,24 @@ export function SavedList({
     }
   };
 
+  // Handle cancel button click
   const handleCancel = () => {
     setIsSelectionActive(false);
     setShowConfirmButtons(false);
     setSelectedModels([]);
   };
 
+  // Handle OK button click
   const handleOk = () => {
     setComparisonModalOpen(true);
   };
 
+  // Close comparison modal
   const closeComparisonModal = () => {
     setComparisonModalOpen(false);
   };
 
+  // Close too many models modal
   const closeTooManyModelsModal = () => {
     setTooManyModelsModalOpen(false);
   };
@@ -267,6 +277,8 @@ export function SavedList({
                 if (!isSelectionActive) {
                   setSelectedModelForDetail(model);
                   setModelDetailModalOpen(true);
+                } else {
+                  toggleModelSelection(model.id);
                 }
               }}
             >
