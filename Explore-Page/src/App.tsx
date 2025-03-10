@@ -5,6 +5,8 @@ import { ExplorePage } from "./components/ExplorePage";
 import { AccountPage } from "./components/AccountPage";
 import SwipeCards from "./components/SwipeCards";
 import { SavedList } from "./components/SavedList";
+import { LoginPage } from "./components/LoginPage";
+
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -78,6 +80,15 @@ function App() {
                 />
               }
             />
+            <Route
+              path="/login"
+              element={
+                <LoginPage
+                  
+                />
+              }
+            />
+
             {/* Add more routes as needed */}
           </Routes>
         </main>
