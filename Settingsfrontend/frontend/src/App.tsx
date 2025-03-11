@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import viteLogo from "/vite.svg"; // Import vite logo
-import reactLogo from "./assets/react.svg"; // Import react logo
+import viteLogo from "/vite.svg"; 
+import reactLogo from "./assets/react.svg"; 
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast"; // Ensure correct import path
+import { useToast } from "@/components/ui/use-toast"; 
 
-// Define missing types (replace with actual types from your project)
 type User = { id: string; name: string };
 type Tag = { id: string; name: string };
 type Preference = { id: string; name: string };
