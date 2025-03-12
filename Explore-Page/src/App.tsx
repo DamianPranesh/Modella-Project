@@ -13,6 +13,7 @@ import { ExplorePage } from "./components/ExplorePage";
 import { AccountPage } from "./components/AccountPage";
 import SwipeCards from "./components/SwipeCards";
 import { SavedList } from "./components/SavedList";
+import SettingsPage from "./components/BusinessSettingsPage";
 
 // Model components
 import { AccountPage as ModelAccountPage } from "./components-models/AccountPage";
@@ -96,6 +97,15 @@ function App() {
                   path="/swipe"
                   element={
                     <SwipeCards
+                      toggleSidebar={toggleSidebar}
+                      isSidebarOpen={isSidebarOpen}
+                    />
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <SettingsPage
                       toggleSidebar={toggleSidebar}
                       isSidebarOpen={isSidebarOpen}
                     />
