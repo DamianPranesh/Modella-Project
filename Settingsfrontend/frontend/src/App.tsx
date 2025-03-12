@@ -1,12 +1,12 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import SettingsPage from "./pages/SettingsPage";
-import Privacy from "./features/Privacy";
-import Activity from "./features/Activity";
-import Notification from "./features/Notification";
-import Friends from "./features/Friends";
-import Portfolio from "./features/Portfolio";
-import Favorite from "./features/Favorite";
-import EditAccount from "./features/EditAccount";
+import SettingsPage from "./Pages/SettingsPage";
+import Privacy from "./Features/Privacy";
+import Activity from "./Features/Activity";
+import Notification from "./Features/Notification";
+import Friends from "./Features/Friends";
+import Portfolio from "./Features/Portfolio";
+import Favorite from "./Features/Favorite";
+import EditAccount from "./Features/EditAccount";
 
 function App() {
   return (

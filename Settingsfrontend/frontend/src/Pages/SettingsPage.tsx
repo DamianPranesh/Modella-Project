@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import "../App.css";
 import SettingsMenu from "../components/Settingsmenu";
 import { getUser } from "../api/userService";
 
