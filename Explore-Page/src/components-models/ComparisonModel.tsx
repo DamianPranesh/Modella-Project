@@ -66,9 +66,9 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({
             <X className="w-5 h-5 text-gray-500" />
           </button>
 
-          <h2 className="text-xl font-bold mb-4">Insufficient Models</h2>
+          <h2 className="text-xl font-bold mb-4">Insufficient Projects</h2>
           <p className="text-gray-600">
-            Please select at least 2 models for comparison.
+            Please select at least 2 Projects for comparison.
           </p>
         </div>
       </div>

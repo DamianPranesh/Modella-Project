@@ -1,4 +1,3 @@
-import React from "react";
 import { SearchBar } from "./SearchBar";
 import { ImageCarousel } from "./ImageCarousel";
 import { CategoryGrid } from "./CategoryGrid";

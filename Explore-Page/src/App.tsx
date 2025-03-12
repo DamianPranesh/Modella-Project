@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Route,
@@ -20,6 +20,7 @@ import { LoginPage } from "./components/LoginPage";
 import { AccountPage as ModelAccountPage } from "./components-models/AccountPage";
 import ModelSwipeCards from "./components-models/SwipeCards";
 import { SavedList as ModelSavedList } from "./components-models/SavedList";
+import ModelSettingsPage from "./components-models/SettingsPage";
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -67,6 +68,9 @@ function App() {
           }`}
         >
           <Routes>
+            {/* Redirect root path to /explore */}
+            <Route path="/" element={<Navigate to="/explore" />} />
+
             {/* Common route */}
             <Route
               path="/explore"
@@ -134,6 +138,15 @@ function App() {
                   path="/swipe"
                   element={
                     <ModelSwipeCards
+                      toggleSidebar={toggleSidebar}
+                      isSidebarOpen={isSidebarOpen}
+                    />
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <ModelSettingsPage
                       toggleSidebar={toggleSidebar}
                       isSidebarOpen={isSidebarOpen}
                     />

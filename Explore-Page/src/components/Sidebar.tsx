@@ -1,4 +1,3 @@
-import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Compass,
@@ -7,7 +6,6 @@ import {
   MessageCircle,
   User,
   Settings,
-  Menu,
   ArrowLeft,
 } from "lucide-react";
 import ModellaLogo from "../images/Image-7.png";
@@ -48,7 +46,7 @@ export function Sidebar({ isOpen, toggleSidebar, userType }: SidebarProps) {
 
         <div className="text-center mb-4">
           <span className="bg-white/10 px-6 py-2 rounded-full text-sm font-medium shadow-md">
-            {userType === "model" ? "Model Interface" : "Business Interface"}
+            {userType === "model" ? "Model" : "Business"}
           </span>
         </div>
 
