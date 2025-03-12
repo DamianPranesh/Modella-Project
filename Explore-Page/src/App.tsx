@@ -18,6 +18,7 @@ import { SavedList } from "./components/SavedList";
 import { AccountPage as ModelAccountPage } from "./components-models/AccountPage";
 import ModelSwipeCards from "./components-models/SwipeCards";
 import { SavedList as ModelSavedList } from "./components-models/SavedList";
+import ModelSettingsPage from "./components-models/SettingsPage";
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -125,6 +126,15 @@ function App() {
                   path="/swipe"
                   element={
                     <ModelSwipeCards
+                      toggleSidebar={toggleSidebar}
+                      isSidebarOpen={isSidebarOpen}
+                    />
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <ModelSettingsPage
                       toggleSidebar={toggleSidebar}
                       isSidebarOpen={isSidebarOpen}
                     />
