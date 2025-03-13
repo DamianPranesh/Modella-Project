@@ -67,6 +67,71 @@ async def create_model_brand_preference(preference: ModelBrandPreferenceData):
 
 
 
+@router.put("/preferences/upsert/model/", response_model=ModelProjectPreferenceData)
+async def upsert_model_preference(preference_data: ModelProjectPreferenceData):
+    # Check if user_Id exists in user_collection
+    user_exists = await user_collection.find_one({"user_Id": preference_data.user_Id})
+    if not user_exists:
+        raise HTTPException(status_code=400, detail="Invalid user_Id. User does not exist.")
+
+    # Find existing preference
+    existing_preference = await model_preferences_collection.find_one({"user_Id": preference_data.user_Id})
+
+    if existing_preference:
+        # Merge only provided fields while keeping existing data
+        updated_pref_data = {**existing_preference, **{k: v for k, v in preference_data.model_dump().items() if v is not None}}
+    else:
+        # If no existing preference, create a new one
+        updated_pref_data = preference_data.model_dump()
+
+    # Validate merged data
+    updated_pref = ModelProjectPreferenceData(**updated_pref_data)
+    validate_tag_data(updated_pref)
+
+    # Upsert the preference
+    updated_pref = await model_preferences_collection.find_one_and_update(
+        {"user_Id": preference_data.user_Id},
+        {"$set": updated_pref_data},
+        upsert=True,
+        return_document=ReturnDocument.AFTER
+    )
+
+    return ModelProjectPreferenceData(**updated_pref)
+
+
+
+@router.put("/preferences/upsert/brand/", response_model=BrandModelPreferenceData)
+async def upsert_brand_preference(preference_data: BrandModelPreferenceData):
+    # Check if user_Id exists in user_collection
+    user_exists = await user_collection.find_one({"user_Id": preference_data.user_Id})
+    if not user_exists:
+        raise HTTPException(status_code=400, detail="Invalid user_Id. User does not exist.")
+
+    # Find existing preference
+    existing_preference = await brand_preferences_collection.find_one({"user_Id": preference_data.user_Id})
+
+    if existing_preference:
+        # Merge only provided fields while keeping existing data
+        updated_pref_data = {**existing_preference, **{k: v for k, v in preference_data.model_dump().items() if v is not None}}
+    else:
+        # If no existing preference, create a new one
+        updated_pref_data = preference_data.model_dump()
+
+    # Validate merged data
+    updated_pref = BrandModelPreferenceData(**updated_pref_data)
+    validate_tag_data(updated_pref)
+
+    # Upsert the preference
+    updated_pref = await brand_preferences_collection.find_one_and_update(
+        {"user_Id": preference_data.user_Id},
+        {"$set": updated_pref_data},
+        upsert=True,
+        return_document=ReturnDocument.AFTER
+    )
+
+    return BrandModelPreferenceData(**updated_pref)
+
+
 
 
 
@@ -186,21 +251,21 @@ async def update_model_brand_preference(user_id: str, preference_data : dict):
 # Delete Preference
 @router.delete("/preferences/model/{user_id}")
 async def delete_model_preference(user_id: str):
-    result = model_preferences_collection.delete_one({"user_Id": user_id})
+    result = await model_preferences_collection.delete_one({"user_Id": user_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Preference not found")
     return {"message": "Preference deleted successfully"}
 
 @router.delete("/preferences/brand/{user_id}")
 async def delete_brand_preference(user_id: str):
-    result = brand_preferences_collection.delete_one({"user_Id": user_id})
+    result = await brand_preferences_collection.delete_one({"user_Id": user_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Preference not found")
     return {"message": "Preference deleted successfully"}
 
 @router.delete("/preferences/model-brand/{user_id}")
 async def delete_model_brand_preference(user_id: str):
-    result = model_brand_preferences_collection.delete_one({"user_Id": user_id})
+    result = await model_brand_preferences_collection.delete_one({"user_Id": user_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Preference not found")
     return {"message": "Preference deleted successfully"}
@@ -209,17 +274,17 @@ async def delete_model_brand_preference(user_id: str):
 # Delete All Preferences
 @router.delete("/preferences/model-delete-all")
 async def delete_all_model_preferences():
-    model_preferences_collection.delete_many({})
+    await model_preferences_collection.delete_many({})
     return {"message": "All model preferences deleted successfully"}
 
 @router.delete("/preferences/brand-delete-all")
 async def delete_all_brand_preferences():
-    brand_preferences_collection.delete_many({})
+    await brand_preferences_collection.delete_many({})
     return {"message": "All brand preferences deleted successfully"}
 
 @router.delete("/preferences/model-brand-delete-all")
 async def delete_all_model_brand_preferences():
-    model_brand_preferences_collection.delete_many({})
+    await model_brand_preferences_collection.delete_many({})
     return {"message": "All brand preferences deleted successfully"}
 
 

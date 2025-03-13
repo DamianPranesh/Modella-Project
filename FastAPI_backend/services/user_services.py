@@ -138,52 +138,6 @@ class UserGenerationRequest(BaseModel):
     num_users: int
     user_type: str  # Either 'model' or 'brand'
 
-# async def generate_fake_users(num_users: int):
-#     fake_users = []
-
-#     for _ in range(num_users):
-#         role = random.choice(["model", "brand"])
-#         mongo_id = ObjectId()  # Generate MongoDB _id in advance
-#         user_id = f"{role}_{mongo_id}"  # Generate user_Id before inserting
-
-#         user_dict = {
-#             "_id": mongo_id,  # Set _id manually
-#             "user_Id": user_id,  # Pre-generated user_Id to avoid null errors
-#             "name": f"Fake {user_id}",
-#             "email": f"{user_id}@gmail.com",  # Set correct email before inserting
-#             "password_Hash": generate_secure_password(),
-#             "profile_Picture_URL": None,
-#             "google_Id": None,
-#             "apple_Id": None,
-#             "auth_Method": None,
-#             "role": role,
-#             "created_At": datetime.now(timezone.utc),
-#             "updated_At": None,
-#             "bio": None,
-#             "video_URL": None,
-#             "photo_URL": None,
-#             "social_Media_URL": None,
-#             "tags_Id": None,
-#             "booking_Availability": None,
-#             "preference_Id": None,
-#             "portfolio_URL": None 
-#         }
-#         fake_users.append(user_dict)
-
-#     try:
-#         result = await user_collection.insert_many(fake_users)  # Insert all at once
-        
-#         # Convert ObjectId to string for the response
-#         for user in fake_users:
-#             user["_id"] = str(user["_id"])
-
-#         return fake_users
-
-#     except Exception as e:
-#         raise HTTPException(
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             detail=f"Error generating fake users: {str(e)}"
-#         )
 
 
 async def generate_fake_users(user_type: str, num_users: int):

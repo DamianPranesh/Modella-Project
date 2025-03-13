@@ -80,6 +80,68 @@ async def create_project_tag(tag: ProjectTagData):
     raise HTTPException(status_code=500, detail="Failed to create project tag")
 
 
+@router.put("/tags/upsert/models/", response_model=ModelTagData)
+async def upsert_model_tag(tag_data: ModelTagData):
+    # Check if user_Id exists in user_collection
+    user_exists = await user_collection.find_one({"user_Id": tag_data.user_Id})
+    if not user_exists:
+        raise HTTPException(status_code=400, detail="Invalid user_Id. User does not exist.")
+
+    # Find existing tag
+    existing_tag = await model_tags_collection.find_one({"user_Id": tag_data.user_Id})
+
+    if existing_tag:
+        # Merge only provided fields while keeping existing data
+        updated_tag_data = {**existing_tag, **{k: v for k, v in tag_data.model_dump().items() if v is not None}}
+    else:
+        # If no existing tag, create a new one
+        updated_tag_data = tag_data.model_dump()
+
+    # Validate merged data
+    updated_tag = ModelTagData(**updated_tag_data)
+    validate_tag_data(updated_tag)
+
+    # Upsert the tag
+    updated_tag = await model_tags_collection.find_one_and_update(
+        {"user_Id": tag_data.user_Id},
+        {"$set": updated_tag_data},
+        upsert=True,
+        return_document=ReturnDocument.AFTER
+    )
+
+    return ModelTagData(**updated_tag)
+
+
+@router.put("/tags/upsert/brands/", response_model=BrandTagData)
+async def upsert_brand_tag(tag_data: BrandTagData):
+    # Check if user_Id exists in user_collection
+    user_exists = await user_collection.find_one({"user_Id": tag_data.user_Id})
+    if not user_exists:
+        raise HTTPException(status_code=400, detail="Invalid user_Id. User does not exist.")
+
+    # Find existing tag
+    existing_tag = await brand_tags_collection.find_one({"user_Id": tag_data.user_Id})
+
+    if existing_tag:
+        # Merge only provided fields while keeping existing data
+        updated_tag_data = {**existing_tag, **{k: v for k, v in tag_data.model_dump().items() if v is not None}}
+    else:
+        # If no existing tag, create a new one
+        updated_tag_data = tag_data.model_dump()
+
+    # Validate merged data
+    updated_tag = BrandTagData(**updated_tag_data)
+    validate_tag_data(updated_tag)
+
+    # Upsert the tag
+    updated_tag = await brand_tags_collection.find_one_and_update(
+        {"user_Id": tag_data.user_Id},
+        {"$set": updated_tag_data},
+        upsert=True,
+        return_document=ReturnDocument.AFTER
+    )
+
+    return BrandTagData(**updated_tag)
 
 
 
