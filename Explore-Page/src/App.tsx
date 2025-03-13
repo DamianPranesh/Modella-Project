@@ -119,7 +119,7 @@ function App() {
                       
                     />
                 }
-            />
+                />
 
             {/* Add more routes as needed */}
               </>
