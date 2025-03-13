@@ -15,6 +15,7 @@ import SwipeCards from "./components/SwipeCards";
 import { SavedList } from "./components/SavedList";
 import { LoginPage } from "./components/LoginPage";
 
+import SettingsPage from "./components/BusinessSettingsPage";
 
 // Model components
 import { AccountPage as ModelAccountPage } from "./components-models/AccountPage";
@@ -104,6 +105,15 @@ function App() {
                   }
                 />
                 <Route
+                  path="/settings"
+                  element={
+                    <SettingsPage
+                      toggleSidebar={toggleSidebar}
+                      isSidebarOpen={isSidebarOpen}
+                    />
+                  }
+                />
+                <Route
                   path="/saved"
                   element={
                     <SavedList
@@ -121,7 +131,7 @@ function App() {
                 }
                 />
 
-            {/* Add more routes as needed */}
+                {/* Add more routes as needed */}
               </>
             ) : (
               <>
