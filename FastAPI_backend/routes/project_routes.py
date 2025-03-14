@@ -50,6 +50,14 @@ async def get_project(user_id: str, project_id: str):
         raise HTTPException(status_code=404, detail="Project not found")
     return project_serializer(project)
 
+# Retrieve a Specific Project by User ID and Project ID
+@router.get("/projects/{project_id}", response_model=Project)
+async def get_project(project_id: str):
+    project = await project_collection.find_one({"project_Id": project_id})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return project_serializer(project)
+
 # Update Project by User ID and Project ID
 @router.put("/projects/{user_id}/{project_id}", response_model=Project)
 async def update_project(user_id: str, project_id: str, update_data: UpdateProject):
