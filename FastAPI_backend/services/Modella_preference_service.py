@@ -356,7 +356,7 @@ def build_query(data):
 async def filter_model_project_preference_matched_project_ids(data: ModelProjectPreferenceFilterRequest):
     """
     Converts ModelProjectPreferenceFilterRequest to ProjectTagFilterRequest, 
-    sends it to the filtering API, and extracts user IDs from the response.
+    sends it to the filtering API, and extracts project IDs from the response.
 
     :param data: ModelProjectPreferenceFilterRequest containing filter criteria
     :return: List of user IDs from the matched ProjectTagData
