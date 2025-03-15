@@ -1,19 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 
 import CarnageLogo from "../images/Image-19.png";
+import { fetchData } from "../api/api";
 
 type Tab = "IMAGES" | "VIDEOS";
 
 // Add type definitions
-type ImageType = string;
-type VideoType = string;
-
-// Add new type for media item
-type MediaItem = {
+type ImageType = {
   url: string;
   description: string;
-  type: "image" | "video";
+};
+type VideoType = {
+  url: string;
+  description: string;
 };
 
 export function AccountPage({
@@ -35,14 +35,108 @@ export function AccountPage({
   const [isVideoPopoverOpen, setIsVideoPopoverOpen] = useState(false);
   const [videoUpload, setVideoUpload] = useState<File | null>(null);
   const [videoDescription, setVideoDescription] = useState("");
-  const [uploadedImages, setUploadedImages] = useState<MediaItem[]>([]);
-  const [uploadedVideos, setUploadedVideos] = useState<MediaItem[]>([]);
-  const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
+  const [images, setImages] = useState<ImageType[]>([]);
+  const [videos, setVideos] = useState<VideoType[]>([]);
+  const [selectedImage, setSelectedImage] = useState<ImageType | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<VideoType | null>(null);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
 
+  const user_id = "model_67c5af423ae5b4ccb85b9a02";
+
+  const [user, setUser] = useState<{ name: string; bio: string | null }>({
+    name: "",
+    bio: null,
+  });
+
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
   // Explicitly type the arrays
-  const images: ImageType[] = []; // Add image URLs here if available
-  const videos: VideoType[] = []; // Add video URLs here if available
+  //const images: ImageType[] = []; // Add image URLs here if available
+  //const videos: VideoType[] = []; // Add video URLs here if available
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const userData = await fetchData(`users/${user_id}`);
+        setUser({
+          name: userData.name,
+          bio: userData.bio,
+        });
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  const fetchProfilePicture = async () => {
+    try {
+      const response = await fetchData(
+        `files/files/latest?user_id=${user_id}&folder=profile-pic`
+      );
+
+      if (response && response.s3_url) {
+        setCurrentProfilePicture(response.s3_url);
+      }
+    } catch (error) {
+      console.error("Failed to fetch profile picture:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProfilePicture();
+  }, []);
+
+  const fetchImages = async () => {
+    try {
+      const response = await fetchData(
+        `files/urls-for-user-id-and-foldername-with-limits?user_id=${user_id}&folder=image`
+      );
+
+      if (response) {
+        const formattedImages = response.map((file: any) => ({
+          url: file.s3_url,
+          description: file.description,
+        }));
+
+        setImages(formattedImages);
+      }
+    } catch (error) {
+      console.error("Failed to fetch images:", error);
+    }
+  };
+
+  // Fetch images on component mount
+  useEffect(() => {
+    fetchImages();
+  }, []);
+
+  const fetchVideos = async () => {
+    try {
+      const response = await fetchData(
+        `files/urls-for-user-id-and-foldername-with-limits?user_id=${user_id}&folder=video`
+      );
+
+      if (response) {
+        const formattedVideos = response.map((file: any) => ({
+          url: file.s3_url,
+          description: file.description,
+        }));
+
+        setVideos(formattedVideos);
+      }
+    } catch (error) {
+      console.error("Failed to fetch videos:", error);
+    }
+  };
+
+  // Fetch videos on component mount
+  useEffect(() => {
+    fetchVideos();
+  }, []);
 
   // Handle profile picture upload
   const handleProfilePictureUpload = (
@@ -54,57 +148,137 @@ export function AccountPage({
   };
 
   // Handle profile picture update
-  const handleUpdateProfilePicture = () => {
-    if (profilePicture) {
-      // In a real app, you would upload the image to a server here
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setCurrentProfilePicture(reader.result as string);
-      };
-      reader.readAsDataURL(profilePicture);
+  const handleUpdateProfilePicture = async () => {
+    if (!profilePicture) return;
+
+    const formData = new FormData();
+    formData.append("file", profilePicture); // Only file is added here
+
+    // Construct the query string for parameters
+    const queryParams = new URLSearchParams({
+      user_id: user_id,
+      folder: "profile-pic",
+      is_private: "false", // Ensure it's a string, since URLSearchParams requires strings
+    }).toString();
+
+    try {
+      console.log("Uploading profile picture:", profilePicture);
+
+      const uploadResponse = await fetchData(`files/upload/?${queryParams}`, {
+        method: "POST",
+        body: formData, // Only formData, so browser sets correct headers
+      });
+
+      console.log("Upload successful:", uploadResponse);
+
+      await fetchProfilePicture();
+    } catch (error) {
+      console.error("Error updating profile picture:", error);
+    } finally {
+      setIsProfilePicturePopoverOpen(false);
+      setProfilePicture(null);
     }
-    setIsProfilePicturePopoverOpen(false);
-    setProfilePicture(null);
   };
 
-  // Add this new handler
-  const handleImagePost = () => {
-    if (imageUpload) {
-      const imageUrl = URL.createObjectURL(imageUpload);
-      setUploadedImages((prev) => [
-        ...prev,
-        { url: imageUrl, description: imageDescription, type: "image" },
-      ]);
+  const handleImagePost = async () => {
+    if (!imageUpload) return;
+
+    const formData = new FormData();
+    formData.append("file", imageUpload);
+
+    // Construct query parameters
+    const queryParams = new URLSearchParams({
+      user_id: user_id,
+      folder: "image",
+      is_private: "false",
+      description: imageDescription || "No description",
+    }).toString();
+
+    try {
+      console.log("Uploading image:", imageUpload.name);
+
+      await fetchData(`files/upload/?${queryParams}`, {
+        method: "POST",
+        body: formData, // Only the file is in formData
+      });
+
+      console.log("Image uploaded successfully");
+
+      // Fetch updated images after upload
+      fetchImages();
+    } catch (error) {
+      console.error("Failed to upload image:", error);
+    } finally {
       setImageUpload(null);
       setImageDescription("");
       setIsImagePopoverOpen(false);
     }
   };
 
-  // Add this new handler
-  const handleVideoPost = () => {
-    if (videoUpload) {
-      const videoUrl = URL.createObjectURL(videoUpload);
-      setUploadedVideos((prev) => [
-        ...prev,
-        { url: videoUrl, description: videoDescription, type: "video" },
-      ]);
+  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setVideoUpload(e.target.files[0]);
+    }
+  };
+
+  const handleVideoPost = async () => {
+    if (!videoUpload) return;
+
+    const formData = new FormData();
+    formData.append("file", videoUpload);
+
+    // Construct query parameters for the API call
+    const queryParams = new URLSearchParams({
+      user_id: user_id,
+      folder: "video", // <-- Using "video" instead of "image"
+      is_private: "false",
+      description: videoDescription || "No description",
+    }).toString();
+
+    try {
+      console.log("Uploading video:", videoUpload.name);
+
+      await fetchData(`files/upload/?${queryParams}`, {
+        method: "POST",
+        body: formData, // Sending form data for the file upload
+      });
+
+      console.log("Video uploaded successfully");
+
+      // Fetch updated video list after upload
+      fetchVideos();
+    } catch (error) {
+      console.error("Failed to upload video:", error);
+    } finally {
       setVideoUpload(null);
       setVideoDescription("");
       setIsVideoPopoverOpen(false);
     }
   };
 
-  // Add new handler for media click
-  const handleMediaClick = (media: MediaItem) => {
-    setSelectedMedia(media);
+  /**
+   * Handles clicking on media items (images or videos)
+   * Opens the media modal with the selected content
+   * @param media - The selected media item
+   * @param type - The type of media ('image' or 'video')
+   */
+  const handleMediaClick = (
+    media: ImageType | VideoType,
+    type: "image" | "video"
+  ) => {
+    if (type === "image") {
+      setSelectedImage(media);
+    } else {
+      setSelectedVideo(media);
+    }
     setIsMediaModalOpen(true);
   };
 
   // Add new handler for closing media modal
   const handleCloseMediaModal = () => {
     setIsMediaModalOpen(false);
-    setSelectedMedia(null);
+    setSelectedImage(null);
+    setSelectedVideo(null);
   };
 
   return (
@@ -131,7 +305,9 @@ export function AccountPage({
 
         <div className="flex-1">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-medium">Model Name</h1>
+            <h1 className="text-2xl font-medium">
+              {user.name || "Default User"}
+            </h1>
             <div className="flex gap-3">
               <button
                 onClick={() => setIsImagePopoverOpen(true)}
@@ -150,21 +326,18 @@ export function AccountPage({
 
           <div className="flex gap-8 mb-6">
             <div className="text-center md:text-left hover:text-[#DD8560] transition-colors cursor-pointer">
-              <span className="font-medium">{uploadedImages.length}</span>{" "}
-              Images
+              <span className="font-medium">{images.length}</span> Images
             </div>
             <div className="text-center md:text-left hover:text-[#DD8560] transition-colors cursor-pointer">
-              <span className="font-medium">{uploadedVideos.length}</span>{" "}
-              Videos
+              <span className="font-medium">{videos.length}</span> Videos
             </div>
           </div>
 
           <div className="mb-6">
-            <h2 className="text-xl font-medium mb-2">Name</h2>
-            <p className="text-gray-600">
-              Bringing style to life with every shot. Passionate, versatile, and
-              always on trend.
-            </p>
+            <h2 className="text-xl font-medium mb-2">
+              {user.name || "Default User"}
+            </h2>
+            <p className="text-gray-600">{user.bio || "No bio available"}</p>
           </div>
         </div>
       </div>
@@ -325,11 +498,12 @@ export function AccountPage({
                 <input
                   type="file"
                   accept="video/*"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      setVideoUpload(e.target.files[0]);
-                    }
-                  }}
+                  // onChange={(e) => {
+                  //   if (e.target.files && e.target.files[0]) {
+                  //     setVideoUpload(e.target.files[0]);
+                  //   }
+                  // }}
+                  onChange={handleVideoUpload}
                   className="w-full border rounded p-2 cursor-pointer"
                 />
                 {videoUpload && (
@@ -395,12 +569,12 @@ export function AccountPage({
       </div>
 
       <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-        {activeTab === "IMAGES" && uploadedImages.length > 0 ? (
-          uploadedImages.map((image, index) => (
+        {activeTab === "IMAGES" && images.length > 0 ? (
+          images.map((image, index) => (
             <div
               key={index}
               className="aspect-square rounded-lg overflow-hidden bg-gray-100 hover:scale-105 transition-transform duration-300 cursor-pointer"
-              onClick={() => handleMediaClick(image)}
+              onClick={() => handleMediaClick(image, "image")}
             >
               <img
                 src={image.url}
@@ -409,12 +583,12 @@ export function AccountPage({
               />
             </div>
           ))
-        ) : activeTab === "VIDEOS" && uploadedVideos.length > 0 ? (
-          uploadedVideos.map((video, index) => (
+        ) : activeTab === "VIDEOS" && videos.length > 0 ? (
+          videos.map((video, index) => (
             <div
               key={index}
               className="aspect-square rounded-lg overflow-hidden bg-gray-100 hover:scale-105 transition-transform duration-300 cursor-pointer"
-              onClick={() => handleMediaClick(video)}
+              onClick={() => handleMediaClick(video, "video")}
             >
               <video
                 src={video.url}
@@ -425,13 +599,17 @@ export function AccountPage({
           ))
         ) : (
           <div className="col-span-full text-center text-gray-600">
-            {activeTab === "IMAGES" ? "No Images posted" : "No Videos found"}
+            {activeTab === "IMAGES"
+              ? "No Images posted"
+              : activeTab === "VIDEOS"
+              ? "No Videos found"
+              : "No Projects available"}
           </div>
         )}
       </div>
 
       {/* Media Detail Modal */}
-      {isMediaModalOpen && selectedMedia && (
+      {isMediaModalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 sm:p-6 overflow-y-auto"
           style={{ backdropFilter: "blur(8px)" }}
@@ -450,19 +628,19 @@ export function AccountPage({
 
             {/* Media column - larger */}
             <div className="w-2/3 h-full bg-gray-100 relative">
-              {selectedMedia.type === "video" ? (
+              {selectedVideo ? (
                 <video
-                  src={selectedMedia.url}
+                  src={selectedVideo.url}
                   controls
                   className="w-full h-full object-cover"
                 />
-              ) : (
+              ) : selectedImage ? (
                 <img
-                  src={selectedMedia.url}
+                  src={selectedImage.url}
                   alt="Selected media"
                   className="w-full h-full object-cover"
                 />
-              )}
+              ) : null}
             </div>
 
             {/* Details column - smaller */}
@@ -473,7 +651,9 @@ export function AccountPage({
                   Description
                 </h3>
                 <p className="text-gray-700 leading-relaxed">
-                  {selectedMedia.description || "No description provided"}
+                  {selectedImage?.description ||
+                    selectedVideo?.description ||
+                    "No description provided"}
                 </p>
               </div>
             </div>
