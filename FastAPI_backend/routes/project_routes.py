@@ -51,7 +51,7 @@ async def get_project(user_id: str, project_id: str):
     return project_serializer(project)
 
 # Retrieve a Specific Project by User ID and Project ID
-@router.get("/projects/{project_id}", response_model=Project)
+@router.get("/projects_by_pId/{project_id}", response_model=Project)
 async def get_project(project_id: str):
     project = await project_collection.find_one({"project_Id": project_id})
     if not project:
