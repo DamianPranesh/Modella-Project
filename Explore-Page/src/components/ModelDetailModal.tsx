@@ -34,29 +34,29 @@ type Model = {
 
 // Extra data for the enhanced profile
 const additionalModelData = {
-  bio: "Professional model with international experience in fashion shows and editorial work. Passionate about sustainable fashion and lifestyle photography.",
-  location: "New York, NY",
-  profileImages: [
-    "/api/placeholder/800/1000",
-    "/api/placeholder/800/1000",
-    "/api/placeholder/800/1000",
-  ],
+  // bio: "Professional model with international experience in fashion shows and editorial work. Passionate about sustainable fashion and lifestyle photography.",
+  // location: "New York, NY",
+  // profileImages: [
+  //   "/api/placeholder/800/1000",
+  //   "/api/placeholder/800/1000",
+  //   "/api/placeholder/800/1000",
+  // ],
   recentWork: [
     { title: "Paris Fashion Week", date: "March 2025" },
     { title: "Vogue Italia Editorial", date: "January 2025" },
     { title: "Summer Campaign - Luxury Brand", date: "December 2024" },
   ],
-  measurements: {
-    bust: '32"',
-    waist: '24"',
-    hips: '34"',
-    shoes: "8.5 US",
-  },
-  socialLinks: {
-    instagram: "@modelhandle",
-    tiktok: "@modelhandle",
-    portfolio: "www.modelportfolio.com",
-  },
+  // measurements: {
+  //   bust: '32"',
+  //   waist: '24"',
+  //   hips: '34"',
+  //   shoes: "8.5 US",
+  // },
+  // socialLinks: {
+  //   instagram: "@modelhandle",
+  //   tiktok: "@modelhandle",
+  //   portfolio: "www.modelportfolio.com",
+  // },
 };
 
 interface ModelDetailModalProps {

@@ -1,102 +1,28 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
-import model1 from "../images-mod/1.jpg";
-import model2 from "../images-mod/2.jpg";
-import model3 from "../images-mod/3.jpg";
-import model4 from "../images-mod/4.jpg";
-import model5 from "../images-mod/5.jpg";
 import ComparisonModal from "./ComparisonModel";
 import ModelDetailModal from "./ModelDetailModal";
+import { fetchData } from "../api/api";
 
 type Model = {
   id: string;
   name: string;
-  minAge: number;
-  maxAge: number;
-  type: string;
-  image: string;
-  minHeight: string;
-  maxHeight: string;
-  eyeColor: string;
-  bodyType: string;
-  skinTone: string;
-  gender: string;
+  bio: string;
+  age: string[];
+  type: string[];
+  image: string[];
+  socialUrls: string[];
+  height: string[];
+  eyeColor: string[];
+  bodyType: string[];
+  skinTone: string[];
+  gender: string[];
+  bust: string[];
+  waist: string[];
+  hips: string[];
+  shoeSize: string[];
+  location: string;
 };
-
-const savedModels: Model[] = [
-  {
-    id: "1",
-    name: "Carnage",
-    minAge: 18,
-    maxAge: 25,
-    type: "FITNESS MODEL",
-    image: model1,
-    minHeight: "5'11\"",
-    maxHeight: "6'3\"",
-    eyeColor: "Brown",
-    bodyType: "Athletic",
-    skinTone: "Medium",
-    gender: "Male",
-  },
-  {
-    id: "2",
-    name: "AT Studios",
-    minAge: 18,
-    maxAge: 25,
-    type: "COMMERCIAL MODEL",
-    image: model2,
-    minHeight: "5'9\"",
-    maxHeight: "6'1\"",
-    eyeColor: "Blue",
-    bodyType: "Slim",
-    skinTone: "Fair",
-    gender: "Female",
-  },
-  {
-    id: "3",
-    name: "Mimosa",
-    minAge: 18,
-    maxAge: 25,
-    type: "PETTITE MODEL",
-    image: model3,
-    minHeight: "5'7\"",
-    maxHeight: "5'11\"",
-    eyeColor: "Green",
-    bodyType: "Hourglass",
-    skinTone: "Medium",
-    gender: "Female",
-  },
-  {
-    id: "4",
-    name: "CS16",
-    minAge: 18,
-    maxAge: 25,
-    type: "EDITORIAL MODEL",
-    image: model4,
-    minHeight: "5'10\"",
-    maxHeight: "6'2\"",
-    eyeColor: "Hazel",
-    bodyType: "Athletic",
-    skinTone: "Olive",
-    gender: "Male",
-  },
-  {
-    id: "5",
-    name: "Travlon",
-    minAge: 18,
-    maxAge: 25,
-    type: "SWIMWEAR MODEL",
-    image: model5,
-    minHeight: "5'6\"",
-    maxHeight: "5'10\"",
-    eyeColor: "Brown",
-    bodyType: "Petite",
-    skinTone: "Tan",
-    gender: "Female",
-  },
-];
 
 export function SavedList({
   toggleSidebar,
@@ -116,6 +42,120 @@ export function SavedList({
     useState<boolean>(false);
   const [selectedModelForDetail, setSelectedModelForDetail] =
     useState<Model | null>(null);
+
+  const userId = "model_67c5af423ae5b4ccb85b9a02";
+  const [savedUserIds, setSavedUserIds] = useState<string[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [savedModels, setSavedModels] = useState<Model[]>([]);
+
+  useEffect(() => {
+    const fetchSavedUserIds = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch saved user IDs
+        const savedListResponse = await fetchData(`savedList/${userId}`);
+        const ids = savedListResponse.saved_Ids || [];
+
+        console.log("Fetched saved user IDs:", ids); // Log to console
+        setSavedUserIds(ids);
+      } catch (error) {
+        setError("Failed to load saved user IDs.");
+        console.error("Error fetching saved user IDs:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSavedUserIds();
+  }, []);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Step 2: Iterate over savedUserIds and fetch user data for each user_Id
+        const newModels: Model[] = []; // New array to store the fetched models
+
+        for (let id of savedUserIds) {
+          // Fetch basic user data
+          const projectResponse = await fetchData(
+            `Brandprojects/projects_by_pId/${id}`
+          );
+          const { user_Id } = projectResponse;
+
+          const userResponse = await fetchData(`users/${user_Id}`);
+          const { name, bio, social_Media_URL } = userResponse;
+
+          // Fetch additional model tag data from ModellaTag endpoint
+          const tagResponse = await fetchData(
+            `ModellaTag/tags/projects/${user_Id}/${id}`
+          );
+          const projectTag = tagResponse ? tagResponse : {};
+
+          // Fetch the profile image URL
+          const fileUrlResponse = await fetchData(
+            `files/files-project?user_id=${user_Id}&project_id=${id}`
+          );
+
+          console.log(fileUrlResponse);
+          // const profileImage = fileUrlResponse && fileUrlResponse[0]?.s3_url;
+          const profileImage = fileUrlResponse?.s3_url
+            ? [fileUrlResponse.s3_url] // If it's a single object with an s3_url, wrap it in an array
+            : Array.isArray(fileUrlResponse)
+            ? fileUrlResponse.map((file) => file.s3_url || "") // If it's an array, extract s3_url
+            : [""];
+
+          // Step 3: Create a model object and add it to the newModels array
+          newModels.push({
+            id: user_Id,
+            name: name,
+            bio: bio,
+            age: projectTag.age || ["?", "?"],
+            type: projectTag.work_Field || ["Unknown"],
+            image: profileImage || [],
+            socialUrls: social_Media_URL || [
+              "@modellahandle",
+              "@modellahandle",
+              "www.modelportfolio.com",
+            ],
+            height: projectTag.height || ["?", "?"],
+            eyeColor: projectTag.natural_eye_color || ["Unknown"],
+            bodyType: projectTag.body_Type || ["Unknown"],
+            skinTone: projectTag.skin_Tone || ["Unknown"],
+            gender: projectTag.gender || ["Unknown"],
+            location: projectTag.location || "Unknown",
+            bust: projectTag.bust_chest || ["?", "?"],
+            waist: projectTag.waist || ["?", "?"],
+            hips: projectTag.hips || ["?", "?"],
+            shoeSize: projectTag.shoe_Size || ["?", "?"],
+          });
+
+          // Optionally log to the console as well
+          console.log(
+            `User ID: ${user_Id}, Name: ${name}, Profile Image: ${profileImage}, Model Data:`,
+            projectTag
+          );
+        }
+
+        // Step 4: Update the fetchedModels state with the new models
+        setSavedModels(newModels);
+      } catch (error) {
+        setError("Failed to load user data.");
+        console.error("Error fetching user data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (savedUserIds.length > 0) {
+      fetchUserData();
+    }
+  }, [savedUserIds]);
 
   // Prevent background scrolling when any modal is open
   useEffect(() => {
@@ -218,59 +258,65 @@ export function SavedList({
       </div>
 
       {/* Grid layout for saved models */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {savedModels.map((model) => (
-          <div
-            key={model.id}
-            className="group relative cursor-pointer"
-            onClick={() => {
-              if (!isSelectionActive) {
-                setSelectedModelForDetail(model);
-                setModelDetailModalOpen(true);
-              } else {
-                toggleModelSelection(model.id);
-              }
-            }}
-          >
-            <div className="aspect-[3/4] rounded-3xl overflow-hidden bg-gray-100">
-              <img
-                src={model.image || "/placeholder.svg"}
-                alt={model.name}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-            </div>
-            <div className="mt-4 space-y-1">
-              <div className="flex items-center justify-between">
-                <p className="font-medium">NAME: {model.name}</p>
-                <p>
-                  AGE: {model.minAge} - {model.maxAge}
-                </p>
-              </div>
-              <p className="text-sm text-gray-600">TYPE: {model.type}</p>
-            </div>
-            {isSelectionActive && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
+      {savedUserIds.length === 0 ? (
+        <p className="text-gray-500 text-center mt-6">
+          No saved items in the Saved List
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {savedModels.map((model) => (
+            <div
+              key={model.id}
+              className="group relative cursor-pointer"
+              onClick={() => {
+                if (!isSelectionActive) {
+                  setSelectedModelForDetail(model);
+                  setModelDetailModalOpen(true);
+                } else {
                   toggleModelSelection(model.id);
-                }}
-                className={`absolute top-4 right-4 w-6 h-6 rounded-full border-2 cursor-pointer ${
-                  selectedModels.includes(model.id)
-                    ? "bg-[#DD8560] border-[#DD8560]"
-                    : "bg-white/80 border-gray-400"
-                }`}
-                aria-label={`Select ${model.name} for comparison`}
-              >
-                {selectedModels.includes(model.id) && (
-                  <span className="text-white flex items-center justify-center">
-                    ✓
-                  </span>
-                )}
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
+                }
+              }}
+            >
+              <div className="aspect-[3/4] rounded-3xl overflow-hidden bg-gray-100">
+                <img
+                  src={model.image[0] || "/placeholder.svg"}
+                  alt={model.name}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+              </div>
+              <div className="mt-4 space-y-1">
+                <div className="flex items-center justify-between">
+                  <p className="font-medium">NAME: {model.name}</p>
+                  <p>
+                    AGE: {model.age[0]} - {model.age[1]}
+                  </p>
+                </div>
+                <p className="text-sm text-gray-600">TYPE: {model.type}</p>
+              </div>
+              {isSelectionActive && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleModelSelection(model.id);
+                  }}
+                  className={`absolute top-4 right-4 w-6 h-6 rounded-full border-2 cursor-pointer ${
+                    selectedModels.includes(model.id)
+                      ? "bg-[#DD8560] border-[#DD8560]"
+                      : "bg-white/80 border-gray-400"
+                  }`}
+                  aria-label={`Select ${model.name} for comparison`}
+                >
+                  {selectedModels.includes(model.id) && (
+                    <span className="text-white flex items-center justify-center">
+                      ✓
+                    </span>
+                  )}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Comparison Modal */}
       <ComparisonModal

@@ -164,6 +164,8 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
     loadCards();
   }, [userId]); // Dependency array ensures it runs when userId changes
 
+  if (loading) return <p>Loading models...</p>;
+
   const navigateCards = (direction: "prev" | "next") => {
     if (direction === "prev" && currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
