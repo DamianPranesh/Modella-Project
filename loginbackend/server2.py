@@ -23,7 +23,9 @@ server.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://modella.vercel.app",
-        "http://localhost:5173"
+        "http://localhost:5173",
+        "http://localhost:8000"
+
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -115,6 +117,7 @@ def register():
 
 @server.get("/token")
 def get_access_token(code: str, response: Response):
+    print(f"Received code: {code}")
     payload = (
         "grant_type=authorization_code"
         f"&client_id={auth0_client_id}"
@@ -135,15 +138,15 @@ def get_access_token(code: str, response: Response):
             key="access_token", 
             value=access_token, 
             httponly=True, 
-            secure=True, 
-            samesite="Strict"
+            secure=False, 
+            samesite="lax"
         )
         response.set_cookie(
             key="id_token", 
             value=id_token, 
             httponly=True, 
-            secure=True, 
-            samesite="Strict"
+            secure=False, 
+            samesite="lax"
         )
 
     return {"access_token": access_token, "id_token": id_token}

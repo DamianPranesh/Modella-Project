@@ -5,5 +5,12 @@
             "admin"
         ],
         "email": "3214heshan@gmail.com"
+    },
+    {
+        "sub": "google-oauth2|101185961270938365505",
+        "permissions": [
+            "admin"
+        ],
+        "email": "lagshan.20233167@iit.ac.lk"
     }
 ]
