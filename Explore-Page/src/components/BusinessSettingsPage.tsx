@@ -6,6 +6,25 @@ import { BusinessPreferencesSection } from "./BusinessPreferencesSection";
 import { BusinessSettingsSection } from "./BusinessSettingsSection";
 import { getDropdownOptions } from "../api/dropdowns";
 
+// Updated PreferencesDataType to match modeling requirements
+export type PreferencesDataType = {
+  age: number[];
+  height: number[];
+  natural_eye_color: string[];
+  body_Type: string[];
+  work_Field: string[];
+  skin_Tone: string[];
+  ethnicity: string[];
+  natural_hair_type: string[];
+  experience_Level: string[];
+  gender: string[];
+  location: string[];
+  shoe_Size: number[];
+  bust_chest: number[];
+  waist: number[];
+  hips: number[];
+};
+
 const BusinessSettingsPage: React.FC<{
   toggleSidebar: () => void;
   isSidebarOpen: boolean;
@@ -53,25 +72,6 @@ const BusinessSettingsPage: React.FC<{
     work_Field: [] as string[],
     location: "",
   });
-
-  // Updated PreferencesDataType to match modeling requirements
-  type PreferencesDataType = {
-    age: number[];
-    height: number[];
-    natural_eye_color: string[];
-    body_Type: string[];
-    work_Field: string[];
-    skin_Tone: string[];
-    ethnicity: string[];
-    natural_hair_type: string[];
-    experience_Level: string[];
-    gender: string[];
-    location: string[];
-    shoe_Size: number[];
-    bust_chest: number[];
-    waist: number[];
-    hips: number[];
-  };
 
   // Updated initial state with modeling-specific fields and location as array
   const [preferencesData, setPreferencesData] = useState<PreferencesDataType>({
@@ -194,54 +194,6 @@ const BusinessSettingsPage: React.FC<{
     }
   };
 
-  const removePreferenceOption = (field: string, index: number) => {
-    setPreferencesData((prev) => {
-      const newData = { ...prev };
-      const key = field as keyof PreferencesDataType;
-      if (Array.isArray(newData[key])) {
-        newData[key] = (newData[key] as unknown as string[]).filter(
-          (_, i) => i !== index
-        ) as any;
-      }
-      return newData;
-    });
-  };
-
-  const handleBusinessSettingChange = (field: string, value: any) => {
-    setBusinessSettingsData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const toggleDropdown = (field: string) => {
-    setDropdownField(field);
-    setIsDropdownOpen(!isDropdownOpen);
-  };
-
-  const selectTagOption = (field: string, option: string) => {
-    if (field === "work_Field") {
-      // For work_Field in tags, allow multiple options
-      setTagsData((prev) => ({
-        ...prev,
-        [field]: [...prev[field], option],
-      }));
-    } else if (field === "location") {
-      // For location in tags, only allow one option
-      setTagsData((prev) => ({
-        ...prev,
-        [field]: option,
-      }));
-    } else {
-      // Default behavior for other fields
-      setTagsData((prev) => ({
-        ...prev,
-        [field]: option,
-      }));
-    }
-    setIsDropdownOpen(false);
-  };
-
   const selectPreferenceOption = (field: string, option: string) => {
     setPreferencesData((prev) => {
       const newData = { ...prev };
@@ -259,12 +211,98 @@ const BusinessSettingsPage: React.FC<{
     setIsDropdownOpen(false);
   };
 
-  const removeTag = (index: number) => {
-    setTagsData((prev) => ({
-      ...prev,
-      work_Field: prev.work_Field.filter((_, i) => i !== index),
-    }));
+  const removePreferenceOption = (field: string, index: number) => {
+    setPreferencesData((prev) => {
+      const newData = { ...prev };
+      const key = field as keyof PreferencesDataType;
+      if (Array.isArray(newData[key])) {
+        newData[key] = (newData[key] as unknown as string[]).filter(
+          (_, i) => i !== index
+        ) as any;
+      }
+      return newData;
+    });
   };
+
+  const resetPreferencesData = () => {
+    setPreferencesData({
+      age: [0, 0],
+      height: [0, 0],
+      natural_eye_color: [],
+      body_Type: [],
+      work_Field: [],
+      skin_Tone: [],
+      ethnicity: [],
+      natural_hair_type: [],
+      experience_Level: [],
+      gender: [],
+      location: [],
+      shoe_Size: [0, 0],
+      bust_chest: [0, 0],
+      waist: [0, 0],
+      hips: [0, 0],
+    });
+    console.log("preferences data has been reset:", preferencesData);
+  };
+
+  useEffect(() => {
+    console.log("Updated PreferencesData:", preferencesData);
+  }, [preferencesData]);
+
+  // const handleBusinessSettingChange = (field: string, value: any) => {
+  //   setBusinessSettingsData((prev) => ({
+  //     ...prev,
+  //     [field]: value,
+  //   }));
+  // };
+
+  const toggleDropdown = (field: string) => {
+    setDropdownField(field);
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  const selectTagOption = (field: string, option: string) => {
+    if (field === "work_Field") {
+      setTagsData((prev) => {
+        // Prevent duplicates
+        if (prev.work_Field.includes(option)) {
+          console.log(`"${option}" is already selected in work_Field.`);
+          return prev;
+        }
+
+        const updatedData = { ...prev, [field]: [...prev[field], option] };
+        console.log("Updated work_Field:", updatedData.work_Field);
+        return updatedData;
+      });
+    } else if (field === "location") {
+      setTagsData((prev) => {
+        const updatedData = { ...prev, [field]: option };
+        console.log("Updated location:", updatedData.location);
+        return updatedData;
+      });
+    }
+    setIsDropdownOpen(false);
+  };
+
+  const removeTag = (index: number) => {
+    setTagsData((prev) => {
+      const updatedWorkField = prev.work_Field.filter((_, i) => i !== index);
+      console.log("Updated work_Field after removal:", updatedWorkField);
+      return { ...prev, work_Field: updatedWorkField };
+    });
+  };
+
+  const resetTagsData = () => {
+    setTagsData({
+      work_Field: [], // Empty the selected industries
+      location: "", // Reset location
+    });
+    console.log("Tags data has been reset:", tagsData);
+  };
+
+  useEffect(() => {
+    console.log("Updated tagsData:", tagsData);
+  }, [tagsData]);
 
   const renderDropdown = (field: string, isPreference = false) => {
     const options = getOptionsForField(field);
@@ -375,6 +413,7 @@ const BusinessSettingsPage: React.FC<{
           renderDropdown={renderDropdown}
           handleInputChange={handleInputChange}
           removeTag={removeTag}
+          resetTagsData={resetTagsData}
         />
       )}
       {activeTab === "preferences" && (
@@ -392,6 +431,7 @@ const BusinessSettingsPage: React.FC<{
           handleNumberChange={handleNumberChange}
           handleInputChange={handleInputChange}
           removePreferenceOption={removePreferenceOption}
+          resetPreferencesData={resetPreferencesData}
         />
       )}
       {activeTab === "userSettings" && (
