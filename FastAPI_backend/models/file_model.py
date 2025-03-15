@@ -13,6 +13,7 @@ class FileMetadata(BaseModel):
     folder: str  # Category (image, profile-pic, portfolio, video)
     is_private: bool = False  # Default: public
     description:Optional[str] = None
+    project_id: Optional[str] = None
 
 
 class FileMetadataOnURL(BaseModel):

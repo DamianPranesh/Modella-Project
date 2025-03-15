@@ -31,12 +31,24 @@ async def _validate_user(user_id: str) -> bool:
     user = await user_collection.find_one({"user_Id": user_id})
     return user is not None
 
-async def upload_file(file, user_id: str, folder: str, is_private: bool = False, description: str ="No description"):
+async def _validate_project(project_id: str) -> bool:
+    """Helper function to validate if a user exists"""
+    if not project_id:
+        return False
+    project = await project_collection.find_one({"project_Id": project_id})
+    return project is not None
+
+async def upload_file(file, user_id: str, folder: str, is_private: bool = False, description: str ="No description", project_id: Optional[str] = None):
     """ Upload a file to AWS S3 and store metadata in MongoDB """
     # Validate user existence
     if not await _validate_user(user_id):
         logger.warning(f"Upload attempt by non-existent user: {user_id}")
         raise HTTPException(status_code=404, detail="User not found")
+    
+    if project_id is not None:
+        if not await _validate_project(project_id):
+            logger.warning(f"Upload attempt by non-existent project: {project_id}")
+            raise HTTPException(status_code=404, detail="project not found")
 
     if folder not in ALLOWED_FOLDERS:
         logger.warning(f"Invalid folder attempt by {user_id}: {folder}")
@@ -77,7 +89,8 @@ async def upload_file(file, user_id: str, folder: str, is_private: bool = False,
         "uploaded_by": user_id,
         "folder": folder,
         "is_private": is_private,
-        "description": description
+        "description": description,
+        "project_id": project_id
     }
     await file_collection.insert_one(file_metadata)
     logger.info(f"File uploaded successfully by {user_id}: {file_name} (Private: {is_private})")
@@ -205,7 +218,8 @@ async def get_file_url(user_id: Optional[str] = None):
             "is_private": 1,
             "uploaded_by": 1,
             "file_type": 1,
-            "description": {"$ifNull": ["$description", "No description"]} 
+            "description": {"$ifNull": ["$description", "No description"]},
+            "project_id":{"$ifNull": ["$project_id", ""]}
         }
     })
 
@@ -284,7 +298,8 @@ async def get_files_urls_by_folder(user_id: Optional[str] = None, folder: Option
             "is_private": 1,
             "uploaded_by": 1,
             "file_type": 1,
-            "description": {"$ifNull": ["$description", "No description"]} 
+            "description": {"$ifNull": ["$description", "No description"]},
+            "project_id":{"$ifNull": ["$project_id", ""]} 
         }
     })
 
@@ -352,7 +367,8 @@ async def get_files_urls_by_user_folders(
             "is_private": 1,
             "uploaded_by": 1,
             "file_type": 1,
-            "description": {"$ifNull": ["$description", "No description"]} 
+            "description": {"$ifNull": ["$description", "No description"]},
+            "project_id":{"$ifNull": ["$project_id", ""]}
         }
     })
 
@@ -413,7 +429,8 @@ async def get_latest_file_by_user_folder(user_id: str, folder: Optional[str] = N
             "uploaded_by": 1,
             "file_type": 1,
             "uploaded_at": 1,
-            "description": {"$ifNull": ["$description", "No description"]} 
+            "description": {"$ifNull": ["$description", "No description"]},
+            "project_id":{"$ifNull": ["$project_id", ""]} 
         }
     })
     
@@ -434,4 +451,56 @@ async def get_latest_file_by_user_folder(user_id: str, folder: Optional[str] = N
         file["s3_url"] = None
     
     logger.info(f"Retrieved latest file for user: {user_id}, folder: {folder if folder else 'all folders'}")
+    return file
+
+
+async def get_file_by_project(user_id: str, project_id: str):
+    """Retrieve the latest file added by the user to the 'project' folder for a specific project."""
+    
+    # Validate user existence
+    if not await _validate_user(user_id):
+        logger.warning(f"File retrieval attempt by non-existent user: {user_id}")
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Validate project existence (Optional: Implement if necessary)
+    if not await _validate_project(project_id):
+        logger.warning(f"File retrieval attempt for non-existent project: {project_id}")
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    pipeline = [
+        {"$match": {"$and": [
+            {"uploaded_by": user_id},
+            {"project_id": project_id},
+            {"folder": "project"}
+        ]}},
+        {"$project": {
+            "file_id": 1,
+            "file_name": 1,
+            "folder": 1,
+            "s3_url": 1,
+            "is_private": 1,
+            "uploaded_by": 1,
+            "file_type": 1,
+            "uploaded_at": 1,
+            "description": {"$ifNull": ["$description", "No description"]},
+            "project_id": {"$ifNull": ["$project_id", ""]}
+        }}
+    ]
+    
+    project_file = await file_collection.aggregate(pipeline).to_list(1)
+    
+    if not project_file:
+        return None  # No file found
+    
+    file = project_file[0]
+    file_key = f"{file['folder']}/{file['file_id']}_{file['file_name']}"
+    file_type = file.get('file_type', 'application/octet-stream')
+    
+    # Generate presigned URL
+    try:
+        file["s3_url"] = generate_presigned_url(file_key, file_type)
+    except NoCredentialsError:
+        file["s3_url"] = None
+    
+    logger.info(f"Retrieved latest file for user: {user_id}, project: {project_id}, folder: 'project'")
     return file
