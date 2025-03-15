@@ -334,7 +334,7 @@ export function AccountPage({
       const formData = new FormData();
       formData.append("file", projectImage);
 
-      const imageUploadUrl = `files/upload/?user_id=${user_id}&folder=project&is_private=false&description=${projectDescription}`;
+      const imageUploadUrl = `files/upload/?user_id=${user_id}&folder=project&is_private=false&description=${projectDescription}&project_id=${project_Id}`;
 
       await fetchData(imageUploadUrl, {
         method: "POST",

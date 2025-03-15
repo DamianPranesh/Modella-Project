@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import {
   motion,
   useMotionValue,
@@ -16,44 +16,230 @@ import {
   Menu,
 } from "lucide-react";
 
+import { fetchData } from "../api/api";
+
 // Define the props type
 interface SwipeCardsProps {
   toggleSidebar: () => void; // Function to toggle sidebar
   isSidebarOpen: boolean; // State of the sidebar
 }
 
+const fetchMatchedProjectIds = async (userId: string) => {
+  try {
+    console.log("Fetching matched project IDs for:", userId);
+    const response = await fetchData(
+      `ModellaPreference/Model-project-preference-matched-project-ids-by-user-id/${userId}`,
+      {
+        method: "POST",
+        body: JSON.stringify({}),
+      }
+    );
+    console.log("API Response:", response);
+    return response;
+  } catch (error) {
+    console.error("Error fetching matched project IDs:", error);
+    return [];
+  }
+};
+
+const fetchProjectDetails = async (projectId: string) => {
+  try {
+    const data = await fetchData(`Brandprojects/projects_by_pId/${projectId}`);
+    return data; // Return the user details if the request is successful
+  } catch (error: any) {
+    console.error(
+      `Error fetching user details for ${projectId}:`,
+      error.message || error
+    );
+  }
+};
+
+const fetchProjectImage = async (userId: string, projectId: string) => {
+  try {
+    const data = await fetchData(
+      `files/files-project?user_id=${userId}&project_id=${projectId}`
+    );
+    return data; // Return the profile image URL data if successful
+  } catch (error: any) {
+    console.error(
+      `Error fetching project image for ${projectId}:`,
+      error.message || error
+    );
+  }
+};
+
+const fetchProjectTags = async (userId: string, projectId: string) => {
+  try {
+    const data = await fetchData(
+      `ModellaTag/tags/projects/${userId}/${projectId}`
+    );
+    return data; // Return the user tags data if successful
+  } catch (error: any) {
+    console.error(`Error fetching tags for ${userId}:`, error.message || error);
+  }
+};
+
+const fetchUserDetails = async (userId: string) => {
+  try {
+    const data = await fetchData(`users/${userId}`);
+    return data; // Return the user details if the request is successful
+  } catch (error: any) {
+    console.error(
+      `Error fetching user details for ${userId}:`,
+      error.message || error
+    );
+  }
+};
+
 const SwipeCards: React.FC<SwipeCardsProps> = ({
   toggleSidebar,
   isSidebarOpen,
 }) => {
-  const [cards, setCards] = useState<Card[]>(cardData);
+  const [cards, setCards] = useState<Card[]>([]);
   const [currentIndex, setCurrentIndex] = useState(cards.length - 1);
-  const [savedCards, setSavedCards] = useState<Card[]>([]);
-  const [rejectedCards, setRejectedCards] = useState<Card[]>([]);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [showLegend, setShowLegend] = useState(false);
 
-  const handleAccept = () => {
-    const currentCard = cards[currentIndex];
-    setSavedCards([...savedCards, currentCard]);
-    toast.success(`${currentCard.name} has been added to your matches!`, {
-      icon: "✅",
-      duration: 2000,
-    });
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
+  const [loading, setLoading] = useState<boolean>(true);
+  const userId = "model_67c5af423ae5b4ccb85b9a02";
+
+  const fetchCardData = async (projectId: string) => {
+    try {
+      const projectDetails = await fetchProjectDetails(projectId);
+      if (!projectDetails) return null;
+
+      const { user_Id, name, description } = projectDetails;
+      const [imageResponse, tags, aboutJob] = await Promise.all([
+        fetchProjectImage(user_Id, projectId),
+        fetchProjectTags(user_Id, projectId),
+        fetchUserDetails(user_Id),
+      ]);
+
+      return {
+        id: projectId,
+        url: imageResponse?.s3_url || "https://via.placeholder.com/300",
+        name: name,
+        Brandname: aboutJob.name || "No brand name available",
+        description: description
+          ? description.length > 30
+            ? description.substring(0, 30) + "..."
+            : description
+          : "No short description available",
+        aboutJob: description || "No job description available",
+        interests: tags.work_Field || [],
+      };
+    } catch (error) {
+      console.error(`Error fetching card data for ${projectId}:`, error);
+      return null;
     }
   };
 
-  const handleReject = () => {
+  const loadCards = async () => {
+    setLoading(true);
+    try {
+      const projectIds = await fetchMatchedProjectIds(userId);
+      const cardsData = await Promise.all(projectIds.map(fetchCardData));
+      const filteredCards = cardsData.filter(Boolean);
+      setCards(filteredCards);
+      setCurrentIndex(filteredCards.length - 1);
+      console.log("Loaded Cards:", filteredCards);
+    } catch (error) {
+      console.error("Error loading cards:", error);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadCards();
+  }, [userId]);
+
+  if (loading) return <p>Loading projects...</p>;
+
+  const handleAccept = async () => {
+    if (cards.length === 0) return; // Prevent errors if no cards are left
+
     const currentCard = cards[currentIndex];
-    setRejectedCards([...rejectedCards, currentCard]);
-    toast.error(`${currentCard.name} has been rejected`, {
-      icon: "❌",
-      duration: 2000,
-    });
-    if (currentIndex > 0) {
+    const currentCardId = currentCard.id; // Extract user ID of the accepted profile
+
+    try {
+      const response = await fetchData(
+        `savedList/add-project?user_id=${userId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify([currentCardId]), // Sending the accepted card's user_id
+        }
+      );
+
+      console.log("Saved match:", response);
+      toast.success(`${currentCard.name} has been added to your matches! 💕`, {
+        icon: "✅",
+        duration: 2000,
+      });
+
+      // Remove the card from the list
+      const updatedCards = cards.filter((_, index) => index !== currentIndex);
+      setCards(updatedCards);
+
+      // Adjust index or reload new cards
+      if (updatedCards.length === 0) {
+        loadCards();
+      } else {
+        setCurrentIndex(updatedCards.length - 1);
+      }
+    } catch (error) {
+      console.error("Error saving match:", error);
+      toast.error("Failed to save match. Please try again.");
+    }
+  };
+
+  const handleReject = async () => {
+    if (cards.length === 0) return; // Prevent errors if no cards are left
+
+    const currentCard = cards[currentIndex];
+    const currentCardId = currentCard.id; // Extract user ID of the rejected profile
+
+    try {
+      const response = await fetchData(
+        `savedList/remove-project?user_id=${userId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify([currentCardId]), // Sending the rejected card's user_id
+        }
+      );
+
+      console.log("Removed match:", response);
+      toast.error(`${currentCard.name} has been rejected`, {
+        icon: "❌",
+        duration: 2000,
+      });
+
+      // Remove the card from the list
+      const updatedCards = cards.filter((_, index) => index !== currentIndex);
+      setCards(updatedCards);
+
+      // Adjust index or reload new cards
+      if (updatedCards.length === 0) {
+        loadCards();
+      } else {
+        setCurrentIndex(updatedCards.length - 1);
+      }
+    } catch (error) {
+      console.error("Error removing match:", error);
+      toast.error("Failed to remove match. Please try again.");
+    }
+  };
+
+  const navigateCards = (direction: "prev" | "next") => {
+    if (direction === "prev" && currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
+    } else if (direction === "next" && currentIndex < cards.length - 1) {
+      setCurrentIndex(currentIndex + 1);
     }
   };
 
@@ -143,11 +329,7 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            onClick={() => {
-              if (currentIndex > 0) {
-                setCurrentIndex(currentIndex - 1);
-              }
-            }}
+            onClick={() => navigateCards("prev")}
             className="absolute left-[-20px] z-10 rounded-full bg-[rgb(221,133,96)] p-3 shadow-lg text-white hover:bg-[rgb(201,113,76)] transition-colors duration-200 disabled:opacity-50 disabled:hover:bg-[rgb(221,133,96)] md:left-[-60px] md:p-4 cursor-pointer"
             disabled={currentIndex === 0}
           >
@@ -172,11 +354,7 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            onClick={() => {
-              if (currentIndex < cards.length - 1) {
-                setCurrentIndex(currentIndex + 1);
-              }
-            }}
+            onClick={() => navigateCards("next")}
             className="absolute right-[-20px] z-10 rounded-full bg-[rgb(221,133,96)] p-3 shadow-lg text-white hover:bg-[rgb(201,113,76)] transition-colors duration-200 disabled:opacity-50 disabled:hover:bg-[rgb(221,133,96)] md:right-[-60px] md:p-4 cursor-pointer"
             disabled={currentIndex === cards.length - 1}
           >
@@ -255,19 +433,25 @@ const DetailedView = ({
 
           <div className="p-4 md:p-8">
             <div className="mb-8">
-              <h2 className="mb-4 text-xl font-bold md:text-2xl">About Me</h2>
+              <h2 className="mb-4 text-xl font-bold md:text-2xl">About Job</h2>
               <p className="text-base text-gray-700 md:text-lg">
-                {card.aboutMe}
+                {card.aboutJob}
               </p>
               <div className="mt-6 flex flex-wrap gap-2">
-                {card.interests.map((interest, index) => (
-                  <span
-                    key={index}
-                    className="rounded-full bg-indigo-100 px-3 py-1.5 text-sm text-indigo-800 md:px-4 md:py-2"
-                  >
-                    {interest}
-                  </span>
-                ))}
+                {card.interests?.length ? (
+                  card.interests.map((interest, index) => (
+                    <span
+                      key={index}
+                      className="rounded-full bg-indigo-100 px-3 py-1.5 text-sm text-indigo-800 md:px-4 md:py-2"
+                    >
+                      {interest}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-sm">
+                    No requirements available
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -281,6 +465,7 @@ const Card = ({
   id,
   url,
   name,
+  Brandname,
   description,
   setCards,
   currentIndex,
@@ -290,6 +475,7 @@ const Card = ({
   id: number;
   url: string;
   name: string;
+  Brandname: string;
   description: string;
   setCards: Dispatch<SetStateAction<Card[]>>;
   cards: Card[];
@@ -376,7 +562,9 @@ const Card = ({
         className="h-full w-full rounded-2xl object-cover"
       />
       <div className="absolute bottom-0 left-0 right-0 rounded-b-2xl bg-gradient-to-t from-black/80 to-transparent p-4 md:p-6">
-        <h3 className="text-xl font-bold text-white md:text-2xl">{name}</h3>
+        <h3 className="text-xl font-bold text-white md:text-2xl">
+          {Brandname}
+        </h3>
         <p className="mt-2 text-sm text-gray-200 md:text-base">{description}</p>
       </div>
     </motion.div>
@@ -389,89 +577,8 @@ type Card = {
   id: number;
   url: string;
   name: string;
+  Brandname: string;
   description: string;
-  aboutMe: string;
+  aboutJob: string;
   interests: string[];
 };
-
-const cardData: Card[] = [
-  {
-    id: 1,
-    url: "https://i.imgur.com/LUk0B4B.jpg",
-    name: "Carnage",
-    description:
-      "Looking for a dynamic fitness model to represent our high-performance apparel.",
-    aboutMe: "Leading active and lifestyle clothing brand based in Sri Lanka",
-    interests: [
-      "Fashion Modeling",
-      "Runway",
-      "Fashion Photography",
-      "Fitness Wear",
-      "Brand Ambassador",
-      "Commercial Modeling",
-    ],
-  },
-  {
-    id: 2,
-    url: "https://i.imgur.com/L9D9Z39.jpeg",
-    name: "AT Studios",
-    description: "Searching for a commercial model to represent the studios",
-    aboutMe: "Exclusive lines of Makeup right in Sri Lanka",
-    interests: [
-      "Makeup Artistry",
-      "Beauty Trends",
-      "Fashion Styling",
-      "Cosmetics",
-      "Beauty Photography",
-      "Fashion Events",
-    ],
-  },
-  {
-    id: 3,
-    url: "https://i.imgur.com/F3PvqAp.jpeg",
-    name: "Mimosa",
-    description:
-      "searching for a petite model to feature in an upcoming campaign!",
-    aboutMe: "Mimosa is a leading women's fashion brand in Sri Lanka",
-    interests: [
-      "Fashion Design",
-      "Sustainable Fashion",
-      "Textile Design",
-      "Fashion Illustration",
-      "Eco-friendly Materials",
-      "Fashion Blogging",
-    ],
-  },
-  {
-    id: 4,
-    url: "https://i.imgur.com/fOPq4lQ.jpeg",
-    name: "CS 16",
-    description:
-      "Art curator with a passion for contemporary design and music festivals.",
-    aboutMe:
-      "CS 16 is a forward-thinking fashion business that merges cutting-edge technology with high-end style.",
-    interests: [
-      "Fashion Curation",
-      "Fashion Shows",
-      "Luxury Brands",
-      "Fashion Marketing",
-      "Fashion History",
-      "Fashion Journalism",
-    ],
-  },
-  {
-    id: 5,
-    url: "https://i.imgur.com/esvt3Rh.jpeg",
-    name: "Travlon",
-    description: "Looking for a swimwear model to represent our brand!",
-    aboutMe: "leading swimwear brand in Sri Lanka",
-    interests: [
-      "Fashion Tech",
-      "E-commerce Fashion",
-      "Digital Fashion",
-      "Fashion Analytics",
-      "Fashion Startups",
-      "Fashion Innovation",
-    ],
-  },
-];
