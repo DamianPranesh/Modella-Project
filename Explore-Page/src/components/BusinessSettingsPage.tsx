@@ -75,8 +75,8 @@ const BusinessSettingsPage: React.FC<{
 
   // Updated initial state with modeling-specific fields and location as array
   const [preferencesData, setPreferencesData] = useState<PreferencesDataType>({
-    age: [0, 0],
-    height: [0, 0],
+    age: [8, 100],
+    height: [116, 191],
     natural_eye_color: [],
     body_Type: [],
     work_Field: [],
@@ -86,10 +86,10 @@ const BusinessSettingsPage: React.FC<{
     experience_Level: [],
     gender: [],
     location: [],
-    shoe_Size: [0, 0],
-    bust_chest: [0, 0],
-    waist: [0, 0],
-    hips: [0, 0],
+    shoe_Size: [31, 50],
+    bust_chest: [61, 117],
+    waist: [51, 91],
+    hips: [61, 107],
   });
 
   const [businessSettingsData, setBusinessSettingsData] = useState({
@@ -155,25 +155,60 @@ const BusinessSettingsPage: React.FC<{
     ].includes(field);
   };
 
+  const numericRanges: Record<string, [number, number]> = {
+    age: [8, 100],
+    height: [116, 191],
+    shoe_Size: [31, 50],
+    bust_chest: [61, 117],
+    waist: [51, 91],
+    hips: [61, 107],
+  };
+
+  const isNumberArray = (value: unknown): value is number[] => {
+    return (
+      Array.isArray(value) && value.every((item) => typeof item === "number")
+    );
+  };
+
   const handleNumberChange = (
     field: string,
     value: string,
     isPreference = false,
     index: number | null = null
   ) => {
-    const numValue = parseInt(value) || 0;
-    const safeValue = Math.max(0, numValue);
+    if (!(field in numericRanges)) return; // Ensure it's a numeric field
 
-    if (isPreference) {
-      setPreferencesData((prev) => {
-        const newData = { ...prev };
-        const key = field as keyof PreferencesDataType;
-        if (index !== null && Array.isArray(newData[key])) {
-          (newData[key] as number[])[index] = safeValue;
+    const [defaultMin, defaultMax] = numericRanges[field]; // Get predefined range
+    let numValue = parseInt(value) || 0;
+
+    setPreferencesData((prev) => {
+      const newData = { ...prev };
+
+      if (
+        index !== null &&
+        isNumberArray(newData[field as keyof PreferencesDataType])
+      ) {
+        const currentValues = [
+          ...(newData[field as keyof PreferencesDataType] as number[]),
+        ];
+
+        if (index === 0) {
+          // Ensure Min doesn't exceed Max
+          numValue = Math.min(numValue, currentValues[1]);
+        } else if (index === 1) {
+          // Ensure Max isn't smaller than Min
+          numValue = Math.max(numValue, currentValues[0]);
         }
-        return newData;
-      });
-    }
+
+        // Keep within allowed range
+        numValue = Math.min(defaultMax, Math.max(defaultMin, numValue));
+
+        currentValues[index] = numValue;
+        newData[field as keyof PreferencesDataType] = currentValues as any;
+      }
+
+      return newData;
+    });
   };
 
   const handleInputChange = (
@@ -226,8 +261,8 @@ const BusinessSettingsPage: React.FC<{
 
   const resetPreferencesData = () => {
     setPreferencesData({
-      age: [0, 0],
-      height: [0, 0],
+      age: [8, 100],
+      height: [116, 191],
       natural_eye_color: [],
       body_Type: [],
       work_Field: [],
@@ -237,10 +272,10 @@ const BusinessSettingsPage: React.FC<{
       experience_Level: [],
       gender: [],
       location: [],
-      shoe_Size: [0, 0],
-      bust_chest: [0, 0],
-      waist: [0, 0],
-      hips: [0, 0],
+      shoe_Size: [31, 50],
+      bust_chest: [61, 117],
+      waist: [51, 91],
+      hips: [61, 107],
     });
     console.log("preferences data has been reset:", preferencesData);
   };
@@ -444,21 +479,6 @@ const BusinessSettingsPage: React.FC<{
           // handleBusinessSettingChange={handleBusinessSettingChange}
         />
       )}
-
-      <div className="p-6 border-t flex justify-end bg-gray-50">
-        <button className="bg-gray-200 text-gray-800 px-6 py-3 rounded-lg mr-3 font-medium hover:bg-gray-300 transition-colors flex items-center">
-          Cancel
-        </button>
-        <button
-          className="text-white px-6 py-3 rounded-lg font-medium shadow-md hover:shadow-lg transition-all transform hover:-translate-y-1 flex items-center"
-          style={{
-            background: `linear-gradient(to right, ${primaryColor}, ${primaryDark})`,
-          }}
-        >
-          Save Changes
-          <ChevronRight size={18} className="ml-1" />
-        </button>
-      </div>
     </div>
   );
 };

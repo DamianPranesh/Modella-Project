@@ -38,7 +38,7 @@ export const BusinessTagsSection = ({
 }) => {
   // Local state for managing tag selections
   const [formData, setFormData] = useState({ ...tagsData });
-  const user_Id = "brand_67d25faed1ef21f7e2541638";
+  const user_Id = "brand_67c5b2c43ae5b4ccb85b9a11";
 
   // Save Changes: Updates tagsData (can be sent to backend)
   const handleSaveChanges = async () => {
@@ -52,9 +52,17 @@ export const BusinessTagsSection = ({
         location: formData.location, // Extracted Location
       };
 
+      // Remove fields that are empty arrays or empty strings
+      const filteredData = Object.fromEntries(
+        Object.entries(tagData).filter(
+          ([_, value]) =>
+            !((Array.isArray(value) && value.length === 0) || value === "")
+        )
+      );
+
       const response = await fetchData("ModellaTag/tags/upsert/brands/", {
         method: "PUT",
-        body: JSON.stringify(tagData),
+        body: JSON.stringify(filteredData),
       });
 
       console.log("Successfully updated brand tags:", response);

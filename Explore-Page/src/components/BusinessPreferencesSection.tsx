@@ -44,6 +44,64 @@ export const BusinessPreferencesSection = ({
   removePreferenceOption: (field: string, index: number) => void;
   resetPreferencesData: () => void;
 }) => {
+  const [formData, setFormData] = useState({ ...preferencesData });
+  const user_Id = "brand_67c5b2c43ae5b4ccb85b9a11";
+
+  const defaultRanges: Record<string, [number, number]> = {
+    age: [8, 100],
+    height: [116, 191],
+    shoe_Size: [31, 50],
+    bust_chest: [61, 117],
+    waist: [51, 91],
+    hips: [61, 107],
+  };
+
+  const handleSaveChanges = async () => {
+    console.log("Saved Data:", formData);
+    try {
+      const preferenceData = {
+        user_Id: user_Id, // Get user ID dynamically
+        age: formData.age,
+        height: formData.height,
+        natural_eye_color: formData.natural_eye_color,
+        body_Type: formData.body_Type,
+        work_Field: formData.work_Field,
+        skin_Tone: formData.skin_Tone,
+        ethnicity: formData.ethnicity,
+        natural_hair_type: formData.natural_hair_type,
+        experience_Level: formData.experience_Level,
+        gender: formData.gender,
+        location: formData.location,
+        shoe_Size: formData.shoe_Size,
+        bust_chest: formData.bust_chest,
+        waist: formData.waist,
+        hips: formData.hips,
+      };
+
+      const filteredData = Object.fromEntries(
+        Object.entries(preferenceData).filter(
+          ([_, value]) => !(Array.isArray(value) && value.length === 0)
+        )
+      );
+
+      const response = await fetchData(
+        "ModellaPreference/preferences/upsert/brand/",
+        {
+          method: "PUT",
+          body: JSON.stringify(filteredData),
+        }
+      );
+
+      console.log("Successfully updated brand tags:", response);
+    } catch (error) {
+      console.error("Failed to update brand tags:", error);
+    }
+  };
+
+  useEffect(() => {
+    setFormData(preferencesData); // Ensure formData is always updated when tagsData changes
+  }, [preferencesData]);
+
   return (
     <div className="p-6 bg-gradient-to-br from-white to-orange-50">
       <h2
@@ -82,7 +140,8 @@ export const BusinessPreferencesSection = ({
                   style={{ borderColor: primaryLight }}
                   placeholder="Min"
                   value={value[0]}
-                  min="0"
+                  min={defaultRanges[key]?.[0] ?? 0}
+                  max={defaultRanges[key]?.[1] ?? 1000}
                   onChange={(e) =>
                     handleNumberChange(key, e.target.value, true, 0)
                   }
@@ -96,7 +155,8 @@ export const BusinessPreferencesSection = ({
                   style={{ borderColor: primaryLight }}
                   placeholder="Max"
                   value={value[1]}
-                  min="0"
+                  min={defaultRanges[key]?.[0] ?? 0}
+                  max={defaultRanges[key]?.[1] ?? 1000}
                   onChange={(e) =>
                     handleNumberChange(key, e.target.value, true, 1)
                   }
@@ -162,7 +222,7 @@ export const BusinessPreferencesSection = ({
           style={{
             background: `linear-gradient(to right, ${primaryColor}, ${primaryDark})`,
           }}
-          // onClick={}
+          onClick={handleSaveChanges}
         >
           Save Changes
           <ChevronRight size={18} className="ml-1" />
