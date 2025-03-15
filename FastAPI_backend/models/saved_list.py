@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from config.setting import saved_list_collection, user_collection
+from config.setting import saved_list_collection, user_collection, project_collection
 
 
 router = APIRouter(prefix="/savedList", tags=["savedList"])
@@ -88,3 +88,61 @@ async def get_saved_ids(user_id: str):
         return {"user_Id": user_id, "saved_Ids": []}  # Return an empty list if no saved list exists
     
     return {"user_Id": user_id, "saved_Ids": saved_list.get("saved_Ids", [])}
+
+
+
+@router.post("/add-project")
+async def add_saved_id(user_id: str, new_id: List[str]):
+    user = await user_collection.find_one({"user_Id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not registered")
+    
+    if len(new_id) != 1:
+        raise HTTPException(status_code=400, detail="Only one ID should be sent in the list")
+    new_id = new_id[0]
+
+    new_project = await project_collection.find_one({"project_Id": new_id})
+    if not new_project:
+        raise HTTPException(status_code=404, detail="The ID to save is not a registered project")
+    
+    existing_list = await saved_list_collection.find_one({"user_Id": user_id})
+    if not existing_list:
+        new_entry = {"user_Id": user_id, "saved_Ids": [new_id]}
+        await saved_list_collection.insert_one(new_entry)
+    else:
+        if new_id not in existing_list["saved_Ids"]:
+            await saved_list_collection.update_one(
+                {"user_Id": user_id},
+                {"$push": {"saved_Ids": new_id}}
+            )
+        else:
+            return {"message": "ID is already in the saved list"}
+    return {"message": "ID added successfully"}
+
+@router.post("/remove-project")
+async def remove_saved_id(user_id: str, remove_id: List[str]):
+    user = await user_collection.find_one({"user_Id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not registered")
+
+    if len(remove_id) != 1:
+        raise HTTPException(status_code=400, detail="Only one ID should be sent in the list")
+    remove_id = remove_id[0]
+
+    remove_project = await project_collection.find_one({"project_Id": remove_id})
+    if not remove_project:
+        raise HTTPException(status_code=404, detail="The ID to remove is not a registered project")
+    
+    existing_list = await saved_list_collection.find_one({"user_Id": user_id})
+    if not existing_list:
+        raise HTTPException(status_code=404, detail="User's saved list not found")
+    
+    if remove_id in existing_list["saved_Ids"]:
+        await saved_list_collection.update_one(
+            {"user_Id": user_id},
+            {"$pull": {"saved_Ids": remove_id}}
+        )
+        return {"message": "ID removed successfully"}
+    else:
+        # raise HTTPException(status_code=400, detail="ID not found in saved list")
+        return {"message": "ID not found in saved list"}
