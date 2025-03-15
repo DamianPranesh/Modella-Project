@@ -17,7 +17,7 @@ class ModelProjectPreferenceData(BaseModel):
     natural_hair_type: Optional[List[str]] = None
     experience_Level: Optional[List[str]] = None
     gender: Optional[List[str]] = None
-    location: Optional[str] = None
+    location: Optional[List[str]] = None
     shoe_Size: Optional[Tuple[int,int]] = None
     bust_chest: Optional[Tuple[int,int]] = None
     waist: Optional[Tuple[int,int]] = None
@@ -37,7 +37,7 @@ class ModelProjectPreferenceFilterRequest(BaseModel):
     natural_hair_type: Optional[List[str]] = None
     experience_Level: Optional[List[str]] = None
     gender: Optional[List[str]] = None
-    location: Optional[str] = None
+    location: Optional[List[str]] = None
     shoe_Size: Optional[Tuple[int,int]] = None
     bust_chest: Optional[Tuple[int,int]] = None
     waist: Optional[Tuple[int,int]] = None
@@ -58,7 +58,7 @@ class BrandModelPreferenceData(BaseModel):
     natural_hair_type: Optional[List[str]] = None
     experience_Level: Optional[List[str]] = None
     gender: Optional[List[str]] = None
-    location: Optional[str] = None
+    location: Optional[List[str]] = None
     shoe_Size: Optional[Tuple[int,int]] = None
     bust_chest: Optional[Tuple[int,int]] = None
     waist: Optional[Tuple[int,int]] = None
@@ -84,7 +84,7 @@ class BrandModelPreferenceFilterRequest(BaseModel):
     natural_hair_type: Optional[List[str]] = None
     experience_Level: Optional[List[str]] = None
     gender: Optional[List[str]] = None
-    location: Optional[str] = None
+    location: Optional[List[str]] = None
     shoe_Size: Optional[Tuple[int,int]] = None
     bust_chest: Optional[Tuple[int,int]] = None
     waist: Optional[Tuple[int,int]] = None
@@ -102,7 +102,7 @@ class ModelBrandPreferenceData(BaseModel):
     user_Id: str
     is_project: bool = False
     work_Field: Optional[List[str]] = None
-    location: Optional[str] = None
+    location: Optional[List[str]] = None
     rating_level: Optional[int] = None
     saved_time: Optional[datetime] = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -116,7 +116,7 @@ class ModelBrandPreferenceData(BaseModel):
 class ModelBrandPreferenceFilterRequest(BaseModel):
     user_Id: Optional[str] = None
     work_Field: Optional[List[str]] = None
-    location: Optional[str] = None
+    location: Optional[List[str]] = None
     rating_level: Optional[int] = None
 
     @field_validator("rating_level")
