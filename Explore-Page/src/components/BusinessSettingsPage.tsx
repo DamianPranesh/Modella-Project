@@ -284,13 +284,6 @@ const BusinessSettingsPage: React.FC<{
     console.log("Updated PreferencesData:", preferencesData);
   }, [preferencesData]);
 
-  // const handleBusinessSettingChange = (field: string, value: any) => {
-  //   setBusinessSettingsData((prev) => ({
-  //     ...prev,
-  //     [field]: value,
-  //   }));
-  // };
-
   const toggleDropdown = (field: string) => {
     setDropdownField(field);
     setIsDropdownOpen(!isDropdownOpen);

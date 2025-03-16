@@ -38,13 +38,19 @@ export const BusinessTagsSection = ({
 }) => {
   // Local state for managing tag selections
   const [formData, setFormData] = useState({ ...tagsData });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<boolean>(false);
+
   const user_Id = "brand_67c5b2c43ae5b4ccb85b9a11";
 
   // Save Changes: Updates tagsData (can be sent to backend)
   const handleSaveChanges = async () => {
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
+
     console.log("Saved Data:", formData);
-    console.log("Current work_Field:", formData.work_Field);
-    console.log("Current location:", formData.location);
     try {
       const tagData = {
         user_Id: user_Id, // Get user ID dynamically
@@ -65,15 +71,29 @@ export const BusinessTagsSection = ({
         body: JSON.stringify(filteredData),
       });
 
+      setSuccess(true);
       console.log("Successfully updated brand tags:", response);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to update brand tags:", error);
+      setError(error.message || "Failed to update settings.");
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     setFormData(tagsData); // Ensure formData is always updated when tagsData changes
   }, [tagsData]);
+
+  const resetStatus = () => {
+    setSuccess(false);
+    setError(null);
+  };
+
+  const handleReset = () => {
+    resetStatus();
+    resetTagsData();
+  };
 
   return (
     <div className="p-6 bg-gradient-to-br from-white to-orange-50">
@@ -176,21 +196,27 @@ export const BusinessTagsSection = ({
       <div className="flex justify-end mt-6">
         <button
           className="bg-gray-200 text-gray-800 px-6 py-3 rounded-lg mr-3 font-medium hover:bg-gray-300 transition-colors flex items-center"
-          onClick={resetTagsData}
+          onClick={handleReset}
         >
           Reset
         </button>
         <button
+          onClick={handleSaveChanges}
+          disabled={loading}
           className="text-white px-6 py-3 rounded-lg font-medium shadow-md hover:shadow-lg transition-all transform hover:-translate-y-1 flex items-center"
           style={{
             background: `linear-gradient(to right, ${primaryColor}, ${primaryDark})`,
           }}
-          onClick={handleSaveChanges}
         >
-          Save Changes
+          {loading ? "Saving..." : "Save Changes"}
           <ChevronRight size={18} className="ml-1" />
         </button>
       </div>
+      {/* Success/Error Messages */}
+      {success && (
+        <p className="mt-2 text-green-600">Settings updated successfully!</p>
+      )}
+      {error && <p className="mt-2 text-red-600">{error}</p>}
     </div>
   );
 };

@@ -1,9 +1,46 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Settings, User, Tags, ChevronRight, Menu } from "lucide-react";
 
 import { TagsSection } from "./TagSection";
 import { PreferencesSection } from "./PreferenceSection";
 import { UserSettingsSection } from "./UserSettingSection";
+import { getDropdownOptions } from "../api/dropdowns";
+
+export type PreferencesDataType = {
+  age: number[];
+  height: number[];
+  natural_eye_color: string[];
+  body_Type: string[];
+  work_Field: string[];
+  skin_Tone: string[];
+  ethnicity: string[];
+  natural_hair_type: string[];
+  experience_Level: string[];
+  gender: string[];
+  location: string[];
+  shoe_Size: number[];
+  bust_chest: number[];
+  waist: number[];
+  hips: number[];
+};
+
+export type tagsDataType = {
+  age: number;
+  height: number;
+  natural_eye_color: string;
+  body_Type: string;
+  work_Field: string[];
+  skin_Tone: string;
+  ethnicity: string;
+  natural_hair_type: string;
+  experience_Level: string;
+  gender: string;
+  location: string;
+  shoe_Size: number;
+  bust_chest: number;
+  waist: number;
+  hips: number;
+};
 
 interface SettingsPageProps {
   toggleSidebar: () => void;
@@ -16,127 +53,44 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState("tags");
 
-  // Dropdown options data
-  const dropdownOptions: { [key: string]: string[] } = {
-    eye_colors: [
-      "Brown",
-      "Blue",
-      "Hazel",
-      "Green",
-      "Gray",
-      "Amber",
-      "Red",
-      "Violet",
-      "Heterochromia",
-    ],
-    body_types: [
-      "Straight Size Models",
-      "Plus-Size Models",
-      "Petite Models",
-      "Fitness Models",
-      "Glamour Models",
-      "Mature Models",
-      "Alternative Models",
-      "Parts Models",
-      "Child Models",
-      "Body-Positive Models",
-      "Androgynous Models",
-      "Fit Models",
-    ],
-    work_fields: [
-      "Fashion/Runway Modeling",
-      "Commercial Modeling",
-      "Beauty Modeling",
-      "Lingerie/Swimsuit Modeling",
-      "Fitness Modeling",
-      "Plus-Size Modeling",
-      "Editorial Modeling",
-      "Child Modeling",
-      "Parts Modeling",
-      "Catalog Modeling",
-      "Runway Modeling",
-      "Commercial Print Modeling",
-      "Virtual Modeling",
-      "Lifestyle Modeling",
-    ],
-    skin_tones: [
-      "Fair",
-      "Light",
-      "Medium",
-      "Olive",
-      "Tan",
-      "Deep Tan",
-      "Brown",
-      "Dark Brown",
-      "Ebony",
-    ],
-    ethnicities: [
-      "Caucasian",
-      "African",
-      "African-American",
-      "Hispanic/Latino",
-      "Asian",
-      "South Asian (Indian, Pakistani, Bangladeshi)",
-      "Middle Eastern",
-      "Native American/Indigenous",
-      "Pacific Islander",
-      "Mixed-Race",
-      "Mediterranean",
-      "Nordic",
-      "East Asian (Chinese, Japanese, Korean)",
-      "Southeast Asian (Thai, Filipino, Vietnamese, etc.)",
-      "Caribbean",
-    ],
-    hair_types: [
-      "Straight",
-      "Wavy",
-      "Curly",
-      "Coily",
-      "Kinky",
-      "Textured",
-      "Afro",
-      "Braided",
-      "Buzz Cut",
-      "Shaved",
-      "Dyed/Colored Hair",
-      "Gray/White Hair",
-      "Bald",
-    ],
-    genders: [
-      "Female",
-      "Male",
-      "Non-Binary",
-      "Androgynous",
-      "Transgender Female",
-      "Transgender Male",
-      "Genderfluid",
-      "Agender",
-    ],
-    locations: [
-      "Mumbai, India",
-      "New York City, USA",
-      "Shanghai, China",
-      "Dubai, UAE",
-      "Rome, Italy",
-      "Seoul, South Korea",
-      "Paris, France",
-      "Mexico City, Mexico",
-      "London, United Kingdom",
-      "Cape Town, South Africa",
-    ],
-    experience_levels: [
-      "Beginner (0-1 years)",
-      "Intermediate (1-3 years)",
-      "Experienced (3-5 years)",
-      "Advanced (5-7 years)",
-      "Expert (7+ years)",
-    ],
+  const [dropdownOptions, setDropdownOptions] = useState<{
+    [key: string]: string[];
+  }>({});
+
+  const fieldToCategoryMap: { [key: string]: string } = {
+    natural_eye_color: "natural_eye_colors",
+    body_Type: "body_types",
+    work_Field: "work_fields",
+    skin_Tone: "skin_tones",
+    ethnicity: "ethnicities",
+    natural_hair_type: "natural_hair_types",
+    gender: "genders",
+    location: "locations",
+    experience_Level: "experience_levels",
   };
+
+  useEffect(() => {
+    const fetchAllDropdownOptions = async () => {
+      const fetchedOptions: { [key: string]: string[] } = {};
+
+      for (const [frontendField, backendCategory] of Object.entries(
+        fieldToCategoryMap
+      )) {
+        fetchedOptions[frontendField] = await getDropdownOptions(
+          backendCategory
+        );
+      }
+
+      setDropdownOptions(fetchedOptions);
+    };
+
+    fetchAllDropdownOptions();
+  }, []);
 
   // Sample initial data states
   const [tagsData, setTagsData] = useState({
-    age: 0,
-    height: 0,
+    age: 8,
+    height: 116,
     natural_eye_color: "",
     body_Type: "",
     work_Field: [] as string[],
@@ -146,33 +100,15 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     experience_Level: "",
     gender: "",
     location: "",
-    shoe_Size: 0,
-    bust_chest: 0,
-    waist: 0,
-    hips: 0,
+    shoe_Size: 31,
+    bust_chest: 61,
+    waist: 51,
+    hips: 61,
   });
 
-  type PreferencesDataType = {
-    age: number[];
-    height: number[];
-    natural_eye_color: string[];
-    body_Type: string[];
-    work_Field: string[];
-    skin_Tone: string[];
-    ethnicity: string[];
-    natural_hair_type: string[];
-    experience_Level: string[];
-    gender: string[];
-    location: string[];
-    shoe_Size: number[];
-    bust_chest: number[];
-    waist: number[];
-    hips: number[];
-  };
-
   const [preferencesData, setPreferencesData] = useState<PreferencesDataType>({
-    age: [0, 0],
-    height: [0, 0],
+    age: [8, 100],
+    height: [116, 191],
     natural_eye_color: [],
     body_Type: [],
     work_Field: [],
@@ -182,10 +118,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     experience_Level: [],
     gender: [],
     location: [],
-    shoe_Size: [0, 0],
-    bust_chest: [0, 0],
-    waist: [0, 0],
-    hips: [0, 0],
+    shoe_Size: [31, 50],
+    bust_chest: [61, 117],
+    waist: [51, 91],
+    hips: [61, 107],
   });
 
   const [userSettingsData, setUserSettingsData] = useState({
@@ -233,20 +169,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   };
 
   const getOptionsForField = (field: string) => {
-    const fieldMappings: { [key: string]: string } = {
-      natural_eye_color: "eye_colors",
-      body_Type: "body_types",
-      work_Field: "work_fields",
-      skin_Tone: "skin_tones",
-      ethnicity: "ethnicities",
-      natural_hair_type: "hair_types",
-      gender: "genders",
-      location: "locations",
-      experience_Level: "experience_levels",
-    };
-
-    const mappedField = fieldMappings[field];
-    return mappedField ? dropdownOptions[mappedField] || [] : [];
+    // Remove the mapping step since field names now directly match dropdown option keys
+    return dropdownOptions[field] || [];
   };
 
   const hasDropdownOptions = (field: string) => {
@@ -263,28 +187,53 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     ].includes(field);
   };
 
+  const numericRanges: Record<string, [number, number]> = {
+    age: [8, 100],
+    height: [116, 191],
+    shoe_Size: [31, 50],
+    bust_chest: [61, 117],
+    waist: [51, 91],
+    hips: [61, 107],
+  };
+
   const handleNumberChange = (
     field: string,
     value: string,
     isPreference = false,
     index: number | null = null
   ) => {
-    const numValue = parseInt(value) || 0;
-    const safeValue = Math.max(0, numValue);
+    if (!(field in numericRanges)) return; // Ensure it's a valid numeric field
+
+    const [defaultMin, defaultMax] = numericRanges[field]; // Get predefined range
+    let numValue = parseInt(value) || 0;
+    numValue = Math.min(defaultMax, Math.max(defaultMin, numValue)); // Clamp within range
 
     if (isPreference) {
       setPreferencesData((prev) => {
         const newData = { ...prev };
         const key = field as keyof PreferencesDataType;
-        if (index !== null) {
-          (newData[key] as number[])[index] = safeValue;
+
+        if (index !== null && Array.isArray(newData[key])) {
+          const currentValues = [...(newData[key] as number[])];
+
+          if (index === 0) {
+            // Ensure Min doesn't exceed Max
+            numValue = Math.min(numValue, currentValues[1]);
+          } else if (index === 1) {
+            // Ensure Max isn't smaller than Min
+            numValue = Math.max(numValue, currentValues[0]);
+          }
+
+          currentValues[index] = numValue;
+          newData[key] = currentValues as any;
         }
+
         return newData;
       });
     } else {
       setTagsData((prev) => ({
         ...prev,
-        [field]: safeValue,
+        [field]: numValue,
       }));
     }
   };
@@ -295,7 +244,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     isPreference = false
   ) => {
     if (isPreference) {
-      // For preferences, handle separately if needed
+      setPreferencesData((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
     } else {
       setTagsData((prev) => ({
         ...prev,
@@ -304,38 +256,60 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     }
   };
 
-  const addPreferenceOption = (field: string) => {
+  const selectPreferenceOption = (field: string, option: string) => {
     setPreferencesData((prev) => {
       const newData = { ...prev };
       const key = field as keyof PreferencesDataType;
-      newData[key] = [...(newData[key] as unknown as string[]), ""] as any;
+
+      // For all fields in preferences that are arrays, add to the array if not already present
+      if (Array.isArray(newData[key])) {
+        const arr = newData[key] as unknown as string[];
+        if (!arr.includes(option)) {
+          newData[key] = [...arr, option] as any;
+        }
+      }
       return newData;
     });
+    setIsDropdownOpen(false);
   };
 
   const removePreferenceOption = (field: string, index: number) => {
     setPreferencesData((prev) => {
       const newData = { ...prev };
       const key = field as keyof PreferencesDataType;
-      newData[key] = (newData[key] as unknown as string[]).filter(
-        (_, i) => i !== index
-      ) as any;
+      if (Array.isArray(newData[key])) {
+        newData[key] = (newData[key] as unknown as string[]).filter(
+          (_, i) => i !== index
+        ) as any;
+      }
       return newData;
     });
   };
 
-  const updatePreferenceOption = (
-    field: string,
-    index: number,
-    value: string
-  ) => {
-    setPreferencesData((prev) => {
-      const newData = { ...prev };
-      const key = field as keyof PreferencesDataType;
-      (newData[key] as unknown as string[])[index] = value;
-      return newData;
+  const resetPreferencesData = () => {
+    setPreferencesData({
+      age: [8, 100],
+      height: [116, 191],
+      natural_eye_color: [],
+      body_Type: [],
+      work_Field: [],
+      skin_Tone: [],
+      ethnicity: [],
+      natural_hair_type: [],
+      experience_Level: [],
+      gender: [],
+      location: [],
+      shoe_Size: [31, 50],
+      bust_chest: [61, 117],
+      waist: [51, 91],
+      hips: [61, 107],
     });
+    console.log("preferences data has been reset:", preferencesData);
   };
+
+  useEffect(() => {
+    console.log("Updated PreferencesData:", preferencesData);
+  }, [preferencesData]);
 
   const handleUserSettingChange = (field: string, value: any) => {
     setUserSettingsData((prev) => ({
@@ -364,25 +338,37 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     setIsDropdownOpen(false);
   };
 
-  const selectPreferenceOption = (field: string, option: string) => {
-    setPreferencesData((prev) => {
-      const newData = { ...prev };
-      const key = field as keyof PreferencesDataType;
-      const arr = newData[key] as unknown as string[];
-      if (!arr.includes(option)) {
-        newData[key] = [...arr, option] as any;
-      }
-      return newData;
-    });
-    setIsDropdownOpen(false);
-  };
-
   const removeTag = (index: number) => {
     setTagsData((prev) => ({
       ...prev,
       work_Field: prev.work_Field.filter((_, i) => i !== index),
     }));
   };
+
+  const resetTagsData = () => {
+    setTagsData({
+      age: 8,
+      height: 116,
+      natural_eye_color: "",
+      body_Type: "",
+      work_Field: [],
+      skin_Tone: "",
+      ethnicity: "",
+      natural_hair_type: "",
+      experience_Level: "",
+      gender: "",
+      location: "",
+      shoe_Size: 31,
+      bust_chest: 61,
+      waist: 51,
+      hips: 61,
+    });
+    console.log("Tags data has been reset:", tagsData);
+  };
+
+  useEffect(() => {
+    console.log("Updated tagsData:", tagsData);
+  }, [tagsData]);
 
   const renderDropdown = (field: string, isPreference = false) => {
     const options = getOptionsForField(field);
@@ -494,6 +480,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
           handleNumberChange={handleNumberChange}
           handleInputChange={handleInputChange}
           removeTag={removeTag}
+          resetTagsData={resetTagsData}
         />
       )}
       {activeTab === "preferences" && (
@@ -511,6 +498,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
           handleNumberChange={handleNumberChange}
           handleInputChange={handleInputChange}
           removePreferenceOption={removePreferenceOption}
+          resetPreferencesData={resetPreferencesData}
         />
       )}
       {activeTab === "userSettings" && (
@@ -520,24 +508,9 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
           primaryDark={primaryDark}
           primaryColor={primaryColor}
           getIconForField={getIconForField}
-          handleUserSettingChange={handleUserSettingChange}
+          //handleUserSettingChange={handleUserSettingChange}
         />
       )}
-
-      <div className="p-6 border-t flex justify-end bg-gray-50">
-        <button className="bg-gray-200 text-gray-800 px-6 py-3 rounded-lg mr-3 font-medium hover:bg-gray-300 transition-colors flex items-center">
-          Cancel
-        </button>
-        <button
-          className="text-white px-6 py-3 rounded-lg font-medium shadow-md hover:shadow-lg transition-all transform hover:-translate-y-1 flex items-center"
-          style={{
-            background: `linear-gradient(to right, ${primaryColor}, ${primaryDark})`,
-          }}
-        >
-          Save Changes
-          <ChevronRight size={18} className="ml-1" />
-        </button>
-      </div>
     </div>
   );
 };
