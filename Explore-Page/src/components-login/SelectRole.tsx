@@ -1,95 +1,52 @@
-import { useState, Dispatch, SetStateAction, useEffect } from "react";
-import { UserCircle2, Building2, ArrowRight } from "lucide-react";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useState } from 'react';
+import { useAuth0 } from '@auth0/auth0-react';
+import { useNavigate } from 'react-router-dom';
+import { UserCircle2, Building2, ArrowRight } from 'lucide-react';
 
-
-interface UserTypeSelectionProps {
-  setUserType: Dispatch<SetStateAction<"model" | "business" | null>>;
-}
-
-export function UserTypeSelection({ setUserType }: UserTypeSelectionProps) {
-  const { getAccessTokenSilently } = useAuth0();
-
-  useEffect(() => {
-    async function fetchToken() {
-      try {
-        console.log("Trying to fetch access token...");
-        const token = await getAccessTokenSilently({
-          authorizationParams: {
-            audience: "https://Modella.com/DemoAccess", // ✅ Move inside `authorizationParams`
-            scope: "openid profile email",
-          }, // 👈 Add this line
-          timeoutInSeconds: 30,  // Increase timeout
-          cacheMode: "off",      // Force fresh token request
-        });
-        console.log("Access Token:", token);
-      } catch (error) {
-        console.error("Failed to get token:", error);
-      }
-    }
-
-    fetchToken();
-  }, []);
-
-  
-  // State to track the user's selection (model or business)
-  const [selectedType, setSelectedType] = useState<"model" | "business" | null>(
-    null
-  );
-  // State to control the fade-out animation
+export const SelectRole = () => {
+  const [selectedType, setSelectedType] = useState<'model' | 'business' | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  const { getAccessTokenSilently } = useAuth0();
+  const navigate = useNavigate();
 
-  const handleSelection = (type: "model" | "business") => {
+  const handleSelection = (type: 'model' | 'business') => {
     setSelectedType(type);
   };
 
   const handleConfirm = async () => {
-    console.log("Confirming selection...");
-    if (selectedType) {
-      console.log("Selection confirmed:", selectedType);
-      setIsAnimating(true);
-  
-      setTimeout(async () => {
-        try {
-          console.log("Setting role...");
-          const token = await getAccessTokenSilently({
-            timeoutInSeconds: 15,
-          }); // Get Auth0 access token
-          // Comment
-          console.log("Token retrieved:", token); // Debugging
-  
-          const response = await fetch("http://localhost:8000/select-role", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`, // Send the token
-            },
-            body: JSON.stringify({
-              role: selectedType, // No user_id, backend extracts from token
-            }),
-          });
-          // Comment
-          console.log("Fetch request made:", response); // Debugging
+    if (!selectedType) return;
 
-  
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || "Failed to set role");
-          }
-  
-          setUserType(selectedType);
-          console.log("Role successfully set!");
-        } catch (error: unknown) {
-          if (error instanceof Error) {
-            console.error("Error setting role:", error.message);
-          } else {
-            console.error("Error setting role:", String(error));
-          }
-        }
+    setIsAnimating(true);
+    
+    try {
+      // Get the token
+      const token = await getAccessTokenSilently();
+      
+      // Call your API to update the user's role
+      const response = await fetch('http://localhost:8000/api/select-role', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ role: selectedType })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update role');
+      }
+      
+      // Wait for the animation
+      setTimeout(() => {
+        // Redirect based on the selected role
+        navigate(selectedType === 'model' ? '/components-models/SettingsPage' : '/components/BusinessSettingsPage');
       }, 500);
-    } 
+      
+    } catch (error) {
+      console.error('Error updating user role:', error);
+      setIsAnimating(false);
+    }
   };
-  
 
   return (
     <div
@@ -205,7 +162,7 @@ export function UserTypeSelection({ setUserType }: UserTypeSelectionProps) {
                     text-[#DD8560] border-2 border-[#DD8560] hover:bg-[#DD8560]/5
                     transition-colors duration-300"
                 >
-                  Clear Selection
+                  Change Selection
                 </button>
                 <button
                   onClick={handleConfirm}
@@ -223,4 +180,4 @@ export function UserTypeSelection({ setUserType }: UserTypeSelectionProps) {
       </div>
     </div>
   );
-}
+};

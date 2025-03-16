@@ -22,10 +22,14 @@ import { AccountPage as ModelAccountPage } from "./components-models/AccountPage
 import ModelSwipeCards from "./components-models/SwipeCards";
 import { SavedList as ModelSavedList } from "./components-models/SavedList";
 import ModelSettingsPage from "./components-models/SettingsPage";
+import TokenExchange from './components-login/TokenExchange';
+
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [userType, setUserType] = useState<"model" | "business" | null>(null);
+  const [loading, setLoading] = useState(true);
+
 
   const toggleSidebar = () => {
     setSidebarOpen(!isSidebarOpen);
@@ -50,18 +54,70 @@ function App() {
     };
   }, []);
 
-  // Check if user has selected a type
-  if (userType === null) {
-    return <UserTypeSelection setUserType={setUserType} />;
+  useEffect(() => {
+    async function fetchUserRole() {
+      try {
+        const accessToken = getCookie('access_token');
+
+        if (!accessToken) {
+          console.error('No access token found. User may not be authenticated.');
+          setLoading(false);
+          return;
+        }
+
+        const response = await fetch('http://localhost:8000/api/user-role', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          console.error('Failed to fetch user role. Status:', response.status);
+          setLoading(false);
+          return;
+        }
+
+        const data = await response.json();
+        console.log('Data:', data);
+        console.log('User Role:', data.role);
+        setUserType(data.role);
+        setLoading(false);
+
+      } catch (error) {
+        console.error('Error occurred while fetching user role:', error);
+        setLoading(false);
+      }
+    }
+
+    fetchUserRole();
+  }, []);
+
+  function getCookie(name: string) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+    return null;
   }
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+// Check if user has selected a type
+//  if (userType === null) {
+//    return <UserTypeSelection setUserType={setUserType} />;
+//  }
+
   return (
-    <Router>
+    
       <div className="flex min-h-screen bg-white">
         <Sidebar
           isOpen={isSidebarOpen}
           toggleSidebar={toggleSidebar}
-          userType={userType}
+          userType={"model"}
         />
         <main
           className={`flex-1 p-8 transition-margin ${
@@ -82,7 +138,15 @@ function App() {
                 />
               }
             />
-
+            {/* Add the TokenExchange route for callback after login */}
+            <Route 
+              path="/auth/callback" 
+              element={
+                <TokenExchange 
+                />
+              } 
+            />
+            
             {/* Conditional routes based on user type */}
             {userType === "business" ? (
               <>
@@ -176,7 +240,7 @@ function App() {
           </Routes>
         </main>
       </div>
-    </Router>
+    
   );
 }
 

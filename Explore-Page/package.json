@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@auth0/auth0-react": "^2.3.0",
     "@fontsource/junge": "^5.2.5",
     "@tailwindcss/vite": "^4.0.0",
     "date-fns": "^4.1.0",
