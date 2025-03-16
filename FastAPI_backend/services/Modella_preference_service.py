@@ -388,18 +388,9 @@ async def filter_model_project_preference_by_user_id(user_id: str):
     # Fetch model preferences
     preference = await get_model_preference(user_id)
     
-    # # Convert ModelProjectPreferenceData to dictionary
-    # preference_dict = preference.model_dump()
-
-    # # Remove unwanted fields
-    # excluded_fields = {"saved_time", "client_type", "user_Id", "is_project"}
-    # data = {k: v for k, v in preference_dict.items() if k not in excluded_fields}
-
+    #temporary feild removal.
     # Convert ModelProjectPreferenceFilterRequest to ProjectTagFilterRequest
-    converted_data = convert_model(preference, ProjectTagFilterRequest,["saved_time", "client_Type", "user_Id", "is_project"])
-
-    # # Convert the filtered data into a ProjectTagFilterRequest
-    # project_tag_filter_request = ProjectTagFilterRequest(**filtered_preference_dict)
+    converted_data = convert_model(preference, ProjectTagFilterRequest,["saved_time", "client_Type", "user_Id", "is_project","shoe_Size","bust_chest","waist","hips","height"])
 
     # Build the query
     query = await build_query_cross_filter(converted_data)
@@ -584,13 +575,6 @@ async def build_query_cross_filter(data):
     return query
 
 
-
-
-
-
-
-
-
 @router.post("/create_random_prefs/")
 async def create_random_pref_route(request: CreateRandomTagsRequest):
     count = request.count
@@ -605,8 +589,6 @@ async def create_random_pref_route(request: CreateRandomTagsRequest):
     
     # Returning the result
     return result
-
-
 
 
 async def generate_pref(tag_type: str):
