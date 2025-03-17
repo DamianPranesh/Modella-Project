@@ -453,7 +453,7 @@ export function ChatPage({ selectedChat, currentUserId, onMessageSent, onRemoveC
             <Send className="w-5 h-5" />
           </button>
         </div>
-      </form>
+      </form>z
     </div>
   );
 }

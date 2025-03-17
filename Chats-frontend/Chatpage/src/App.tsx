@@ -3,12 +3,13 @@ import { Sidebar } from "./components/Sidebar";
 import { ChatList } from "./components/ChatList";
 import StartMessage from "./components/StartMessage";
 import { ChatPage } from "./components/Chatpage";
-import { Chat, sampleChats } from "./data/sampleChats";
+import { Chat } from "./data/sampleChats";
 import { useChatHandlers, useResponsiveSidebar } from "./utils/chatUtils";
+import { MessageCircle } from 'lucide-react';
 
 function App() {
   const [selectedChatId, setSelectedChatId] = useState<string>();
-  const [chats, setChats] = useState<Chat[]>(sampleChats);
+  const [chats, setChats] = useState<Chat[]>([]); // Removed sampleChats
   
   // Mock current user ID - replace with actual user authentication
   const currentUserId = "current-user";
@@ -18,7 +19,7 @@ function App() {
     setChats,
     selectedChatId,
     setSelectedChatId
-  );
+  );    
 
   const { isSidebarOpen, toggleSidebar } = useResponsiveSidebar();
 
@@ -50,7 +51,10 @@ function App() {
             onRemoveChat={handleRemoveChat}
           />
         ) : (
-          <StartMessage />
+          <div className="flex items-center justify-center h-full">
+            <MessageCircle size={48} />
+            <StartMessage />
+          </div>
         )}
       </div>
     </div>

@@ -1,10 +1,9 @@
-import React from "react";
 import { format } from "date-fns";
-import { Bell } from "lucide-react";
 
-// Add Junge font import
-import "@fontsource/junge";
 
+
+
+// Define the Chat interface to type the chat objects
 interface Chat {
   id: string;
   name: string;
@@ -15,42 +14,32 @@ interface Chat {
   isOnline: boolean;
 }
 
+// Define the ChatListProps interface to type the props for the ChatList component
 interface ChatListProps {
   chats: Chat[];
   onChatSelect: (chatId: string) => void;
   selectedChatId?: string;
 }
 
+// Define the ChatList component
 export function ChatList({
   chats,
   onChatSelect,
   selectedChatId,
 }: ChatListProps) {
-  const handleNotificationClick = () => {
-    // Handle notification click
-    console.log("Notifications clicked");
-  };
-
   return (
     <div className="flex flex-col h-full bg-white">
+      {/* Header section with title */}
       <div className="p-7 pt-11 border-b bg-white sticky top-0 z-10">
         <div className="flex items-center justify-between">
           <h2 className="text-3xl font-light text-[#DD8560] font-['Junge']">
             Messages
           </h2>
-          <button
-            onClick={handleNotificationClick}
-            className="p-2 bg-white rounded-full flex items-center justify-center"
-            style={{ backgroundColor: 'white' }}
-          >
-            <Bell
-              className="w-5 h-5 stroke-[#DD8560] fill-white"
-              strokeWidth={1.5}
-            />
-          </button>
         </div>
       </div>
+      
 
+      {/* Chat list container with custom scrollbar styles */}
       <div
         className="flex-1 overflow-y-auto"
         style={{
@@ -58,6 +47,7 @@ export function ChatList({
           scrollbarColor: "#CBD5E1 transparent",
         }}
       >
+        {/* Map through the chats array and render each chat item */}
         {chats.map((chat) => (
           <div
             key={chat.id}
@@ -66,6 +56,7 @@ export function ChatList({
             }`}
             onClick={() => onChatSelect(chat.id)}
           >
+            {/* Chat avatar and online status indicator */}
             <div className="relative">
               <img
                 src={chat.avatar}
@@ -77,6 +68,7 @@ export function ChatList({
               )}
             </div>
 
+            {/* Chat details including name, timestamp, last message, and unread count */}
             <div className="ml-3 flex-1">
               <div className="flex justify-between items-start">
                 <h3 className="font-semibold text-gray-900 text-sm">
