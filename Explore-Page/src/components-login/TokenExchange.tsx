@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 
@@ -33,8 +33,32 @@ const TokenExchange = () => {
               id_token: data.id_token,
             });
 
-            // Redirect to the main application
-            navigate('/explore');
+            const accessToken = data.access_token;
+            
+            fetch('http://localhost:8000/api/user-role', {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+              }
+            })
+              .then(response => response.json())
+              .then(roleData => {
+                // Store the role in sessionStorage
+                sessionStorage.setItem('userRole', roleData.role);
+                
+                // Now redirect to the appropriate page
+                if (roleData.role) {
+                  navigate('/explore');
+                } else {
+                  // Redirect to role selection if no role found
+                  navigate('/select-role');
+                }
+              })
+              .catch(err => {
+                console.error("Error fetching role:", err);
+                navigate('/explore'); // Fallback to explore page
+              });
           } else {
             setError('Failed to get tokens');
           }
@@ -46,6 +70,8 @@ const TokenExchange = () => {
     } else {
       setError('Authorization code not found in URL');
     }
+
+    // Add what to do if code is not there
   }, [navigate]);
 
   return (

@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import {
-  BrowserRouter as Router,
   Route,
   Routes,
   Navigate,
@@ -56,24 +55,43 @@ function App() {
 
   useEffect(() => {
     async function fetchUserRole() {
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate loading
       try {
-        const accessToken = getCookie('access_token');
+        /*
+        const response = await fetch('http://localhost:8000/api/user-role-cookie', {
+          method: 'GET',
+          credentials: 'include'  // Sends cookies automatically
+        });*/
 
-        if (!accessToken) {
-          console.error('No access token found. User may not be authenticated.');
+        const storedRole = sessionStorage.getItem('userRole');
+        console.log('Stored role:', storedRole);
+        if (storedRole) {
+          console.log('Using stored role:', storedRole);
+          setUserType(storedRole as "model" | "business");
           setLoading(false);
           return;
         }
 
+        const accessToken = getCookie('access_token'); // Replace with your method to get the token
+
+        if (!accessToken) {
+          console.error('Access token not found');
+          return;
+        }
+    
+        // Make the request to the /user-role endpoint
         const response = await fetch('http://localhost:8000/api/user-role', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${accessToken}`,
             'Content-Type': 'application/json'
-          },
-          credentials: 'include'
+          }
         });
 
+        // const data = await response.json();
+        // console.log('Data:', data);
+        // console.log('User Role:', data.role);
+        
         if (!response.ok) {
           console.error('Failed to fetch user role. Status:', response.status);
           setLoading(false);
@@ -81,6 +99,7 @@ function App() {
         }
 
         const data = await response.json();
+        sessionStorage.setItem('userRole', data.role);
         console.log('Data:', data);
         console.log('User Role:', data.role);
         setUserType(data.role);
@@ -98,18 +117,17 @@ function App() {
   function getCookie(name: string) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
+    console.log('Parts:', parts);
+    console.log('Value:', value);
     if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
     return null;
   }
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
 
 // Check if user has selected a type
-//  if (userType === null) {
-//    return <UserTypeSelection setUserType={setUserType} />;
-//  }
+  // if (userType === null) {
+  //   return <UserTypeSelection setUserType={setUserType} />;
+  // }
 
   return (
     

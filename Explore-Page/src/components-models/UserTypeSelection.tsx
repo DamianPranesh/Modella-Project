@@ -16,11 +16,11 @@ export function UserTypeSelection({ setUserType }: UserTypeSelectionProps) {
         console.log("Trying to fetch access token...");
         const token = await getAccessTokenSilently({
           authorizationParams: {
-            audience: "https://Modella.com/DemoAccess", // ✅ Move inside `authorizationParams`
+            audience: "https://Modella.com/DemoAccess", 
             scope: "openid profile email",
-          }, // 👈 Add this line
+          }, 
           timeoutInSeconds: 30,  // Increase timeout
-          cacheMode: "off",      // Force fresh token request
+          // cacheMode: "off",      // Force fresh token request
         });
         console.log("Access Token:", token);
       } catch (error) {
