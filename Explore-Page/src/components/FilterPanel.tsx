@@ -216,6 +216,26 @@ export function FilterPanel({
                   ))}
                 </select>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Location
+                </label>
+                <select
+                  value={filters.location}
+                  onChange={(e) =>
+                    handleFilterChange("location", e.target.value)
+                  }
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-[#DD8560] focus:border-[#DD8560] cursor-pointer"
+                >
+                  <option value="">Select Location</option>
+                  {locationOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div className="flex justify-end space-x-2 pt-4">

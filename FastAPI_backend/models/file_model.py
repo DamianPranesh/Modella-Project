@@ -12,6 +12,8 @@ class FileMetadata(BaseModel):
     uploaded_by: str  # User who uploaded the file
     folder: str  # Category (image, profile-pic, portfolio, video)
     is_private: bool = False  # Default: public
+    description:Optional[str] = None
+    project_id: Optional[str] = None
 
 
 class FileMetadataOnURL(BaseModel):
@@ -19,3 +21,4 @@ class FileMetadataOnURL(BaseModel):
     file_name: str
     s3_url: Optional[str]
     is_private: bool
+    description:Optional[str] = None

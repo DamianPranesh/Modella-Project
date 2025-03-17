@@ -31,17 +31,52 @@ async def list_users_endpoint(skip: int = 0, limit: int = 100):
     """List all users with pagination"""
     return await list_users(skip=skip, limit=limit)
 
+# @router.post("/generate-fake-users/", response_model=List[Dict])
+# async def generate_fake_users_endpoint(num_users: int):
+#     """
+#     Generate fake users for testing purposes.
+    
+#     Args:
+#         num_users (int): Number of fake users to generate
+    
+#     Returns:
+#         List[Dict]: List of generated user documents
+#     """
+#     if num_users <= 0:
+#         raise HTTPException(
+#             status_code=400,
+#             detail="Number of users must be greater than 0"
+#         )
+#     if num_users > 100:
+#         raise HTTPException(
+#             status_code=400,
+#             detail="Cannot generate more than 100 users at once"
+#         )
+        
+#     try:
+#         generated_users = await generate_fake_users(num_users)
+#         return generated_users
+#     except Exception as e:
+#         raise HTTPException(
+#             status_code=500,
+#             detail=f"Error generating fake users: {str(e)}"
+#         )
+
+
 @router.post("/generate-fake-users/", response_model=List[Dict])
-async def generate_fake_users_endpoint(num_users: int):
+async def generate_fake_users_endpoint(request: UserGenerationRequest):
     """
-    Generate fake users for testing purposes.
+    Generate fake users for testing purposes with a specified type.
     
     Args:
-        num_users (int): Number of fake users to generate
+        request (UserGenerationRequest): Number of fake users and type ('model' or 'brand')
     
     Returns:
         List[Dict]: List of generated user documents
     """
+    num_users = request.num_users
+    user_type = request.user_type
+
     if num_users <= 0:
         raise HTTPException(
             status_code=400,
@@ -52,9 +87,14 @@ async def generate_fake_users_endpoint(num_users: int):
             status_code=400,
             detail="Cannot generate more than 100 users at once"
         )
+    if user_type not in ["model", "brand"]:
+        raise HTTPException(
+            status_code=400,
+            detail="User type must be either 'model' or 'brand'"
+        )
         
     try:
-        generated_users = await generate_fake_users(num_users)
+        generated_users = await generate_fake_users(user_type, num_users)
         return generated_users
     except Exception as e:
         raise HTTPException(

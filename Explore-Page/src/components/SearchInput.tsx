@@ -1,5 +1,8 @@
 import { Plus, Menu, X } from "lucide-react";
-import { type ModelInfo, type BusinessInfo } from "./CategoryGrid";
+import {
+  type ModelInfo,
+  type BusinessInfo,
+} from "../api/useModelsAndBusinesses";
 
 // SearchInput (handles the top search bar with suggestions and sidebar toggle)
 export function SearchInput({
@@ -72,7 +75,7 @@ export function SearchInput({
                   />
                   <div>
                     <p className="font-medium text-[#DD8560]">{item.name}</p>
-                    <p className="text-sm text-gray-600">{item.type}</p>
+                    <p className="text-sm text-gray-600">{item.workField}</p>
                   </div>
                 </div>
               ))}

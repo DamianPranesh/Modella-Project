@@ -4,15 +4,22 @@ import { X } from "lucide-react";
 type Model = {
   id: string;
   name: string;
+  bio: string;
   age: number;
-  type: string;
-  image: string;
+  type: string[];
+  image: string[];
+  socialUrls: string[];
   height: string;
   eyeColor: string;
   bodyType: string;
   skinTone: string;
   gender: string;
   experience: string;
+  location: string;
+  bust: string;
+  waist: string;
+  hips: string;
+  shoeSize: string;
 };
 
 interface ComparisonModalProps {
@@ -130,7 +137,7 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({
               >
                 <div className="aspect-[3/4] w-full">
                   <img
-                    src={model.image}
+                    src={model.image[0]}
                     alt={model.name}
                     className="w-full h-full object-cover"
                   />
@@ -146,11 +153,11 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({
                     </p>
                     <p className="text-gray-700 flex justify-between border-b border-gray-200 pb-1">
                       <span className="font-medium">Type:</span>
-                      <span>{model.type}</span>
+                      <span>{model.type.join(", ")}</span>
                     </p>
                     <p className="text-gray-700 flex justify-between border-b border-gray-200 pb-1">
                       <span className="font-medium">Height:</span>
-                      <span>{model.height}</span>
+                      <span>{model.height} cm</span>
                     </p>
                     <p className="text-gray-700 flex justify-between border-b border-gray-200 pb-1">
                       <span className="font-medium">Gender:</span>

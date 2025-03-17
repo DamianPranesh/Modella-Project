@@ -1,2 +1,2 @@
 # Modella-Project
-Client-Model Connecting Application
+Client-Model Connecting Application.

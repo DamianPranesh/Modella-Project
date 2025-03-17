@@ -4,16 +4,21 @@ import { X } from "lucide-react";
 type Model = {
   id: string;
   name: string;
-  minAge: number;
-  maxAge: number;
-  type: string;
-  image: string;
-  minHeight: string;
-  maxHeight: string;
-  eyeColor: string;
-  bodyType: string;
-  skinTone: string;
-  gender: string;
+  bio: string;
+  age: string[];
+  type: string[];
+  image: string[];
+  socialUrls: string[];
+  height: string[];
+  eyeColor: string[];
+  bodyType: string[];
+  skinTone: string[];
+  gender: string[];
+  bust: string[];
+  waist: string[];
+  hips: string[];
+  shoeSize: string[];
+  location: string;
 };
 
 interface ComparisonModalProps {
@@ -131,7 +136,7 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({
               >
                 <div className="aspect-[3/4] w-full">
                   <img
-                    src={model.image}
+                    src={model.image[0]}
                     alt={model.name}
                     className="w-full h-full object-cover"
                   />
@@ -144,34 +149,34 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({
                     <p className="text-gray-700 flex justify-between border-b border-gray-200 pb-1">
                       <span className="font-medium">Age Range:</span>
                       <span>
-                        {model.minAge} - {model.maxAge}
+                        {model.age[0]} - {model.age[1]}
                       </span>
                     </p>
                     <p className="text-gray-700 flex justify-between border-b border-gray-200 pb-1">
                       <span className="font-medium">Type:</span>
-                      <span>{model.type}</span>
+                      <span>{model.type.join(", ")}</span>
                     </p>
                     <p className="text-gray-700 flex justify-between border-b border-gray-200 pb-1">
                       <span className="font-medium">Height Range:</span>
                       <span>
-                        {model.minHeight} - {model.maxHeight}
+                        {model.height[0]} - {model.height[1]}
                       </span>
                     </p>
                     <p className="text-gray-700 flex justify-between border-b border-gray-200 pb-1">
                       <span className="font-medium">Gender:</span>
-                      <span>{model.gender}</span>
+                      <span>{model.gender.join(", ")}</span>
                     </p>
                     <p className="text-gray-700 flex justify-between border-b border-gray-200 pb-1">
                       <span className="font-medium">Eye Color:</span>
-                      <span>{model.eyeColor}</span>
+                      <span>{model.eyeColor.join(", ")}</span>
                     </p>
                     <p className="text-gray-700 flex justify-between border-b border-gray-200 pb-1">
                       <span className="font-medium">Body Type:</span>
-                      <span>{model.bodyType}</span>
+                      <span>{model.bodyType.join(", ")}</span>
                     </p>
                     <p className="text-gray-700 flex justify-between border-b border-gray-200 pb-1">
                       <span className="font-medium">Skin Tone:</span>
-                      <span>{model.skinTone}</span>
+                      <span>{model.skinTone.join(", ")}</span>
                     </p>
                   </div>
                 </div>

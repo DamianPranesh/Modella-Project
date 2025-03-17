@@ -2,7 +2,8 @@ import random
 from bson import ObjectId
 from models.rating_model import Rating
 from config.setting import rating_collection,user_collection
-from typing import Dict, Any
+from typing import Dict, Any, List
+from collections import Counter
 
 
 # Predefined rating levels and their corresponding reviews
@@ -15,6 +16,10 @@ RATING_REVIEW_MAP = {
 }
 
 async def create_rating_service(rating: Rating):
+    # Validate rating level (1-5)
+    if rating.rating not in RATING_REVIEW_MAP:
+        return {"error": "Invalid rating level. Must be between 1 and 5."}
+
     # Check if both user_Id (receiver) and ratedBy_Id (giver) exist in user_collection
     user_exists = await user_collection.find_one({"user_Id": rating.user_Id})
     rated_by_exists = await user_collection.find_one({"user_Id": rating.ratedBy_Id})
@@ -36,6 +41,10 @@ async def create_rating_service(rating: Rating):
 
 
 async def update_rating_service(rating_id: str, ratedBy_Id: str, update_data: Dict[str, Any]):
+    # Validate rating level if it's included in update_data
+    if "rating" in update_data and update_data["rating"] not in RATING_REVIEW_MAP:
+        return {"error": "Invalid rating level. Must be between 1 and 5."}
+    
     # Retrieve the existing rating from the database using rating_id
     existing_rating = await rating_collection.find_one({"_id": ObjectId(rating_id)})
     
@@ -159,3 +168,35 @@ async def get_ratings_by_level_service(user_Id: str, rating_level: int):
         rating["rating_id"] = str(rating.pop("_id"))  # Convert ObjectId to string
 
     return ratings if ratings else {"message": "No ratings found at this level."}
+
+async def filter_users_by_most_frequent_rating(users: List[str], target_rating: int) -> List[str]:
+    """
+    Filter users based on their most frequent rating level.
+    
+    Args:
+        users: List of user IDs to check
+        target_rating: The rating level to match against (1-5)
+    
+    Returns:
+        List of user IDs whose most frequent rating matches the target rating
+    """
+    filtered_users = []
+    
+    for user_id in users:
+        # Get all ratings for this user
+        ratings = await rating_collection.find({"user_Id": user_id}).to_list(None)
+        
+        if not ratings:
+            continue  # Skip users with no ratings
+            
+        # Count the frequency of each rating
+        rating_counts = Counter(rating["rating"] for rating in ratings)
+        
+        # Get the most common rating (returns tuple of (rating, count))
+        most_common_rating = rating_counts.most_common(1)[0][0] if rating_counts else None
+        
+        # Keep user if their most frequent rating matches the target
+        if most_common_rating == target_rating:
+            filtered_users.append(user_id)
+    
+    return filtered_users

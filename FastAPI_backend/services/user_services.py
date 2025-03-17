@@ -3,6 +3,7 @@ import random
 import string
 from bson import ObjectId
 from fastapi import HTTPException, status
+from pydantic import BaseModel
 from models.User import User, UserUpdate
 from config.setting import user_collection
 
@@ -17,9 +18,9 @@ async def create_user(user: User):
     
     # Convert to dict and get all fields from User model
     user_dict = {
-        "name": user.name,
+        "name": user.name or None,
         "email": user.email,
-        "password_Hash": user.password_Hash,
+        "password_Hash": user.password_Hash or None,
         "profile_Picture_URL": user.profile_Picture_URL or None,
         "google_Id": user.google_Id or None,
         "apple_Id": user.apple_Id or None,
@@ -27,6 +28,7 @@ async def create_user(user: User):
         "role": user.role,
         "created_At": user.created_At or datetime.now(timezone.utc),
         "updated_At": user.updated_At or None,
+        "description": user.description or None,
         "bio": user.bio or None,
         "video_URL": user.video_URL or None,
         "photo_URL": user.photo_URL or None,
@@ -131,13 +133,19 @@ async def delete_all_users():
             detail=f"Error deleting users: {str(e)}"
         )
     
+# Define a model to specify user type and number
+class UserGenerationRequest(BaseModel):
+    num_users: int
+    user_type: str  # Either 'model' or 'brand'
 
 
-async def generate_fake_users(num_users: int):
+
+async def generate_fake_users(user_type: str, num_users: int):
     fake_users = []
 
     for _ in range(num_users):
-        role = random.choice(["model", "brand", "admin"])
+        # Use the provided user type directly
+        role = user_type
         mongo_id = ObjectId()  # Generate MongoDB _id in advance
         user_id = f"{role}_{mongo_id}"  # Generate user_Id before inserting
 
@@ -154,6 +162,7 @@ async def generate_fake_users(num_users: int):
             "role": role,
             "created_At": datetime.now(timezone.utc),
             "updated_At": None,
+            "description":None,
             "bio": None,
             "video_URL": None,
             "photo_URL": None,
@@ -161,7 +170,7 @@ async def generate_fake_users(num_users: int):
             "tags_Id": None,
             "booking_Availability": None,
             "preference_Id": None,
-            "portfolio_URL": None 
+            "portfolio_URL": None
         }
         fake_users.append(user_dict)
 
@@ -179,7 +188,6 @@ async def generate_fake_users(num_users: int):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error generating fake users: {str(e)}"
         )
-
 
 def generate_secure_password() -> str:
     special_chars = "!@#$%^&*()-_=+[]{}|;:'\",.<>?/`~"

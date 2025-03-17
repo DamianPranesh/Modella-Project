@@ -13,11 +13,15 @@ import { ExplorePage } from "./components/ExplorePage";
 import { AccountPage } from "./components/AccountPage";
 import SwipeCards from "./components/SwipeCards";
 import { SavedList } from "./components/SavedList";
+import SettingsPage from "./components/BusinessSettingsPage";
+
 
 // Model components
 import { AccountPage as ModelAccountPage } from "./components-models/AccountPage";
 import ModelSwipeCards from "./components-models/SwipeCards";
 import { SavedList as ModelSavedList } from "./components-models/SavedList";
+import ModelSettingsPage from "./components-models/SettingsPage";
+
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -101,6 +105,17 @@ function App() {
                   }
                 />
                 <Route
+                  path="/settings"
+                  element={
+                    <SettingsPage
+
+                      toggleSidebar={toggleSidebar}
+                      isSidebarOpen={isSidebarOpen}
+                    />
+                  }
+                />
+
+                <Route
                   path="/saved"
                   element={
                     <SavedList
@@ -109,6 +124,7 @@ function App() {
                     />
                   }
                 />
+
               </>
             ) : (
               <>
@@ -125,6 +141,15 @@ function App() {
                   path="/swipe"
                   element={
                     <ModelSwipeCards
+                      toggleSidebar={toggleSidebar}
+                      isSidebarOpen={isSidebarOpen}
+                    />
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <ModelSettingsPage
                       toggleSidebar={toggleSidebar}
                       isSidebarOpen={isSidebarOpen}
                     />

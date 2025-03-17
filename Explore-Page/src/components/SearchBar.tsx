@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
+import { useModelsAndBusinesses } from "../api/useModelsAndBusinesses";
 import {
-  modelData,
-  businessData,
   type ModelInfo,
   type BusinessInfo,
-} from "./CategoryGrid";
+} from "../api/useModelsAndBusinesses";
 import { SearchInput } from "./SearchInput";
 import { FilterPanel } from "./FilterPanel";
 import { SearchResultsDisplay } from "./SearchResultsDisplay";
+import { useFilterOptions } from "../api/useFilterOptions";
 
 // Main Component: SearchBar (manages state and composes the above components)
 export function SearchBar({
@@ -17,6 +17,7 @@ export function SearchBar({
   toggleSidebar: () => void;
   isSidebarOpen: boolean;
 }) {
+  const { models, businesses } = useModelsAndBusinesses();
   // States
   const [showFilters, setShowFilters] = useState(false);
   const [filterType, setFilterType] = useState<"model" | "business" | null>(
@@ -39,88 +40,7 @@ export function SearchBar({
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
-  // Options arrays
-  const heightOptions = [
-    "140-150 cm",
-    "151-160 cm",
-    "161-170 cm",
-    "171-180 cm",
-    "181-190 cm",
-    "191+ cm",
-  ];
-  const eyeColorOptions = [
-    "Brown",
-    "Blue",
-    "Hazel",
-    "Green",
-    "Gray",
-    "Amber",
-    "Red",
-    "Violet",
-    "Heterochromia",
-  ];
-  const bodyTypeOptions = [
-    "Straight Size Models",
-    "Plus-Size Models",
-    "Petite Models",
-    "Fitness Models",
-    "Glamour Models",
-    "Mature Models",
-    "Alternative Models",
-    "Parts Models",
-    "Child Models",
-    "Body-Positive Models",
-    "Androgynous Models",
-    "Fit Models",
-  ];
-  const workFieldOptions = [
-    "Fashion/Runway Modeling",
-    "Commercial Modeling",
-    "Beauty Modeling",
-    "Lingerie/Swimsuit Modeling",
-    "Fitness Modeling",
-    "Plus-Size Modeling",
-    "Editorial Modeling",
-    "Child Modeling",
-    "Parts Modeling",
-    "Catalog Modeling",
-    "Runway Modeling",
-    "Commercial Print Modeling",
-    "Virtual Modeling",
-    "Lifestyle Modeling",
-  ];
-  const genderOptions = ["Male", "Female"];
-  const skinToneOptions = [
-    "Fair",
-    "Light",
-    "Medium",
-    "Olive",
-    "Tan",
-    "Deep Tan",
-    "Brown",
-    "Dark Brown",
-    "Ebony",
-  ];
-  const experienceOptions = [
-    "Beginner (0-1 years)",
-    "Intermediate (1-3 years)",
-    "Experienced (3-5 years)",
-    "Advanced (5-7 years)",
-    "Expert (7+ years)",
-  ];
-  const locationOptions = [
-    "Colombo, Sri Lanka",
-    "Mumbai, India",
-    "New York City, USA",
-    "Shanghai, China",
-    "Dubai, UAE",
-    "Rome, Italy",
-    "Seoul, South Korea",
-    "Paris, France",
-    "Mexico City, Mexico",
-    "London, United Kingdom",
-    "Cape Town, South Africa",
-  ];
+  const filterOptions = useFilterOptions();
 
   // Functions to handle filters and search
   const handleFilterChange = (filter: string, value: string) => {
@@ -151,29 +71,36 @@ export function SearchBar({
     setShowResults(true);
   };
 
+  const isHeightInRange = (height: number, range: string | null) => {
+    if (!range) return true;
+    const [min, max] = range.split("-").map((val) => parseInt(val.trim()));
+    return height >= min && height <= max;
+  };
+
   const getFilteredResults = () => {
     if (selectedItemId) {
-      return (filterType === "model" ? modelData : businessData).filter(
+      return (filterType === "model" ? models : businesses).filter(
         (item) => item.id === selectedItemId
       );
     }
     if (filterType === "model") {
-      return modelData.filter((model) => {
+      return models.filter((model) => {
         return (
-          (!filters.height || model.height === filters.height) &&
+          (!filters.height || isHeightInRange(model.height, filters.height)) &&
           (!filters.eyeColor || model.eyeColor === filters.eyeColor) &&
           (!filters.bodyType || model.bodyType === filters.bodyType) &&
-          (!filters.workField || model.workField === filters.workField) &&
+          (!filters.workField || model.workField.includes(filters.workField)) &&
           (!filters.gender || model.gender === filters.gender) &&
           (!filters.skinTone || model.skinTone === filters.skinTone) &&
-          (!filters.experience || model.experience === filters.experience)
+          (!filters.experience || model.experience === filters.experience) &&
+          (!filters.location || model.location === filters.location)
         );
       });
     } else {
-      return businessData.filter((business) => {
+      return businesses.filter((business) => {
         return (
           (!filters.location || business.location === filters.location) &&
-          (!filters.workField || business.workField === filters.workField)
+          (!filters.workField || business.workField.includes(filters.workField))
         );
       });
     }
@@ -181,7 +108,7 @@ export function SearchBar({
 
   const getSearchResults = () => {
     const query = searchQuery.toLowerCase();
-    const allItems = [...modelData, ...businessData];
+    const allItems = [...models, ...businesses];
     return allItems.filter((item) => item.name.toLowerCase().startsWith(query));
   };
 
@@ -228,14 +155,20 @@ export function SearchBar({
         filters={filters}
         handleFilterChange={handleFilterChange}
         applyFilters={applyFilters}
-        heightOptions={heightOptions}
-        eyeColorOptions={eyeColorOptions}
-        bodyTypeOptions={bodyTypeOptions}
-        workFieldOptions={workFieldOptions}
-        genderOptions={genderOptions}
-        skinToneOptions={skinToneOptions}
-        experienceOptions={experienceOptions}
-        locationOptions={locationOptions}
+        heightOptions={[
+          "140-150 cm",
+          "151-160 cm",
+          "161-170 cm",
+          "171-180 cm",
+          "181-191 cm",
+        ]}
+        eyeColorOptions={filterOptions.eyeColorOptions}
+        bodyTypeOptions={filterOptions.bodyTypeOptions}
+        workFieldOptions={filterOptions.workFieldOptions}
+        genderOptions={filterOptions.genderOptions}
+        skinToneOptions={filterOptions.skinToneOptions}
+        experienceOptions={filterOptions.experienceOptions}
+        locationOptions={filterOptions.locationOptions}
       />
 
       <SearchResultsDisplay

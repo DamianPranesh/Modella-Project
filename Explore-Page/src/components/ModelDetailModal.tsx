@@ -14,42 +14,49 @@ import {
 type Model = {
   id: string;
   name: string;
+  bio: string;
   age: number;
-  type: string;
-  image: string;
+  type: string[];
+  image: string[];
+  socialUrls: string[];
   height: string;
   eyeColor: string;
   bodyType: string;
   skinTone: string;
   gender: string;
   experience: string;
+  location: string;
+  bust: string;
+  waist: string;
+  hips: string;
+  shoeSize: string;
 };
 
 // Extra data for the enhanced profile
 const additionalModelData = {
-  bio: "Professional model with international experience in fashion shows and editorial work. Passionate about sustainable fashion and lifestyle photography.",
-  location: "New York, NY",
-  profileImages: [
-    "/api/placeholder/800/1000",
-    "/api/placeholder/800/1000",
-    "/api/placeholder/800/1000",
-  ],
+  // bio: "Professional model with international experience in fashion shows and editorial work. Passionate about sustainable fashion and lifestyle photography.",
+  // location: "New York, NY",
+  // profileImages: [
+  //   "/api/placeholder/800/1000",
+  //   "/api/placeholder/800/1000",
+  //   "/api/placeholder/800/1000",
+  // ],
   recentWork: [
     { title: "Paris Fashion Week", date: "March 2025" },
     { title: "Vogue Italia Editorial", date: "January 2025" },
     { title: "Summer Campaign - Luxury Brand", date: "December 2024" },
   ],
-  measurements: {
-    bust: '32"',
-    waist: '24"',
-    hips: '34"',
-    shoes: "8.5 US",
-  },
-  socialLinks: {
-    instagram: "@modelhandle",
-    tiktok: "@modelhandle",
-    portfolio: "www.modelportfolio.com",
-  },
+  // measurements: {
+  //   bust: '32"',
+  //   waist: '24"',
+  //   hips: '34"',
+  //   shoes: "8.5 US",
+  // },
+  // socialLinks: {
+  //   instagram: "@modelhandle",
+  //   tiktok: "@modelhandle",
+  //   portfolio: "www.modelportfolio.com",
+  // },
 };
 
 interface ModelDetailModalProps {
@@ -116,7 +123,7 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
   };
 
   // For demonstration, use the model's image as first image and placeholders for rest
-  const allImages = [model.image, ...additionalModelData.profileImages];
+  const allImages = model.image;
 
   const handleContactModel = () => {
     // Implement contact functionality here
@@ -208,7 +215,7 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
                 </h2>
                 <div className="flex items-center text-sm">
                   <MapPin className="w-4 h-4 mr-1 text-pink-300" />
-                  <p className="opacity-90">{additionalModelData.location}</p>
+                  <p className="opacity-90">{model.location}</p>
                 </div>
               </div>
             </div>
@@ -261,7 +268,7 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
                   <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#DD8560] to-pink-700 p-0.5">
                     <div className="w-full h-full rounded-full border-2 border-white overflow-hidden">
                       <img
-                        src={model.image}
+                        src={model.image[0]}
                         alt={model.name}
                         className="w-full h-full object-cover"
                       />
@@ -274,7 +281,7 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
                     {/* Bio section */}
                     <div className="mb-6">
                       <p className="text-gray-700 leading-relaxed">
-                        {additionalModelData.bio}
+                        {model.bio}
                       </p>
                     </div>
 
@@ -290,7 +297,7 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
                         >
                           <Instagram className="w-4 h-4 text-pink-600" />
                           <span className="text-gray-700">
-                            {additionalModelData.socialLinks.instagram}
+                            {model.socialUrls[0]}
                           </span>
                         </a>
                         <a
@@ -299,7 +306,7 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
                         >
                           <TiktokIcon />
                           <span className="text-gray-700">
-                            {additionalModelData.socialLinks.tiktok}
+                            {model.socialUrls[1]}
                           </span>
                         </a>
                         <a
@@ -308,7 +315,7 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
                         >
                           <Globe className="w-4 h-4 text-blue-600" />
                           <span className="text-gray-700">
-                            {additionalModelData.socialLinks.portfolio}
+                            {model.socialUrls[2]}
                           </span>
                         </a>
                       </div>
@@ -321,7 +328,7 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
                           Type
                         </h4>
                         <p className="font-semibold text-gray-900">
-                          {model.type}
+                          {model.type.join(", ")}
                         </p>
                       </div>
                       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow">
@@ -347,7 +354,7 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
                         <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-x sm:divide-y-0 divide-gray-100">
                           <div className="p-4">
                             <p className="text-xs text-gray-500 mb-1">Height</p>
-                            <p className="font-semibold">{model.height}</p>
+                            <p className="font-semibold">{model.height} cm</p>
                           </div>
                           <div className="p-4">
                             <p className="text-xs text-gray-500 mb-1">Age</p>
@@ -392,25 +399,25 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
                         <div className="bg-gradient-to-br from-pink-50 to-white rounded-xl p-4 shadow-sm text-center">
                           <p className="text-gray-500 text-xs mb-1">Bust</p>
                           <p className="font-semibold text-lg">
-                            {additionalModelData.measurements.bust}
+                            {model.bust} cm
                           </p>
                         </div>
                         <div className="bg-gradient-to-br from-pink-50 to-white rounded-xl p-4 shadow-sm text-center">
                           <p className="text-gray-500 text-xs mb-1">Waist</p>
                           <p className="font-semibold text-lg">
-                            {additionalModelData.measurements.waist}
+                            {model.waist} cm
                           </p>
                         </div>
                         <div className="bg-gradient-to-br from-pink-50 to-white rounded-xl p-4 shadow-sm text-center">
                           <p className="text-gray-500 text-xs mb-1">Hips</p>
                           <p className="font-semibold text-lg">
-                            {additionalModelData.measurements.hips}
+                            {model.hips} cm
                           </p>
                         </div>
                         <div className="bg-gradient-to-br from-pink-50 to-white rounded-xl p-4 shadow-sm text-center">
                           <p className="text-gray-500 text-xs mb-1">Shoes</p>
                           <p className="font-semibold text-lg">
-                            {additionalModelData.measurements.shoes}
+                            {model.shoeSize} EU
                           </p>
                         </div>
                       </div>

@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
-
-import CarnageLogo from "../images/Image-19.png";
 
 // Import your images
 import ProjectDetailModal from "./ProjectDetailModal";
+
+import { fetchData } from "../api/api";
 
 type Tab = "PROJECTS" | "VIDEOS" | "IMAGES";
 
@@ -55,8 +55,7 @@ export function AccountPage({
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [minAge, setMinAge] = useState("");
   const [maxAge, setMaxAge] = useState("");
-  const [currentProfilePicture, setCurrentProfilePicture] =
-    useState(CarnageLogo);
+  const [currentProfilePicture, setCurrentProfilePicture] = useState("");
   const [isImagePopoverOpen, setIsImagePopoverOpen] = useState(false);
   const [imageUpload, setImageUpload] = useState<File | null>(null);
   const [imageDescription, setImageDescription] = useState("");
@@ -72,23 +71,177 @@ export function AccountPage({
   const [selectedVideo, setSelectedVideo] = useState<VideoType | null>(null);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
 
-  // Tags for modeling categories
-  const modelingTags = [
-    "Fashion/Runway Modeling",
-    "Commercial Modeling",
-    "Beauty Modeling",
-    "Lingerie/Swimsuit Modeling",
-    "Fitness Modeling",
-    "Plus-Size Modeling",
-    "Editorial Modeling",
-    "Child Modeling",
-    "Parts Modeling",
-    "Catalog Modeling",
-    "Runway Modeling",
-    "Commercial Print Modeling",
-    "Virtual Modeling",
-    "Lifestyle Modeling",
-  ];
+  const user_id = "brand_67c5b2c43ae5b4ccb85b9a11";
+
+  const [modelingTags, setModelingTags] = useState<string[]>([]);
+
+  const [user, setUser] = useState<{ name: string; bio: string | null }>({
+    name: "",
+    bio: null,
+  });
+
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchModelingTags = async () => {
+      try {
+        const tags = await fetchData("keywords/filters/work_fields");
+        console.log("Fetched modeling tags:", tags);
+        setModelingTags(tags);
+      } catch (error) {
+        console.error("Failed to fetch modeling tags:", error);
+      }
+    };
+
+    fetchModelingTags();
+  }, []);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const userData = await fetchData(`users/${user_id}`);
+        setUser({
+          name: userData.name,
+          bio: userData.bio,
+        });
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  const fetchProfilePicture = async () => {
+    try {
+      const response = await fetchData(
+        `files/files/latest?user_id=${user_id}&folder=profile-pic`
+      );
+
+      if (response && response.s3_url) {
+        setCurrentProfilePicture(response.s3_url);
+      }
+    } catch (error) {
+      console.error("Failed to fetch profile picture:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProfilePicture();
+  }, []);
+
+  const fetchImages = async () => {
+    try {
+      const response = await fetchData(
+        `files/urls-for-user-id-and-foldername-with-limits?user_id=${user_id}&folder=image`
+      );
+
+      if (response) {
+        const formattedImages = response.map((file: any) => ({
+          url: file.s3_url,
+          description: file.description,
+        }));
+
+        setImages(formattedImages);
+      }
+    } catch (error) {
+      console.error("Failed to fetch images:", error);
+    }
+  };
+
+  // Fetch images on component mount
+  useEffect(() => {
+    fetchImages();
+  }, []);
+
+  const fetchVideos = async () => {
+    try {
+      const response = await fetchData(
+        `files/urls-for-user-id-and-foldername-with-limits?user_id=${user_id}&folder=video`
+      );
+
+      if (response) {
+        const formattedVideos = response.map((file: any) => ({
+          url: file.s3_url,
+          description: file.description,
+        }));
+
+        setVideos(formattedVideos);
+      }
+    } catch (error) {
+      console.error("Failed to fetch videos:", error);
+    }
+  };
+
+  // Fetch videos on component mount
+  useEffect(() => {
+    fetchVideos();
+  }, []);
+
+  const fetchProjects = async () => {
+    try {
+      // Step 1: Get all projects
+      const projectList = await fetchData("Brandprojects/projects/");
+      if (!projectList) return;
+
+      // Step 2: Fetch all project images at once (order-dependent)
+      const imageResponse = await fetchData(
+        `files/urls-for-user-id-and-foldername-with-limits?user_id=${user_id}&folder=project`
+      );
+
+      // Step 3: Fetch all project tags at once
+      const projectTags = await Promise.all(
+        projectList.map(async (project: any) => {
+          try {
+            return await fetchData(
+              `ModellaTag/tags/projects/${project.user_Id}/${project.project_Id}`
+            );
+          } catch {
+            return {
+              project_Id: project.project_Id,
+              age: null,
+              work_Field: [],
+            };
+          }
+        })
+      );
+
+      // Map tags to project IDs
+      const projectTagMap = projectTags.reduce(
+        (acc: Record<string, any>, tag: any) => {
+          acc[tag.project_Id] = tag;
+          return acc;
+        },
+        {}
+      );
+
+      const projectsWithDetails: Project[] = projectList.map(
+        (project: any, index: number) => ({
+          name: project.name || "Untitled Project",
+          image: imageResponse[index]?.s3_url || "", // Assign image based on order
+          description: project.description || "No description provided.",
+          tags: projectTagMap[project.project_Id]?.work_Field || [], // Modeling categories
+          minAge: projectTagMap[project.project_Id]?.age
+            ? String(projectTagMap[project.project_Id].age[0])
+            : "", // Convert to string
+          maxAge: projectTagMap[project.project_Id]?.age
+            ? String(projectTagMap[project.project_Id].age[1])
+            : "", // Convert to string
+        })
+      );
+
+      setProjects(projectsWithDetails);
+    } catch (error) {
+      console.error("Failed to fetch projects:", error);
+    }
+  };
+
+  // Fetch projects on component mount
+  useEffect(() => {
+    fetchProjects();
+  }, []);
 
   /**
    * Handles image file selection for project upload
@@ -112,21 +265,36 @@ export function AccountPage({
     }
   };
 
-  /**
-   * Updates the profile picture with the selected image
-   * In a real app, this would upload to a server
-   */
-  const handleUpdateProfilePicture = () => {
-    if (profilePicture) {
-      // In a real app, you would upload the image to a server here
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setCurrentProfilePicture(reader.result as string);
-      };
-      reader.readAsDataURL(profilePicture);
+  const handleUpdateProfilePicture = async () => {
+    if (!profilePicture) return;
+
+    const formData = new FormData();
+    formData.append("file", profilePicture); // Only file is added here
+
+    // Construct the query string for parameters
+    const queryParams = new URLSearchParams({
+      user_id: user_id,
+      folder: "profile-pic",
+      is_private: "false", // Ensure it's a string, since URLSearchParams requires strings
+    }).toString();
+
+    try {
+      console.log("Uploading profile picture:", profilePicture);
+
+      const uploadResponse = await fetchData(`files/upload/?${queryParams}`, {
+        method: "POST",
+        body: formData, // Only formData, so browser sets correct headers
+      });
+
+      console.log("Upload successful:", uploadResponse);
+
+      await fetchProfilePicture();
+    } catch (error) {
+      console.error("Error updating profile picture:", error);
+    } finally {
+      setIsProfilePicturePopoverOpen(false);
+      setProfilePicture(null);
     }
-    setIsProfilePicturePopoverOpen(false);
-    setProfilePicture(null);
   };
 
   /**
@@ -139,56 +307,106 @@ export function AccountPage({
     );
   };
 
-  /**
-   * Handles the submission of a new project
-   * Creates a new project with the selected image and details
-   */
-  const handlePostProject = () => {
-    if (projectImage && projectName) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const newProject: Project = {
-          name: projectName,
-          image: reader.result as string,
-          description: projectDescription,
-          tags: selectedTags,
-          minAge,
-          maxAge,
-        };
-        setProjects([...projects, newProject]);
+  const handlePostProject = async () => {
+    if (!projectName || !projectDescription || !projectImage) return;
+
+    try {
+      // Step 1: Create the project
+      const projectPayload = {
+        user_Id: user_id,
+        name: projectName,
+        description: projectDescription,
       };
-      reader.readAsDataURL(projectImage);
+
+      const createdProject = await fetchData("Brandprojects/projects/", {
+        method: "POST",
+        body: JSON.stringify(projectPayload),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!createdProject || !createdProject.project_Id) {
+        throw new Error("Project creation failed");
+      }
+
+      const project_Id = createdProject.project_Id; // Get the generated project ID
+
+      // Step 2: Upload project image
+      const formData = new FormData();
+      formData.append("file", projectImage);
+
+      const imageUploadUrl = `files/upload/?user_id=${user_id}&folder=project&is_private=false&description=${projectDescription}&project_id=${project_Id}`;
+
+      await fetchData(imageUploadUrl, {
+        method: "POST",
+        body: formData,
+      });
+
+      console.log("Project image uploaded successfully");
+
+      // Step 3: Create project tags (Age & Modeling Categories)
+      const tagPayload = {
+        user_Id: user_id,
+        project_Id: project_Id,
+        age: [parseInt(minAge), parseInt(maxAge)], // Convert age to tuple
+        work_Field: selectedTags, // Modeling categories
+      };
+
+      await fetchData("ModellaTag/tags/projects/", {
+        method: "POST",
+        body: JSON.stringify(tagPayload),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      console.log("Project tags added successfully");
+
+      // Step 4: Refresh project list
+      fetchProjects();
+    } catch (error) {
+      console.error("Error uploading project:", error);
+    } finally {
+      setProjectName("");
+      setProjectImage(null);
+      setProjectDescription("");
+      setSelectedTags([]);
+      setMinAge("");
+      setMaxAge("");
+      setIsProjectPopoverOpen(false);
     }
-    setProjectName("");
-    setProjectImage(null);
-    setProjectDescription("");
-    setSelectedTags([]);
-    setMinAge("");
-    setMaxAge("");
-    setIsProjectPopoverOpen(false);
   };
 
-  /**
-   * Handles the submission of a new image
-   * Adds the image to the images array with its description
-   */
-  const handleImagePost = () => {
-    if (imageUpload) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImages([
-          ...images,
-          {
-            url: reader.result as string,
-            description: imageDescription,
-          },
-        ]);
-      };
-      reader.readAsDataURL(imageUpload);
+  const handleImagePost = async () => {
+    if (!imageUpload) return;
+
+    const formData = new FormData();
+    formData.append("file", imageUpload);
+
+    // Construct query parameters
+    const queryParams = new URLSearchParams({
+      user_id: user_id,
+      folder: "image",
+      is_private: "false",
+      description: imageDescription || "No description",
+    }).toString();
+
+    try {
+      console.log("Uploading image:", imageUpload.name);
+
+      await fetchData(`files/upload/?${queryParams}`, {
+        method: "POST",
+        body: formData, // Only the file is in formData
+      });
+
+      console.log("Image uploaded successfully");
+
+      // Fetch updated images after upload
+      fetchImages();
+    } catch (error) {
+      console.error("Failed to upload image:", error);
+    } finally {
+      setImageUpload(null);
+      setImageDescription("");
+      setIsImagePopoverOpen(false);
     }
-    setImageUpload(null);
-    setImageDescription("");
-    setIsImagePopoverOpen(false);
   };
 
   /**
@@ -201,27 +419,39 @@ export function AccountPage({
     }
   };
 
-  /**
-   * Handles the submission of a new video
-   * Adds the video to the videos array with its description
-   */
-  const handleVideoPost = () => {
-    if (videoUpload) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setVideos([
-          ...videos,
-          {
-            url: reader.result as string,
-            description: videoDescription,
-          },
-        ]);
-      };
-      reader.readAsDataURL(videoUpload);
+  const handleVideoPost = async () => {
+    if (!videoUpload) return;
+
+    const formData = new FormData();
+    formData.append("file", videoUpload);
+
+    // Construct query parameters for the API call
+    const queryParams = new URLSearchParams({
+      user_id: user_id,
+      folder: "video", // <-- Using "video" instead of "image"
+      is_private: "false",
+      description: videoDescription || "No description",
+    }).toString();
+
+    try {
+      console.log("Uploading video:", videoUpload.name);
+
+      await fetchData(`files/upload/?${queryParams}`, {
+        method: "POST",
+        body: formData, // Sending form data for the file upload
+      });
+
+      console.log("Video uploaded successfully");
+
+      // Fetch updated video list after upload
+      fetchVideos();
+    } catch (error) {
+      console.error("Failed to upload video:", error);
+    } finally {
+      setVideoUpload(null);
+      setVideoDescription("");
+      setIsVideoPopoverOpen(false);
     }
-    setVideoUpload(null);
-    setVideoDescription("");
-    setIsVideoPopoverOpen(false);
   };
 
   /**
@@ -275,7 +505,9 @@ export function AccountPage({
 
         <div className="flex-1">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-medium">Carnage.lk</h1>
+            <h1 className="text-2xl font-medium">
+              {user.name || "Default User"}
+            </h1>
             <div className="flex gap-3">
               <button
                 onClick={() => setIsProjectPopoverOpen(true)}
@@ -311,14 +543,10 @@ export function AccountPage({
           </div>
 
           <div className="mb-6">
-            <h2 className="text-xl font-medium mb-2">CARNAGE</h2>
-            <p className="text-gray-600">
-              Step into style with Carnage - Sri Lanka's #1 active and lifestyle
-              brand, crafted for fashion models who demand comfort and
-              versatility. From oversized tees and premium joggers to leggings
-              and biker shorts, our high-quality pieces keep you runway-ready
-              every day. Elevate your look and own the spotlight with Carnage.
-            </p>
+            <h2 className="text-xl font-medium mb-2">
+              {user.name || "Default User"}
+            </h2>
+            <p className="text-gray-600">{user.bio || "No bio available"}</p>
           </div>
         </div>
       </div>
