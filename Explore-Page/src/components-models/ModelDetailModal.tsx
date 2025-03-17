@@ -124,6 +124,7 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
   // For demonstration, use the model's image as first image and placeholders for rest
   const allImages = model.image;
 
+
   const handleContactModel = () => {
     // Implement contact functionality here
     console.log(`Contacting model: ${model.name}`);

@@ -4,6 +4,7 @@ import { Menu, X } from "lucide-react";
 import CarnageLogo from "../images/Image-19.png";
 import { fetchData } from "../api/api";
 
+
 type Tab = "IMAGES" | "VIDEOS";
 
 // Add type definitions

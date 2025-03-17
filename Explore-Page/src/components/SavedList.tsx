@@ -219,6 +219,16 @@ export function SavedList({
     setTooManyModelsModalOpen(false);
   };
 
+  // Handle model click
+  const handleModelClick = (model: Model) => {
+    if (isSelectionActive) {
+      toggleModelSelection(model.id);
+    } else {
+      setSelectedModelForDetail(model);
+      setModelDetailModalOpen(true);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Hamburger Menu and Compare Button */}
