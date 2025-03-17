@@ -9,27 +9,36 @@ interface UserTypeSelectionProps {
 
 export function UserTypeSelection({ setUserType }: UserTypeSelectionProps) {
   const { getAccessTokenSilently } = useAuth0();
+// Helper function to get cookies
+  const getCookie = (name: string): string | null => {
+    const cookieValue = document.cookie
+      .split('; ')
+      .find(row => row.startsWith(name + '='));
+    
+    return cookieValue ? cookieValue.split('=')[1] : null;
+  };
 
-  useEffect(() => {
-    async function fetchToken() {
-      try {
-        console.log("Trying to fetch access token...");
-        const token = await getAccessTokenSilently({
-          authorizationParams: {
-            audience: "https://Modella.com/DemoAccess", 
-            scope: "openid profile email",
-          }, 
-          timeoutInSeconds: 30,  // Increase timeout
-          // cacheMode: "off",      // Force fresh token request
-        });
-        console.log("Access Token:", token);
-      } catch (error) {
-        console.error("Failed to get token:", error);
-      }
-    }
+  // useEffect(() => {
+  //   async function fetchToken() {
+  //     try {
+  //       // console.log("Trying to fetch access token...");
+  //       // const token = await getAccessTokenSilently({
+  //       //   authorizationParams: {
+  //       //     audience: "https://Modella.com/DemoAccess", 
+  //       //     scope: "openid profile email",
+  //       //   }, 
+  //       //   timeoutInSeconds: 10,  // Increase timeout
+  //       //   // cacheMode: "off",      // Force fresh token request
+  //       // });
+  //       const token = getCookie('access_token');
+  //       console.log("Access Token:", token);
+  //     } catch (error) {
+  //       console.error("Failed to get token:", error);
+  //     }
+  //   }
 
-    fetchToken();
-  }, []);
+  //   fetchToken();
+  // }, []);
 
   
   // State to track the user's selection (model or business)
@@ -52,17 +61,19 @@ export function UserTypeSelection({ setUserType }: UserTypeSelectionProps) {
       setTimeout(async () => {
         try {
           console.log("Setting role...");
-          const token = await getAccessTokenSilently({
-            timeoutInSeconds: 15,
-          }); // Get Auth0 access token
+          // const token = await getAccessTokenSilently({
+          //   timeoutInSeconds: 15,
+          // }); // Get Auth0 access token
           // Comment
+
+          const token = getCookie('access_token');
           console.log("Token retrieved:", token); // Debugging
   
-          const response = await fetch("http://localhost:8000/select-role", {
+          const response = await fetch("http://localhost:8000/api/select-role", {
             method: "POST",
             headers: {
-              "Content-Type": "application/json",
               Authorization: `Bearer ${token}`, // Send the token
+              "Content-Type": "application/json"
             },
             body: JSON.stringify({
               role: selectedType, // No user_id, backend extracts from token
@@ -79,6 +90,8 @@ export function UserTypeSelection({ setUserType }: UserTypeSelectionProps) {
   
           setUserType(selectedType);
           console.log("Role successfully set!");
+          sessionStorage.setItem("userRole", selectedType); // Store role in session
+          window.location.href = "/explore"; // Redirect to explore page
         } catch (error: unknown) {
           if (error instanceof Error) {
             console.error("Error setting role:", error.message);

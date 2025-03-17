@@ -3,6 +3,7 @@ import {
   Route,
   Routes,
   Navigate,
+  useLocation
 } from "react-router-dom";
 import { Sidebar } from "./components/Sidebar";
 import { UserTypeSelection } from "./components-models/UserTypeSelection";
@@ -28,6 +29,8 @@ function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [userType, setUserType] = useState<"model" | "business" | null>(null);
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
+
 
 
   const toggleSidebar = () => {
@@ -55,7 +58,6 @@ function App() {
 
   useEffect(() => {
     async function fetchUserRole() {
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate loading
       try {
         /*
         const response = await fetch('http://localhost:8000/api/user-role-cookie', {
@@ -123,11 +125,31 @@ function App() {
     return null;
   }
 
+  // Special case - on auth callback route, always show TokenExchange
+  const isAuthCallbackRoute = location.pathname === "/auth/callback";
+  
+  // Show loading indicator while determining user state, except on auth callback
+  if (loading && !isAuthCallbackRoute) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
-// Check if user has selected a type
-  // if (userType === null) {
-  //   return <UserTypeSelection setUserType={setUserType} />;
-  // }
+  if (isAuthCallbackRoute) {
+    return <TokenExchange />;
+  }
+
+  // Check if user has selected a type
+  const type = sessionStorage.getItem('userRole');
+
+  if (type === "null") {
+    return <UserTypeSelection setUserType={setUserType} />;
+  }
 
   return (
     

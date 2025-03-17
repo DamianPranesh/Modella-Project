@@ -7,7 +7,87 @@ const TokenExchange = () => {
   const [tokens, setTokens] = useState<{ access_token: string, id_token: string } | null>(null);
   const navigate = useNavigate();
 
+  // Helper function to get cookies
+  const getCookie = (name: string): string | null => {
+    const cookieValue = document.cookie
+      .split('; ')
+      .find(row => row.startsWith(name + '='));
+    
+    return cookieValue ? cookieValue.split('=')[1] : null;
+  };
+  // Edit 1
+  // Helper function to check if user is already authenticated
+  const checkExistingAuth = (): boolean => {
+    const accessToken = getCookie('access_token');
+    const idToken = getCookie('id_token');
+    
+    if (accessToken && idToken) {
+      setTokens({
+        access_token: accessToken,
+        id_token: idToken
+      });
+      sessionStorage.setItem('isAuthenticated', 'true');
+      return true;
+    }
+    return false;
+  };
+
+  // Function to fetch user role and redirect
+  const fetchRoleAndRedirect = (accessToken: string) => {
+    fetch('http://localhost:8000/api/user-role', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(response => {
+        // Check if the token is valid
+        if (!response.ok) {
+          throw new Error('Token validation failed');
+        }
+        return response.json();
+      })
+      .then(roleData => {
+        // Store the role in sessionStorage
+        sessionStorage.setItem('userRole', roleData.role);
+        
+        // Redirect to the appropriate page
+        if (roleData.role) {
+          navigate('/explore');
+        } else {
+          navigate('/select-role');
+        }
+      })
+      .catch(err => {
+        console.error("Error fetching role:", err);
+        // If token validation failed, clear cookies and show login again
+        if (err.message === 'Token validation failed') {
+          document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+          document.cookie = 'id_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+          setError('Authentication expired. Please login again.');
+        } else {
+          console.log('Redirecting to login page...');
+          window.location.href = 'http://localhost:8000/login';
+        }
+      });
+  };
+  // Edit 1 End
+
   useEffect(() => {
+    //Edit 2 
+    // First check if we already have tokens in cookies
+    console.log('Checking existing auth...');
+    const isAuthenticated = checkExistingAuth();
+
+    if (isAuthenticated) {
+      // User already has tokens, validate them and proceed
+      const accessToken = getCookie('access_token')!;
+      fetchRoleAndRedirect(accessToken);
+      return;
+    }
+    //Edit 2 End
+
     // Step 1: Get the 'code' from the URL query parameters
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
@@ -49,10 +129,11 @@ const TokenExchange = () => {
                 
                 // Now redirect to the appropriate page
                 if (roleData.role) {
-                  navigate('/explore');
+                  window.location.href = '/explore';
                 } else {
                   // Redirect to role selection if no role found
-                  navigate('/select-role');
+                  window.location.href = '/';
+                  // window.location.href = '/select-role';
                 }
               })
               .catch(err => {
@@ -74,20 +155,12 @@ const TokenExchange = () => {
     // Add what to do if code is not there
   }, [navigate]);
 
-  return (
-    <div>
-      <h1>Token Exchange</h1>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {tokens ? (
-        <div>
-          <h3>Access Token:</h3>
-          <pre>{tokens.access_token}</pre>
-          <h3>ID Token:</h3>
-          <pre>{tokens.id_token}</pre>
-        </div>
-      ) : (
-        <p>Exchanging code for tokens...</p>
-      )}
+  return ( 
+    <div className="flex min-h-screen items-center justify-center bg-white">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Loading...</p>
+      </div>
     </div>
   );
 };
