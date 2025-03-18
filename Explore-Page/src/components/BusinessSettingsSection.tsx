@@ -20,7 +20,7 @@ export const BusinessSettingsSection = ({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
 
-  const user_Id = "brand_67d25faed1ef21f7e2541638";
+  const user_Id = "brand_67c5b2c43ae5b4ccb85b9a11";
 
   // Handle input changes
   const handleChange = (field: string, value: any) => {
