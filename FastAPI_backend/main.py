@@ -1,7 +1,5 @@
 from fastapi import FastAPI
 from routes.file_routes import router as file_router
-# from remove.tag_routes import router as tag_router
-# from remove.preferences_routes import router as preferences_router  # Import the preferences router
 from routes.user_routes import router as user_router
 from routes.rating_routes import router as rating_router
 from services.Modellatag_service import router as Modellatag_router
@@ -9,29 +7,64 @@ from services.Modella_preference_service import router as ModellaPref_router
 from services.keywords import router as keyword_router
 from models.saved_list import router as savedList_router
 from routes.project_routes import router as project_router
-from config.setting import user_collection
+from config.setting import *
 import logging
 from config.logging_config import *
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 
 # Define the lifespan handler
+# @asynccontextmanager
+# async def lifespan(app: FastAPI):
+#     try:
+#         # Actions to perform on app startup
+#         await user_collection.create_index("user_Id", unique=True)
+#         await user_collection.create_index("email", unique=True)
+#         logger.info("Unique indexes created successfully")
+#         print("Unique indexes created")
+#     except Exception as e:
+#         logger.error(f"Error creating indexes: {str(e)}")
+
+#     yield  # FastAPI app is running here
+
+#     # Actions to perform on app shutdown (if needed)
+#     print("App is shutting down")
+#     logger.info("Application is shutting down")
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
-        # Actions to perform on app startup
+        # Create unique indexes for user_collection
         await user_collection.create_index("user_Id", unique=True)
         await user_collection.create_index("email", unique=True)
-        logger.info("Unique indexes created successfully")
-        print("Unique indexes created")
+        # Create unique index for rating_collection to prevent duplicate ratings
+        await rating_collection.create_index(
+            [("user_Id", 1), ("ratedBy_Id", 1)],
+            unique=True
+        )
+        await file_collection.create_index("file_id", unique=True)
+        await project_collection.create_index("project_Id", unique=True)
+        await saved_list_collection.create_index("user_Id", unique=True)
+
+        await model_tags_collection.create_index("user_Id", unique=True)
+        await brand_tags_collection.create_index("user_Id", unique=True)
+        await project_tags_collection.create_index("project_Id", unique=True)
+
+        await model_preferences_collection.create_index("user_Id", unique=True)
+        await brand_preferences_collection.create_index("user_Id", unique=True)
+        await model_brand_preferences_collection.create_index("user_Id", unique=True)
+
+        logger.info("All indexes created successfully!")
+        print("Indexes created.")
+
     except Exception as e:
         logger.error(f"Error creating indexes: {str(e)}")
 
-    yield  # FastAPI app is running here
+    yield  # FastAPI app is running
 
-    # Actions to perform on app shutdown (if needed)
-    print("App is shutting down")
+    # Shutdown actions
     logger.info("Application is shutting down")
+    print("App is shutting down")
 
 
 app = FastAPI(
