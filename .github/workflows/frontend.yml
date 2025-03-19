@@ -27,8 +27,10 @@ jobs:
         with:
           node-version: 18
           cache: "npm"
+          cache-dependency-path: ./Explore-Page/package-lock.json # Ensures caching works properly
 
       - name: Install dependencies
+        working-directory: ./Explore-Page
         run: npm install
 
       - name: Run TypeScript type-check
