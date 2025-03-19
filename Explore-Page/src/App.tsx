@@ -89,10 +89,6 @@ function App() {
             'Content-Type': 'application/json'
           }
         });
-
-        // const data = await response.json();
-        // console.log('Data:', data);
-        // console.log('User Role:', data.role);
         
         if (!response.ok) {
           console.error('Failed to fetch user role. Status:', response.status);
@@ -157,7 +153,7 @@ function App() {
         <Sidebar
           isOpen={isSidebarOpen}
           toggleSidebar={toggleSidebar}
-          userType={"model"}
+          userType={type as "model" | "business"}
         />
         <main
           className={`flex-1 p-8 transition-margin ${
