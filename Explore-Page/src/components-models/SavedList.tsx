@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import ComparisonModal from "./ComparisonModel";
@@ -112,7 +114,7 @@ export function SavedList({
 
           // Step 3: Create a model object and add it to the newModels array
           newModels.push({
-            id: user_Id,
+            id: id,
             name: name,
             bio: bio,
             age: projectTag.age || ["?", "?"],
