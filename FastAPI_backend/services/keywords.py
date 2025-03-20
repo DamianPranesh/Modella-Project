@@ -14,7 +14,7 @@ keywords = {
         "Brown", "Blue", "Hazel", "Green", "Gray", "Amber", "Red", "Violet", "Heterochromia"
     ],
     "body_types": [
-        "Straight Size Models", "Plus-Size Models","Straight Size Models", "Plus-Size Models", "Petite Models", "Fitness Models",
+        "Straight Size Models", "Plus-Size Models", "Petite Models", "Fitness Models",
         "Glamour Models", "Mature Models", "Alternative Models", "Parts Models", 
         "Child Models", "Body-Positive Models", "Androgynous Models", "Fit Models"
     ],
