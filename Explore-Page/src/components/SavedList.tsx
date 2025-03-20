@@ -28,7 +28,6 @@ type Model = {
   shoeSize: string;
 };
 
-// List of saved models
 const userId = "brand_67c5b2c43ae5b4ccb85b9a11";
 
 // Define the SavedList component
@@ -52,7 +51,7 @@ export function SavedList({
   const [selectedModelForDetail, setSelectedModelForDetail] =
     useState<Model | null>(null);
 
-  //Dynamic modification
+  // Dynamic modification
   const [savedUserIds, setSavedUserIds] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -70,9 +69,9 @@ export function SavedList({
 
         console.log("Fetched saved user IDs:", ids); // Log to console
         setSavedUserIds(ids);
-      } catch (error) {
+      } catch (err) {
         setError("Failed to load saved user IDs.");
-        console.error("Error fetching saved user IDs:", error);
+        console.error("Error fetching saved user IDs:", err);
       } finally {
         setLoading(false);
       }
@@ -90,7 +89,7 @@ export function SavedList({
         // Step 2: Iterate over savedUserIds and fetch user data for each user_Id
         const newModels: Model[] = []; // New array to store the fetched models
 
-        for (let id of savedUserIds) {
+        for (const id of savedUserIds) {
           // Fetch basic user data
           const userResponse = await fetchData(`users/${id}`);
           const { user_Id, name, bio, social_Media_URL } = userResponse;
@@ -99,13 +98,12 @@ export function SavedList({
           const tagResponse = await fetchData(`ModellaTag/tags/models/${id}`);
           const modelTag = tagResponse ? tagResponse : {};
 
-          // Fetch the profile image URL
+          // Fetch the profile image URL(s)
           const fileUrlResponse = await fetchData(
             `files/urls-for-user-id-and-foldername-with-limits?user_id=${id}&folder=profile-pic&limit=4`
           );
-          // const profileImage = fileUrlResponse && fileUrlResponse[0]?.s3_url;
           const profileImage = Array.isArray(fileUrlResponse)
-            ? fileUrlResponse.map((file) => file.s3_url)
+            ? fileUrlResponse.map((file: { s3_url: string }) => file.s3_url)
             : [];
 
           // Step 3: Create a model object and add it to the newModels array
@@ -114,8 +112,9 @@ export function SavedList({
             name: name,
             bio: bio,
             age: modelTag.age || 0,
-            type: modelTag.work_Field || "Unknown",
-            image: profileImage || "",
+            type: modelTag.work_Field || ["Unknown"],
+            image:
+              profileImage.length > 0 ? profileImage : ["/placeholder.svg"],
             socialUrls: social_Media_URL || [
               "@modellahandle",
               "@modellahandle",
@@ -143,9 +142,9 @@ export function SavedList({
 
         // Step 4: Update the fetchedModels state with the new models
         setSavedModels(newModels);
-      } catch (error) {
+      } catch (err) {
         setError("Failed to load user data.");
-        console.error("Error fetching user data:", error);
+        console.error("Error fetching user data:", err);
       } finally {
         setLoading(false);
       }
@@ -219,18 +218,14 @@ export function SavedList({
     setTooManyModelsModalOpen(false);
   };
 
-  // Handle model click
-  const handleModelClick = (model: Model) => {
-    if (isSelectionActive) {
-      toggleModelSelection(model.id);
-    } else {
-      setSelectedModelForDetail(model);
-      setModelDetailModalOpen(true);
-    }
-  };
-
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* Display loading or error messages if present */}
+      {loading && (
+        <p className="text-gray-500 text-center mb-4">Loading saved list...</p>
+      )}
+      {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+
       {/* Hamburger Menu and Compare Button */}
       <div className="flex justify-between items-center mb-8">
         <button

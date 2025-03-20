@@ -47,16 +47,11 @@ export function SavedList({
 
   const userId = "model_67c5af423ae5b4ccb85b9a02";
   const [savedUserIds, setSavedUserIds] = useState<string[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const [savedModels, setSavedModels] = useState<Model[]>([]);
 
   useEffect(() => {
     const fetchSavedUserIds = async () => {
       try {
-        setLoading(true);
-        setError(null);
-
         // Fetch saved user IDs
         const savedListResponse = await fetchData(`savedList/${userId}`);
         const ids = savedListResponse.saved_Ids || [];
@@ -64,10 +59,7 @@ export function SavedList({
         console.log("Fetched saved user IDs:", ids); // Log to console
         setSavedUserIds(ids);
       } catch (error) {
-        setError("Failed to load saved user IDs.");
         console.error("Error fetching saved user IDs:", error);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -77,13 +69,10 @@ export function SavedList({
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        setLoading(true);
-        setError(null);
-
         // Step 2: Iterate over savedUserIds and fetch user data for each user_Id
         const newModels: Model[] = []; // New array to store the fetched models
 
-        for (let id of savedUserIds) {
+        for (const id of savedUserIds) {
           // Fetch basic user data
           const projectResponse = await fetchData(
             `Brandprojects/projects_by_pId/${id}`
@@ -147,10 +136,7 @@ export function SavedList({
         // Step 4: Update the fetchedModels state with the new models
         setSavedModels(newModels);
       } catch (error) {
-        setError("Failed to load user data.");
         console.error("Error fetching user data:", error);
-      } finally {
-        setLoading(false);
       }
     };
 

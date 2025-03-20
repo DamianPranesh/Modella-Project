@@ -32,12 +32,9 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({
   onClose,
   models,
 }) => {
-  if (!isOpen) return null; // Don't render if not open
-
-  const validModels = models.slice(0, 3);
-
-  // Prevent background scrolling when modal is open
+  // Move useEffect to the top level of the component
   React.useEffect(() => {
+    // Only apply the effect if the modal is open
     if (isOpen) {
       // Save the current scroll position
       const scrollY = window.scrollY;
@@ -54,7 +51,11 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({
         window.scrollTo(0, scrollY);
       };
     }
-  }, [isOpen]);
+  }, [isOpen]); // This dependency array is fine
+
+  if (!isOpen) return null; // Don't render if not open
+
+  const validModels = models.slice(0, 3);
 
   if (validModels.length < 2) {
     return (

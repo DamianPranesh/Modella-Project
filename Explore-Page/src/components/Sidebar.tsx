@@ -112,17 +112,14 @@ export function Sidebar({ isOpen, toggleSidebar, userType }: SidebarProps) {
   );
 }
 
-function NavItem({
-  icon: Icon,
-  label,
-  to,
-  isActive,
-}: {
-  icon: any;
+interface NavItemProps {
+  icon: React.ElementType;
   label: string;
   to: string;
   isActive: boolean;
-}) {
+}
+
+function NavItem({ icon: Icon, label, to, isActive }: NavItemProps) {
   return (
     <Link
       to={to}

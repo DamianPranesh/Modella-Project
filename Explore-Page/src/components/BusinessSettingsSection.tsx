@@ -1,6 +1,24 @@
 import { useState } from "react";
 import { Building2 } from "lucide-react";
-import { fetchData } from "../api/api"; // Assuming your API function is here
+import { fetchData } from "../api/api";
+
+interface BusinessSettings {
+  businessName: string;
+  bio: string;
+  description: string;
+  notifications: boolean;
+  darkMode: boolean;
+  language: string;
+  privacy: string;
+}
+
+interface BusinessSettingsSectionProps {
+  businessSettingsData: BusinessSettings;
+  primaryLight: string;
+  primaryDark: string;
+  primaryColor: string;
+  getIconForField: (field: string) => string;
+}
 
 export const BusinessSettingsSection = ({
   businessSettingsData,
@@ -8,26 +26,19 @@ export const BusinessSettingsSection = ({
   primaryDark,
   primaryColor,
   getIconForField,
-}: {
-  businessSettingsData: any;
-  primaryLight: string;
-  primaryDark: string;
-  primaryColor: string;
-  getIconForField: (field: string) => string;
-}) => {
-  const [formData, setFormData] = useState(businessSettingsData);
+}: BusinessSettingsSectionProps) => {
+  const [formData, setFormData] =
+    useState<BusinessSettings>(businessSettingsData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<boolean>(false);
+  const [success, setSuccess] = useState(false);
 
   const user_Id = "brand_67c5b2c43ae5b4ccb85b9a11";
 
-  // Handle input changes
-  const handleChange = (field: string, value: any) => {
-    setFormData((prev: any) => ({ ...prev, [field]: value }));
+  const handleChange = (field: keyof BusinessSettings, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Send update request to backend
   const updateUserBusinessSettings = async () => {
     setLoading(true);
     setError(null);
@@ -35,7 +46,7 @@ export const BusinessSettingsSection = ({
 
     try {
       const payload = {
-        name: formData.businessName, // Map business name to 'name'
+        name: formData.businessName,
         bio: formData.bio,
         description: formData.description,
       };
@@ -46,19 +57,20 @@ export const BusinessSettingsSection = ({
       });
 
       setSuccess(true);
-    } catch (err: any) {
-      setError(err.message || "Failed to update settings.");
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      setError(errorMsg || "Failed to update settings.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Reset form data to original business settings
   const handleReset = () => {
     setFormData({ ...businessSettingsData });
     setSuccess(false);
     setError(null);
   };
+
   return (
     <div className="p-6 bg-gradient-to-br from-white to-orange-50">
       <h2
@@ -68,7 +80,6 @@ export const BusinessSettingsSection = ({
         <Building2 className="mr-2" size={24} /> Business Profile
       </h2>
 
-      {/* Profile Information */}
       <div className="bg-white p-6 rounded-xl shadow-md mb-6">
         <h3
           className="text-lg font-semibold mb-4"
@@ -145,7 +156,6 @@ export const BusinessSettingsSection = ({
           </div>
         </div>
 
-        {/* Buttons: Save & Reset */}
         <div className="flex justify-end mt-4">
           <button
             className="bg-gray-200 text-gray-800 px-6 py-3 rounded-lg mr-3 font-medium hover:bg-gray-300 transition-colors"
@@ -166,7 +176,6 @@ export const BusinessSettingsSection = ({
           </button>
         </div>
 
-        {/* Success/Error Messages */}
         {success && (
           <p className="mt-2 text-green-600">Settings updated successfully!</p>
         )}

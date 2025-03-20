@@ -17,13 +17,19 @@ export function CategoryGrid() {
     "Models" | "Businesses" | "Other"
   >("Models");
 
+  const categories: Array<"Models" | "Businesses" | "Other"> = [
+    "Models",
+    "Businesses",
+    "Other",
+  ];
+
   return (
     <div className="mt-12">
       <div className="flex justify-center gap-12 mb-8">
-        {["Models", "Businesses", "Other"].map((category) => (
+        {categories.map((category) => (
           <button
             key={category}
-            onClick={() => setSelectedCategory(category as any)}
+            onClick={() => setSelectedCategory(category)}
             className={`px-6 py-2 rounded-full transition-all cursor-pointer ${
               selectedCategory === category
                 ? "bg-[#DD8560] text-white shadow-lg"

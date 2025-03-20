@@ -1,7 +1,7 @@
 import React from "react";
 import { X } from "lucide-react";
 
-type Model = {
+type ComparisonModel = {
   id: string;
   name: string;
   bio: string;
@@ -25,7 +25,7 @@ type Model = {
 interface ComparisonModalProps {
   isOpen: boolean;
   onClose: () => void;
-  models: Model[];
+  models: ComparisonModel[];
 }
 
 const ComparisonModal: React.FC<ComparisonModalProps> = ({
@@ -33,29 +33,18 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({
   onClose,
   models,
 }) => {
-  if (!isOpen) return null; // Don't render if not open
-
-  const validModels = models.slice(0, 3);
-
-  // Prevent background scrolling when modal is open
+  // Call useEffect unconditionally.
   React.useEffect(() => {
     if (isOpen) {
-      // Save the current scroll position
-      const scrollY = window.scrollY;
-      // Prevent scrolling on the body
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = "100%";
-
-      // Restore scrolling when component unmounts or modal closes
-      return () => {
-        document.body.style.position = "";
-        document.body.style.top = "";
-        document.body.style.width = "";
-        window.scrollTo(0, scrollY);
-      };
+      // You may add any side-effects needed when modal is open
+      // For now, we simply log that the modal is open.
+      console.log("Comparison modal is open");
     }
   }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const validModels = models.slice(0, 3);
 
   if (validModels.length < 2) {
     return (

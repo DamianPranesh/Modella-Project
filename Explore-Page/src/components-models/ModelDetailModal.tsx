@@ -90,11 +90,9 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
     "portfolio" | "details" | "work"
   >("portfolio");
 
-  if (!isOpen || !model) return null;
-
-  // Prevent background scrolling
+  // Move useEffect to the top level and guard the body of the effect instead
   React.useEffect(() => {
-    if (isOpen) {
+    if (isOpen && model) {
       const scrollY = window.scrollY;
       document.body.style.position = "fixed";
       document.body.style.top = `-${scrollY}px`;
@@ -107,23 +105,25 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
         window.scrollTo(0, scrollY);
       };
     }
-  }, [isOpen]);
+  }, [isOpen, model]);
 
+  if (!isOpen || !model) return null;
+
+  // Now we can define these functions after the early return
   const nextImage = () => {
     setCurrentImageIndex((prev) =>
-      prev === allImages.length - 1 ? 0 : prev + 1
+      prev === model.image.length - 1 ? 0 : prev + 1
     );
   };
 
   const prevImage = () => {
     setCurrentImageIndex((prev) =>
-      prev === 0 ? allImages.length - 1 : prev - 1
+      prev === 0 ? model.image.length - 1 : prev - 1
     );
   };
 
-  // For demonstration, use the model's image as first image and placeholders for rest
+  // For demonstration, use the model's image
   const allImages = model.image;
-
 
   const handleContactModel = () => {
     // Implement contact functionality here

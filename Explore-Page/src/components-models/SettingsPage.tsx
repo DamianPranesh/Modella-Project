@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Settings, User, Tags, ChevronRight, Menu } from "lucide-react";
-
+import { Settings, User, Tags, Menu } from "lucide-react";
 import { TagsSection } from "./TagSection";
 import { PreferencesSection } from "./PreferenceSection";
 import { UserSettingsSection } from "./UserSettingSection";
@@ -24,7 +23,7 @@ export type PreferencesDataType = {
   hips: number[];
 };
 
-export type tagsDataType = {
+export type TagsDataType = {
   age: number;
   height: number;
   natural_eye_color: string;
@@ -42,37 +41,61 @@ export type tagsDataType = {
   hips: number;
 };
 
+export type UserSettingsData = {
+  name: string;
+  bio: string;
+  description: string;
+  notifications: boolean;
+  darkMode: boolean;
+  language: string;
+  privacy: string;
+};
+
 interface SettingsPageProps {
   toggleSidebar: () => void;
-  isSidebarOpen: boolean;
+  // isSidebarOpen removed because it is not used
 }
 
-const SettingsPage: React.FC<SettingsPageProps> = ({
-  toggleSidebar,
-  isSidebarOpen,
-}) => {
-  const [activeTab, setActiveTab] = useState("tags");
+export type NumericPreferenceField =
+  | "age"
+  | "height"
+  | "shoe_Size"
+  | "bust_chest"
+  | "waist"
+  | "hips";
+export type StringPreferenceField =
+  | "natural_eye_color"
+  | "body_Type"
+  | "work_Field"
+  | "skin_Tone"
+  | "ethnicity"
+  | "natural_hair_type"
+  | "experience_Level"
+  | "gender"
+  | "location";
 
+const SettingsPage: React.FC<SettingsPageProps> = ({ toggleSidebar }) => {
+  const [activeTab, setActiveTab] = useState("tags");
   const [dropdownOptions, setDropdownOptions] = useState<{
     [key: string]: string[];
   }>({});
 
-  const fieldToCategoryMap: { [key: string]: string } = {
-    natural_eye_color: "natural_eye_colors",
-    body_Type: "body_types",
-    work_Field: "work_fields",
-    skin_Tone: "skin_tones",
-    ethnicity: "ethnicities",
-    natural_hair_type: "natural_hair_types",
-    gender: "genders",
-    location: "locations",
-    experience_Level: "experience_levels",
-  };
-
+  // fieldToCategoryMap is now defined inside useEffect so it does not change on every render.
   useEffect(() => {
+    const fieldToCategoryMap: { [key: string]: string } = {
+      natural_eye_color: "natural_eye_colors",
+      body_Type: "body_types",
+      work_Field: "work_fields",
+      skin_Tone: "skin_tones",
+      ethnicity: "ethnicities",
+      natural_hair_type: "natural_hair_types",
+      gender: "genders",
+      location: "locations",
+      experience_Level: "experience_levels",
+    };
+
     const fetchAllDropdownOptions = async () => {
       const fetchedOptions: { [key: string]: string[] } = {};
-
       for (const [frontendField, backendCategory] of Object.entries(
         fieldToCategoryMap
       )) {
@@ -80,20 +103,19 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
           backendCategory
         );
       }
-
       setDropdownOptions(fetchedOptions);
     };
 
     fetchAllDropdownOptions();
   }, []);
 
-  // Sample initial data states
-  const [tagsData, setTagsData] = useState({
+  // Initial sample states
+  const [tagsData, setTagsData] = useState<TagsDataType>({
     age: 8,
     height: 116,
     natural_eye_color: "",
     body_Type: "",
-    work_Field: [] as string[],
+    work_Field: [],
     skin_Tone: "",
     ethnicity: "",
     natural_hair_type: "",
@@ -124,7 +146,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     hips: [61, 107],
   });
 
-  const [userSettingsData, setUserSettingsData] = useState({
+  // Since we never update user settings here, we only pass it down.
+  const [userSettingsData] = useState<UserSettingsData>({
     name: "",
     bio: "",
     description: "",
@@ -134,7 +157,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     privacy: "Public",
   });
 
-  // State for dropdowns
+  // Dropdown state
   const [dropdownField, setDropdownField] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -143,8 +166,8 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   const primaryLight = "#F5E1D6";
   const primaryDark = "#B66C4E";
 
-  // Utility functions
-  const getIconForField = (field: string) => {
+  // Utility: Get icon for a field
+  const getIconForField = (field: string): string => {
     const icons: { [key: string]: string } = {
       age: "👤",
       height: "📏",
@@ -168,12 +191,11 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     return icons[field] || "❓";
   };
 
-  const getOptionsForField = (field: string) => {
-    // Remove the mapping step since field names now directly match dropdown option keys
+  const getOptionsForField = (field: string): string[] => {
     return dropdownOptions[field] || [];
   };
 
-  const hasDropdownOptions = (field: string) => {
+  const hasDropdownOptions = (field: string): boolean => {
     return [
       "natural_eye_color",
       "body_Type",
@@ -196,41 +218,48 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     hips: [61, 107],
   };
 
+  // Update number for numeric fields in either tags or preferences.
   const handleNumberChange = (
     field: string,
     value: string,
-    isPreference = false,
+    isPreference: boolean = false,
     index: number | null = null
   ) => {
-    if (!(field in numericRanges)) return; // Ensure it's a valid numeric field
-
-    const [defaultMin, defaultMax] = numericRanges[field]; // Get predefined range
+    if (!(field in numericRanges)) return;
+    const [defaultMin, defaultMax] = numericRanges[field];
     let numValue = parseInt(value) || 0;
-    numValue = Math.min(defaultMax, Math.max(defaultMin, numValue)); // Clamp within range
+    numValue = Math.min(defaultMax, Math.max(defaultMin, numValue));
 
-    if (isPreference) {
+    if (
+      isPreference &&
+      (
+        [
+          "age",
+          "height",
+          "shoe_Size",
+          "bust_chest",
+          "waist",
+          "hips",
+        ] as string[]
+      ).includes(field)
+    ) {
       setPreferencesData((prev) => {
         const newData = { ...prev };
-        const key = field as keyof PreferencesDataType;
-
-        if (index !== null && Array.isArray(newData[key])) {
+        const key = field as NumericPreferenceField;
+        if (index !== null) {
           const currentValues = [...(newData[key] as number[])];
-
           if (index === 0) {
-            // Ensure Min doesn't exceed Max
             numValue = Math.min(numValue, currentValues[1]);
           } else if (index === 1) {
-            // Ensure Max isn't smaller than Min
             numValue = Math.max(numValue, currentValues[0]);
           }
-
           currentValues[index] = numValue;
-          newData[key] = currentValues as any;
+          newData[key] = currentValues;
         }
-
         return newData;
       });
     } else {
+      // For tagsData numeric fields:
       setTagsData((prev) => ({
         ...prev,
         [field]: numValue,
@@ -241,9 +270,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   const handleInputChange = (
     field: string,
     value: string,
-    isPreference = false
+    isPreference: boolean = false
   ) => {
     if (isPreference) {
+      // For string dropdown fields in preferences
       setPreferencesData((prev) => ({
         ...prev,
         [field]: value,
@@ -256,16 +286,15 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     }
   };
 
+  // For dropdown options in preferences (string arrays only)
   const selectPreferenceOption = (field: string, option: string) => {
     setPreferencesData((prev) => {
       const newData = { ...prev };
-      const key = field as keyof PreferencesDataType;
-
-      // For all fields in preferences that are arrays, add to the array if not already present
+      const key = field as StringPreferenceField;
       if (Array.isArray(newData[key])) {
-        const arr = newData[key] as unknown as string[];
+        const arr = newData[key] as string[];
         if (!arr.includes(option)) {
-          newData[key] = [...arr, option] as any;
+          newData[key] = [...arr, option];
         }
       }
       return newData;
@@ -276,11 +305,25 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   const removePreferenceOption = (field: string, index: number) => {
     setPreferencesData((prev) => {
       const newData = { ...prev };
-      const key = field as keyof PreferencesDataType;
-      if (Array.isArray(newData[key])) {
-        newData[key] = (newData[key] as unknown as string[]).filter(
-          (_, i) => i !== index
-        ) as any;
+      if (
+        (
+          [
+            "natural_eye_color",
+            "body_Type",
+            "work_Field",
+            "skin_Tone",
+            "ethnicity",
+            "natural_hair_type",
+            "experience_Level",
+            "gender",
+            "location",
+          ] as string[]
+        ).includes(field)
+      ) {
+        const key = field as StringPreferenceField;
+        newData[key] = (newData[key] as string[]).filter(
+          (_item, i) => i !== index
+        );
       }
       return newData;
     });
@@ -304,18 +347,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
       waist: [51, 91],
       hips: [61, 107],
     });
-    console.log("preferences data has been reset:", preferencesData);
-  };
-
-  useEffect(() => {
-    console.log("Updated PreferencesData:", preferencesData);
-  }, [preferencesData]);
-
-  const handleUserSettingChange = (field: string, value: any) => {
-    setUserSettingsData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    console.log("preferences data has been reset");
   };
 
   const toggleDropdown = (field: string) => {
@@ -327,7 +359,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     if (field === "work_Field") {
       setTagsData((prev) => ({
         ...prev,
-        [field]: [...prev[field], option],
+        [field]: [...prev.work_Field, option],
       }));
     } else {
       setTagsData((prev) => ({
@@ -363,14 +395,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
       waist: 51,
       hips: 61,
     });
-    console.log("Tags data has been reset:", tagsData);
+    console.log("Tags data has been reset");
   };
 
-  useEffect(() => {
-    console.log("Updated tagsData:", tagsData);
-  }, [tagsData]);
-
-  const renderDropdown = (field: string, isPreference = false) => {
+  const renderDropdown = (field: string, isPreference: boolean = false) => {
     const options = getOptionsForField(field);
     return (
       <div
@@ -406,7 +434,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
           background: `linear-gradient(to right, ${primaryColor}, ${primaryDark})`,
         }}
       >
-        {/* Sidebar toggle button */}
         <button
           className="md:hidden cursor-pointer"
           onClick={toggleSidebar}
@@ -508,7 +535,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
           primaryDark={primaryDark}
           primaryColor={primaryColor}
           getIconForField={getIconForField}
-          //handleUserSettingChange={handleUserSettingChange}
         />
       )}
     </div>
