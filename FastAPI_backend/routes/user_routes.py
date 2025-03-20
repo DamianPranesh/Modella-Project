@@ -2,6 +2,8 @@ from fastapi import APIRouter, HTTPException
 from typing import List, Dict
 from models.User import User
 from services.user_services import *
+from config.rate_limiter import limiter
+from fastapi import Request
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -26,41 +28,12 @@ async def delete_user_endpoint(user_Id: str):
     """Delete a user by their user_Id"""
     return await delete_user(user_Id)
 
+
 @router.get("/", response_model=List[Dict])
-async def list_users_endpoint(skip: int = 0, limit: int = 100):
+@limiter.limit("5/3 minutes")
+async def list_users_endpoint(request: Request, skip: int = 0, limit: int = 100):
     """List all users with pagination"""
     return await list_users(skip=skip, limit=limit)
-
-# @router.post("/generate-fake-users/", response_model=List[Dict])
-# async def generate_fake_users_endpoint(num_users: int):
-#     """
-#     Generate fake users for testing purposes.
-    
-#     Args:
-#         num_users (int): Number of fake users to generate
-    
-#     Returns:
-#         List[Dict]: List of generated user documents
-#     """
-#     if num_users <= 0:
-#         raise HTTPException(
-#             status_code=400,
-#             detail="Number of users must be greater than 0"
-#         )
-#     if num_users > 100:
-#         raise HTTPException(
-#             status_code=400,
-#             detail="Cannot generate more than 100 users at once"
-#         )
-        
-#     try:
-#         generated_users = await generate_fake_users(num_users)
-#         return generated_users
-#     except Exception as e:
-#         raise HTTPException(
-#             status_code=500,
-#             detail=f"Error generating fake users: {str(e)}"
-#         )
 
 
 @router.post("/generate-fake-users/", response_model=List[Dict])
