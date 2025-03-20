@@ -1,6 +1,6 @@
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from setting import REDIS_URL
+from config.setting import REDIS_URL
 
 
 #  Global Limiter instance
