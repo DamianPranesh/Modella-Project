@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import {
-  BrowserRouter as Router,
   Route,
   Routes,
   Navigate,
+  useLocation
 } from "react-router-dom";
 import { Sidebar } from "./components/Sidebar";
 import { UserTypeSelection } from "./components-models/UserTypeSelection";
@@ -20,10 +20,16 @@ import { AccountPage as ModelAccountPage } from "./components-models/AccountPage
 import ModelSwipeCards from "./components-models/SwipeCards";
 import { SavedList as ModelSavedList } from "./components-models/SavedList";
 import ModelSettingsPage from "./components-models/SettingsPage";
+import TokenExchange from './components-login/TokenExchange';
+
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [userType, setUserType] = useState<"model" | "business" | null>(null);
+  const [loading, setLoading] = useState(true);
+  const location = useLocation();
+
+
 
   const toggleSidebar = () => {
     setSidebarOpen(!isSidebarOpen);
@@ -48,18 +54,99 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    async function fetchUserRole() {
+      try {
+
+        const storedRole = sessionStorage.getItem('userRole');
+        console.log('Stored role:', storedRole);
+        if (storedRole) {
+          console.log('Using stored role:', storedRole);
+          setUserType(storedRole as "model" | "business");
+          setLoading(false);
+          return;
+        }
+
+        const accessToken = getCookie('access_token'); // Get the access token from the cookie
+
+        if (!accessToken) {
+          console.error('Access token not found');
+          return;
+        }
+    
+        // Make the request to the /user-role endpoint
+        const response = await fetch('http://localhost:8000/api/user-role', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          console.error('Failed to fetch user role. Status:', response.status);
+          setLoading(false);
+          return;
+        }
+
+        const data = await response.json();
+        sessionStorage.setItem('userRole', data.role);
+        console.log('Data:', data);
+        console.log('User Role:', data.role);
+        setUserType(data.role);
+        setLoading(false);
+
+      } catch (error) {
+        console.error('Error occurred while fetching user role:', error);
+        setLoading(false);
+      }
+    }
+
+    fetchUserRole();
+  }, []);
+
+  function getCookie(name: string) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    console.log('Parts:', parts);
+    console.log('Value:', value);
+    if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+    return null;
+  }
+
+  // Special case - on auth callback route, always show TokenExchange
+  const isAuthCallbackRoute = location.pathname === "/auth/callback";
+  
+  // Show loading indicator while determining user state, except on auth callback
+  if (loading && !isAuthCallbackRoute) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isAuthCallbackRoute) {
+    return <TokenExchange />;
+  }
+
   // Check if user has selected a type
-  if (userType === null) {
+  const type = sessionStorage.getItem('userRole');
+
+  if (type === "null") {
     return <UserTypeSelection setUserType={setUserType} />;
   }
 
   return (
-    <Router>
+    
       <div className="flex min-h-screen bg-white">
         <Sidebar
           isOpen={isSidebarOpen}
           toggleSidebar={toggleSidebar}
-          userType={userType}
+          userType={type as "model" | "business"}
         />
         <main
           className={`flex-1 p-8 transition-margin ${
@@ -80,7 +167,15 @@ function App() {
                 />
               }
             />
-
+            {/* Add the TokenExchange route for callback after login */}
+            <Route 
+              path="/auth/callback" 
+              element={
+                <TokenExchange 
+                />
+              } 
+            />
+            
             {/* Conditional routes based on user type */}
             {userType === "business" ? (
               <>
@@ -104,9 +199,12 @@ function App() {
                 />
                 <Route
                   path="/settings"
-                  element={<SettingsPage toggleSidebar={toggleSidebar} />}
+                  element={
+                    <SettingsPage
+                      toggleSidebar={toggleSidebar}
+                    />
+                  }
                 />
-
                 <Route
                   path="/saved"
                   element={
@@ -116,6 +214,16 @@ function App() {
                     />
                   }
                 />
+                <Route
+                  path="/login"
+                  element={
+                    <LoginPage
+                      
+                    />
+                }
+                />
+
+                {/* Add more routes as needed */}
               </>
             ) : (
               <>
@@ -139,7 +247,11 @@ function App() {
                 />
                 <Route
                   path="/settings"
-                  element={<ModelSettingsPage toggleSidebar={toggleSidebar} />}
+                  element={
+                    <ModelSettingsPage
+                      toggleSidebar={toggleSidebar}
+                    />
+                  }
                 />
                 <Route
                   path="/saved"
@@ -155,7 +267,7 @@ function App() {
           </Routes>
         </main>
       </div>
-    </Router>
+    
   );
 }
 
