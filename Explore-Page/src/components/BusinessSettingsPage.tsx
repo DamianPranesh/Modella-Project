@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { Settings, Building2, Tags, ChevronRight, Menu } from "lucide-react";
+import React, { useEffect, useState, useMemo } from "react";
+import { Settings, Building2, Tags, Menu } from "lucide-react";
 
 import { BusinessTagsSection } from "./BusinessTagsSection";
 import { BusinessPreferencesSection } from "./BusinessPreferencesSection";
 import { BusinessSettingsSection } from "./BusinessSettingsSection";
 import { getDropdownOptions } from "../api/dropdowns";
 
-// Updated PreferencesDataType to match modeling requirements
+// Define PreferencesDataType with proper types for each field.
 export type PreferencesDataType = {
   age: number[];
   height: number[];
@@ -25,28 +25,51 @@ export type PreferencesDataType = {
   hips: number[];
 };
 
+// Type alias for the keys in PreferencesDataType that are numbers.
+type NumericField =
+  | "age"
+  | "height"
+  | "shoe_Size"
+  | "bust_chest"
+  | "waist"
+  | "hips";
+// Type alias for the keys in PreferencesDataType that are strings.
+type StringField = Exclude<keyof PreferencesDataType, NumericField>;
+
+interface BusinessSettings {
+  businessName: string;
+  bio: string;
+  description: string;
+  notifications: boolean;
+  darkMode: boolean;
+  language: string;
+  privacy: string;
+}
+
 const BusinessSettingsPage: React.FC<{
   toggleSidebar: () => void;
-  isSidebarOpen: boolean;
-}> = ({ toggleSidebar, isSidebarOpen }) => {
-  const [activeTab, setActiveTab] = useState("tags"); // Change "preferences" to "tags"
+}> = ({ toggleSidebar }) => {
+  const [activeTab, setActiveTab] = useState("tags");
 
   // State to store dropdown options from API
   const [dropdownOptions, setDropdownOptions] = useState<{
     [key: string]: string[];
   }>({});
 
-  const fieldToCategoryMap: { [key: string]: string } = {
-    natural_eye_color: "natural_eye_colors",
-    body_Type: "body_types",
-    work_Field: "work_fields",
-    skin_Tone: "skin_tones",
-    ethnicity: "ethnicities",
-    natural_hair_type: "natural_hair_types",
-    gender: "genders",
-    location: "locations",
-    experience_Level: "experience_levels",
-  };
+  const fieldToCategoryMap = useMemo(
+    () => ({
+      natural_eye_color: "natural_eye_colors",
+      body_Type: "body_types",
+      work_Field: "work_fields",
+      skin_Tone: "skin_tones",
+      ethnicity: "ethnicities",
+      natural_hair_type: "natural_hair_types",
+      gender: "genders",
+      location: "locations",
+      experience_Level: "experience_levels",
+    }),
+    []
+  );
 
   // Function to fetch all dropdown options on page load
   useEffect(() => {
@@ -65,7 +88,7 @@ const BusinessSettingsPage: React.FC<{
     };
 
     fetchAllDropdownOptions();
-  }, []);
+  }, [fieldToCategoryMap]);
 
   // Sample initial data states
   const [tagsData, setTagsData] = useState({
@@ -92,7 +115,8 @@ const BusinessSettingsPage: React.FC<{
     hips: [61, 107],
   });
 
-  const [businessSettingsData, setBusinessSettingsData] = useState({
+  // Since business settings are updated only on save, we use a constant.
+  const businessSettingsData: BusinessSettings = {
     businessName: "",
     bio: "",
     description: "",
@@ -100,11 +124,7 @@ const BusinessSettingsPage: React.FC<{
     darkMode: false,
     language: "English",
     privacy: "Public",
-  });
-
-  // State for dropdowns
-  const [dropdownField, setDropdownField] = useState("");
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  };
 
   // Primary colors
   const primaryColor = "#DD8560";
@@ -164,47 +184,32 @@ const BusinessSettingsPage: React.FC<{
     hips: [61, 107],
   };
 
-  const isNumberArray = (value: unknown): value is number[] => {
-    return (
-      Array.isArray(value) && value.every((item) => typeof item === "number")
-    );
-  };
-
+  // Updated handleNumberChange signature to match the expected prop type.
   const handleNumberChange = (
     field: string,
     value: string,
-    isPreference = false,
+    _isPreference?: boolean, // This parameter is accepted but not used.
     index: number | null = null
   ) => {
-    if (!(field in numericRanges)) return; // Ensure it's a numeric field
+    if (!(field in numericRanges)) return; // Only process numeric fields
 
     const [defaultMin, defaultMax] = numericRanges[field]; // Get predefined range
     let numValue = parseInt(value) || 0;
 
     setPreferencesData((prev) => {
       const newData = { ...prev };
+      const numericField = field as NumericField;
+      const currentValues = newData[numericField] as number[];
 
-      if (
-        index !== null &&
-        isNumberArray(newData[field as keyof PreferencesDataType])
-      ) {
-        const currentValues = [
-          ...(newData[field as keyof PreferencesDataType] as number[]),
-        ];
-
+      if (index !== null) {
         if (index === 0) {
-          // Ensure Min doesn't exceed Max
           numValue = Math.min(numValue, currentValues[1]);
         } else if (index === 1) {
-          // Ensure Max isn't smaller than Min
           numValue = Math.max(numValue, currentValues[0]);
         }
-
-        // Keep within allowed range
         numValue = Math.min(defaultMax, Math.max(defaultMin, numValue));
-
         currentValues[index] = numValue;
-        newData[field as keyof PreferencesDataType] = currentValues as any;
+        newData[numericField] = currentValues;
       }
 
       return newData;
@@ -229,32 +234,27 @@ const BusinessSettingsPage: React.FC<{
     }
   };
 
+  // For string fields only
   const selectPreferenceOption = (field: string, option: string) => {
     setPreferencesData((prev) => {
       const newData = { ...prev };
-      const key = field as keyof PreferencesDataType;
-
-      // For all fields in preferences that are arrays, add to the array if not already present
-      if (Array.isArray(newData[key])) {
-        const arr = newData[key] as unknown as string[];
-        if (!arr.includes(option)) {
-          newData[key] = [...arr, option] as any;
-        }
+      const strField = field as StringField;
+      const arr = newData[strField] as string[];
+      if (!arr.includes(option)) {
+        newData[strField] = [...arr, option];
       }
       return newData;
     });
     setIsDropdownOpen(false);
   };
 
+  // For string fields only
   const removePreferenceOption = (field: string, index: number) => {
     setPreferencesData((prev) => {
       const newData = { ...prev };
-      const key = field as keyof PreferencesDataType;
-      if (Array.isArray(newData[key])) {
-        newData[key] = (newData[key] as unknown as string[]).filter(
-          (_, i) => i !== index
-        ) as any;
-      }
+      const strField = field as StringField;
+      const arr = newData[strField] as string[];
+      newData[strField] = arr.filter((_, i) => i !== index);
       return newData;
     });
   };
@@ -283,6 +283,9 @@ const BusinessSettingsPage: React.FC<{
   useEffect(() => {
     console.log("Updated PreferencesData:", preferencesData);
   }, [preferencesData]);
+
+  const [dropdownField, setDropdownField] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const toggleDropdown = (field: string) => {
     setDropdownField(field);
@@ -469,7 +472,6 @@ const BusinessSettingsPage: React.FC<{
           primaryDark={primaryDark}
           primaryColor={primaryColor}
           getIconForField={getIconForField}
-          // handleBusinessSettingChange={handleBusinessSettingChange}
         />
       )}
     </div>

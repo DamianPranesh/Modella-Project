@@ -1,0 +1,46 @@
+name: Frontend CI
+
+on:
+  push:
+    branches:
+      - main
+      - "**" # Runs on all branches
+  pull_request:
+    branches:
+      - main
+      - "**" # Runs on all branches
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: Explore-Page
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "npm"
+          cache-dependency-path: ./Explore-Page/package-lock.json # Ensures caching works properly
+
+      - name: Install dependencies
+        working-directory: ./Explore-Page
+        run: npm install
+
+      - name: Run TypeScript type-check
+        run: npm run type-check
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Build project
+        run: npm run build
+
+      - name: Run tests
+        run: npm test

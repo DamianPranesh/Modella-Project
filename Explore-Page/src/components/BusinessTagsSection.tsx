@@ -2,23 +2,13 @@ import { Tags, ChevronRight, X, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { fetchData } from "../api/api";
 
-// Business Tags Section Component
-export const BusinessTagsSection = ({
-  tagsData,
-  primaryLight,
-  primaryDark,
-  primaryColor,
-  getIconForField,
-  hasDropdownOptions,
-  isDropdownOpen,
-  dropdownField,
-  toggleDropdown,
-  renderDropdown,
-  handleInputChange,
-  removeTag,
-  resetTagsData,
-}: {
-  tagsData: { work_Field: string[]; location: string };
+type BusinessTagsData = {
+  work_Field: string[];
+  location: string;
+};
+
+interface BusinessTagsSectionProps {
+  tagsData: BusinessTagsData;
   primaryLight: string;
   primaryDark: string;
   primaryColor: string;
@@ -35,16 +25,31 @@ export const BusinessTagsSection = ({
   ) => void;
   removeTag: (index: number) => void;
   resetTagsData: () => void;
-}) => {
-  // Local state for managing tag selections
-  const [formData, setFormData] = useState({ ...tagsData });
+}
+
+export const BusinessTagsSection = ({
+  tagsData,
+  primaryLight,
+  primaryDark,
+  primaryColor,
+  getIconForField,
+  hasDropdownOptions,
+  isDropdownOpen,
+  dropdownField,
+  toggleDropdown,
+  renderDropdown,
+  handleInputChange,
+  removeTag,
+  resetTagsData,
+}: BusinessTagsSectionProps) => {
+  const [formData, setFormData] = useState<BusinessTagsData>({ ...tagsData });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<boolean>(false);
+  const [success, setSuccess] = useState(false);
 
   const user_Id = "brand_67c5b2c43ae5b4ccb85b9a11";
 
-  // Save Changes: Updates tagsData (can be sent to backend)
+  // Save changes (send to backend)
   const handleSaveChanges = async () => {
     setLoading(true);
     setError(null);
@@ -53,15 +58,14 @@ export const BusinessTagsSection = ({
     console.log("Saved Data:", formData);
     try {
       const tagData = {
-        user_Id: user_Id, // Get user ID dynamically
-        work_Field: formData.work_Field, // Extracted Work Fields
-        location: formData.location, // Extracted Location
+        user_Id: user_Id,
+        work_Field: formData.work_Field,
+        location: formData.location,
       };
 
-      // Remove fields that are empty arrays or empty strings
       const filteredData = Object.fromEntries(
         Object.entries(tagData).filter(
-          ([_, value]) =>
+          ([, value]) =>
             !((Array.isArray(value) && value.length === 0) || value === "")
         )
       );
@@ -73,16 +77,17 @@ export const BusinessTagsSection = ({
 
       setSuccess(true);
       console.log("Successfully updated brand tags:", response);
-    } catch (error: any) {
-      console.error("Failed to update brand tags:", error);
-      setError(error.message || "Failed to update settings.");
+    } catch (error) {
+      const err = error instanceof Error ? error.message : String(error);
+      console.error("Failed to update brand tags:", err);
+      setError(err || "Failed to update settings.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    setFormData(tagsData); // Ensure formData is always updated when tagsData changes
+    setFormData(tagsData);
   }, [tagsData]);
 
   const resetStatus = () => {
@@ -113,7 +118,7 @@ export const BusinessTagsSection = ({
             }}
           >
             <label
-              className="block text-sm font-semibold mb-2 capitalize flex items-center"
+              className="text-sm font-semibold mb-2 capitalize flex items-center"
               style={{ color: primaryColor }}
             >
               <span className="mr-2 text-xl">{getIconForField(key)}</span>
@@ -192,7 +197,6 @@ export const BusinessTagsSection = ({
         ))}
       </div>
 
-      {/* Save and Reset Buttons */}
       <div className="flex justify-end mt-6">
         <button
           className="bg-gray-200 text-gray-800 px-6 py-3 rounded-lg mr-3 font-medium hover:bg-gray-300 transition-colors flex items-center"
@@ -212,7 +216,6 @@ export const BusinessTagsSection = ({
           <ChevronRight size={18} className="ml-1" />
         </button>
       </div>
-      {/* Success/Error Messages */}
       {success && (
         <p className="mt-2 text-green-600">Settings updated successfully!</p>
       )}

@@ -32,33 +32,6 @@ type Model = {
   shoeSize: string;
 };
 
-// Extra data for the enhanced profile
-const additionalModelData = {
-  // bio: "Professional model with international experience in fashion shows and editorial work. Passionate about sustainable fashion and lifestyle photography.",
-  // location: "New York, NY",
-  // profileImages: [
-  //   "/api/placeholder/800/1000",
-  //   "/api/placeholder/800/1000",
-  //   "/api/placeholder/800/1000",
-  // ],
-  recentWork: [
-    { title: "Paris Fashion Week", date: "March 2025" },
-    { title: "Vogue Italia Editorial", date: "January 2025" },
-    { title: "Summer Campaign - Luxury Brand", date: "December 2024" },
-  ],
-  // measurements: {
-  //   bust: '32"',
-  //   waist: '24"',
-  //   hips: '34"',
-  //   shoes: "8.5 US",
-  // },
-  // socialLinks: {
-  //   instagram: "@modelhandle",
-  //   tiktok: "@modelhandle",
-  //   portfolio: "www.modelportfolio.com",
-  // },
-};
-
 interface ModelDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -91,9 +64,7 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
     "portfolio" | "details" | "work"
   >("portfolio");
 
-  if (!isOpen || !model) return null;
-
-  // Prevent background scrolling
+  // Call useEffect unconditionally so that hooks are always called in the same order.
   React.useEffect(() => {
     if (isOpen) {
       const scrollY = window.scrollY;
@@ -110,15 +81,18 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
     }
   }, [isOpen]);
 
+  // If modal is not open or model is null, do not render anything.
+  if (!isOpen || !model) return null;
+
   const nextImage = () => {
     setCurrentImageIndex((prev) =>
-      prev === allImages.length - 1 ? 0 : prev + 1
+      prev === model.image.length - 1 ? 0 : prev + 1
     );
   };
 
   const prevImage = () => {
     setCurrentImageIndex((prev) =>
-      prev === 0 ? allImages.length - 1 : prev - 1
+      prev === 0 ? model.image.length - 1 : prev - 1
     );
   };
 
@@ -128,7 +102,7 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
   const handleContactModel = () => {
     // Implement contact functionality here
     console.log(`Contacting model: ${model.name}`);
-    // This could open a form or redirect to a contact page
+    // Implement contact functionality as needed.
   };
 
   return (
@@ -140,7 +114,7 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
       }}
     >
       <div className="bg-gradient-to-br from-gray-50 to-white w-full max-w-4xl h-[80vh] overflow-hidden rounded-2xl shadow-2xl flex flex-col relative border border-gray-200">
-        {/* Repositioned Close button without rotation */}
+        {/* Close button */}
         <div className="absolute top-0 right-0 z-20 p-4">
           <button
             onClick={onClose}
@@ -153,7 +127,7 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
 
         {/* Responsive layout container - 2 columns on tablet and up, 1 column on mobile */}
         <div className="flex flex-col md:flex-row h-full overflow-hidden">
-          {/* Image carousel section - full width on mobile, left column on tablet+ */}
+          {/* Image carousel section */}
           <div className="w-full md:w-2/5 h-64 sm:h-80 md:h-full relative flex-shrink-0">
             <div className="h-full w-full relative bg-gradient-to-b from-gray-100 to-gray-200 overflow-hidden">
               {/* Decorative elements */}
@@ -164,9 +138,7 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
                 src={allImages[currentImageIndex]}
                 alt={`${model.name} photo ${currentImageIndex + 1}`}
                 className="w-full h-full object-cover transition-opacity duration-500 ease-in-out"
-                style={{
-                  animation: "fadeIn 0.5s forwards",
-                }}
+                style={{ animation: "fadeIn 0.5s forwards" }}
               />
 
               {/* Gradient overlay */}
@@ -221,7 +193,7 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
             </div>
           </div>
 
-          {/* Content section - stacked below image on mobile, right column on tablet+ */}
+          {/* Content section */}
           <div className="w-full md:w-3/5 flex flex-col relative overflow-hidden h-full">
             {/* Decorative element */}
             <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-pink-50 blur-3xl opacity-50 -z-10"></div>
@@ -433,7 +405,17 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
                         Recent Work
                       </h3>
                       <div className="space-y-3">
-                        {additionalModelData.recentWork.map((work, index) => (
+                        {[
+                          { title: "Paris Fashion Week", date: "March 2025" },
+                          {
+                            title: "Vogue Italia Editorial",
+                            date: "January 2025",
+                          },
+                          {
+                            title: "Summer Campaign - Luxury Brand",
+                            date: "December 2024",
+                          },
+                        ].map((work, index) => (
                           <div
                             key={index}
                             className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow border border-gray-100 flex flex-col sm:flex-row justify-between sm:items-center gap-2"

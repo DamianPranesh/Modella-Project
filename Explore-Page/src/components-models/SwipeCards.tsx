@@ -1,4 +1,10 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import {
   motion,
   useMotionValue,
@@ -24,6 +30,16 @@ interface SwipeCardsProps {
   isSidebarOpen: boolean; // State of the sidebar
 }
 
+type Card = {
+  id: number;
+  url: string;
+  name: string;
+  Brandname: string;
+  description: string;
+  aboutJob: string;
+  interests: string[];
+};
+
 const fetchMatchedProjectIds = async (userId: string) => {
   try {
     console.log("Fetching matched project IDs for:", userId);
@@ -46,10 +62,10 @@ const fetchProjectDetails = async (projectId: string) => {
   try {
     const data = await fetchData(`Brandprojects/projects_by_pId/${projectId}`);
     return data; // Return the user details if the request is successful
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(
       `Error fetching user details for ${projectId}:`,
-      error.message || error
+      error instanceof Error ? error.message : error
     );
   }
 };
@@ -60,10 +76,10 @@ const fetchProjectImage = async (userId: string, projectId: string) => {
       `files/files-project?user_id=${userId}&project_id=${projectId}`
     );
     return data; // Return the profile image URL data if successful
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(
       `Error fetching project image for ${projectId}:`,
-      error.message || error
+      error instanceof Error ? error.message : error
     );
   }
 };
@@ -74,8 +90,11 @@ const fetchProjectTags = async (userId: string, projectId: string) => {
       `ModellaTag/tags/projects/${userId}/${projectId}`
     );
     return data; // Return the user tags data if successful
-  } catch (error: any) {
-    console.error(`Error fetching tags for ${userId}:`, error.message || error);
+  } catch (error: unknown) {
+    console.error(
+      `Error fetching tags for ${userId}:`,
+      error instanceof Error ? error.message : error
+    );
   }
 };
 
@@ -83,10 +102,10 @@ const fetchUserDetails = async (userId: string) => {
   try {
     const data = await fetchData(`users/${userId}`);
     return data; // Return the user details if the request is successful
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(
       `Error fetching user details for ${userId}:`,
-      error.message || error
+      error instanceof Error ? error.message : error
     );
   }
 };
@@ -134,12 +153,12 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
     }
   };
 
-  const loadCards = async () => {
+  const loadCards = useCallback(async () => {
     setLoading(true);
     try {
       const projectIds = await fetchMatchedProjectIds(userId);
       const cardsData = await Promise.all(projectIds.map(fetchCardData));
-      const filteredCards = cardsData.filter(Boolean);
+      const filteredCards = cardsData.filter(Boolean) as Card[];
       setCards(filteredCards);
       setCurrentIndex(filteredCards.length - 1);
       console.log("Loaded Cards:", filteredCards);
@@ -147,11 +166,11 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
       console.error("Error loading cards:", error);
     }
     setLoading(false);
-  };
+  }, [userId]);
 
   useEffect(() => {
     loadCards();
-  }, [userId]);
+  }, [loadCards]);
 
   if (loading) return <p>Loading projects...</p>;
 
@@ -461,17 +480,7 @@ const DetailedView = ({
   );
 };
 
-const Card = ({
-  id,
-  url,
-  name,
-  Brandname,
-  description,
-  setCards,
-  currentIndex,
-  index,
-  onSelect,
-}: {
+interface CardProps {
   id: number;
   url: string;
   name: string;
@@ -482,7 +491,19 @@ const Card = ({
   currentIndex: number;
   index: number;
   onSelect: () => void;
-}) => {
+}
+
+const Card = ({
+  id,
+  url,
+  name,
+  Brandname,
+  description,
+  setCards,
+  currentIndex,
+  index,
+  onSelect,
+}: CardProps) => {
   const x = useMotionValue(0);
   const rotateRaw = useTransform(x, [-150, 150], [-18, 18]);
   const opacity = useTransform(x, [-150, 0, 150], [0, 1, 0]);
@@ -572,13 +593,3 @@ const Card = ({
 };
 
 export default SwipeCards;
-
-type Card = {
-  id: number;
-  url: string;
-  name: string;
-  Brandname: string;
-  description: string;
-  aboutJob: string;
-  interests: string[];
-};

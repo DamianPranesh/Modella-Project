@@ -1,24 +1,10 @@
 import { Settings, X, Plus, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { fetchData } from "../api/api";
+import { PreferencesDataType } from "./SettingsPage";
 
-export const PreferencesSection = ({
-  preferencesData,
-  primaryLight,
-  primaryDark,
-  primaryColor,
-  getIconForField,
-  hasDropdownOptions,
-  isDropdownOpen,
-  dropdownField,
-  toggleDropdown,
-  renderDropdown,
-  handleNumberChange,
-  handleInputChange,
-  removePreferenceOption,
-  resetPreferencesData,
-}: {
-  preferencesData: any;
+interface PreferencesSectionProps {
+  preferencesData: PreferencesDataType;
   primaryLight: string;
   primaryDark: string;
   primaryColor: string;
@@ -41,7 +27,23 @@ export const PreferencesSection = ({
   ) => void;
   removePreferenceOption: (field: string, index: number) => void;
   resetPreferencesData: () => void;
-}) => {
+}
+
+export const PreferencesSection = ({
+  preferencesData,
+  primaryLight,
+  primaryDark,
+  primaryColor,
+  getIconForField,
+  hasDropdownOptions,
+  isDropdownOpen,
+  dropdownField,
+  toggleDropdown,
+  renderDropdown,
+  handleNumberChange,
+  removePreferenceOption,
+  resetPreferencesData,
+}: PreferencesSectionProps) => {
   const [formData, setFormData] = useState({ ...preferencesData });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,7 +68,7 @@ export const PreferencesSection = ({
     console.log("Saved Data:", formData);
     try {
       const preferenceData = {
-        user_Id: user_Id, // Get user ID dynamically
+        user_Id: user_Id,
         age: formData.age,
         height: formData.height,
         natural_eye_color: formData.natural_eye_color,
@@ -86,7 +88,7 @@ export const PreferencesSection = ({
 
       const filteredData = Object.fromEntries(
         Object.entries(preferenceData).filter(
-          ([_, value]) => !(Array.isArray(value) && value.length === 0)
+          ([, value]) => !(Array.isArray(value) && value.length === 0)
         )
       );
 
@@ -99,16 +101,18 @@ export const PreferencesSection = ({
       );
       setSuccess(true);
       console.log("Successfully updated model tags:", response);
-    } catch (error: any) {
-      console.error("Failed to update model tags:", error);
-      setError(error.message || "Failed to update settings.");
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Failed to update settings.";
+      console.error("Failed to update model tags:", message);
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    setFormData(preferencesData); // Ensure formData is always updated when tagsData changes
+    setFormData(preferencesData);
   }, [preferencesData]);
 
   const resetStatus = () => {
@@ -139,7 +143,7 @@ export const PreferencesSection = ({
             }}
           >
             <label
-              className="block text-sm font-semibold mb-2 capitalize flex items-center"
+              className="text-sm font-semibold mb-2 capitalize flex items-center"
               style={{ color: primaryColor }}
             >
               <span className="mr-2 text-xl">{getIconForField(key)}</span>
@@ -212,23 +216,10 @@ export const PreferencesSection = ({
                   dropdownField === key &&
                   renderDropdown(key, true)}
               </div>
-            ) : (
-              <input
-                type="text"
-                className="border rounded-lg p-3 w-full focus:ring-2 focus:outline-none transition-all"
-                style={{
-                  borderColor: primaryLight,
-                  backgroundColor: "#FFF9F5",
-                  outlineColor: primaryColor,
-                }}
-                value={value as string | number | readonly string[] | undefined}
-                onChange={(e) => handleInputChange(key, e.target.value, true)}
-              />
-            )}
+            ) : null}
           </div>
         ))}
       </div>
-      {/* Save and Reset Buttons */}
       <div className="flex justify-end mt-6">
         <button
           className="bg-gray-200 text-gray-800 px-6 py-3 rounded-lg mr-3 font-medium hover:bg-gray-300 transition-colors flex items-center"
@@ -248,7 +239,6 @@ export const PreferencesSection = ({
           <ChevronRight size={18} className="ml-1" />
         </button>
       </div>
-      {/* Success/Error Messages */}
       {success && (
         <p className="mt-2 text-green-600">Settings updated successfully!</p>
       )}

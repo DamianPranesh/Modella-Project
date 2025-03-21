@@ -1,45 +1,10 @@
 import { Tags, ChevronRight, X, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { fetchData } from "../api/api";
-import { tagsDataType } from "./SettingsPage";
+import { TagsDataType } from "./SettingsPage";
 
-/**
- * TagsSection component renders a section for displaying and managing personal tags.
- *
- * @param {Object} props - The properties object.
- * @param {Object.<string, string | number | readonly string[]>} props.tagsData - The data for the tags.
- * @param {string} props.primaryLight - The primary light color for styling.
- * @param {string} props.primaryDark - The primary dark color for styling.
- * @param {string} props.primaryColor - The primary color for styling.
- * @param {Function} props.getIconForField - Function to get the icon for a specific field.
- * @param {Function} props.hasDropdownOptions - Function to check if a field has dropdown options.
- * @param {boolean} props.isDropdownOpen - Boolean indicating if the dropdown is open.
- * @param {string} props.dropdownField - The field currently associated with the open dropdown.
- * @param {Function} props.toggleDropdown - Function to toggle the dropdown for a specific field.
- * @param {Function} props.renderDropdown - Function to render the dropdown for a specific field.
- * @param {Function} props.handleNumberChange - Function to handle changes in number input fields.
- * @param {Function} props.handleInputChange - Function to handle changes in text input fields.
- * @param {Function} props.removeTag - Function to remove a tag by its index.
- *
- * @returns {JSX.Element} The rendered TagsSection component.
- */
-export const TagsSection = ({
-  tagsData,
-  primaryLight,
-  primaryDark,
-  primaryColor,
-  getIconForField,
-  hasDropdownOptions,
-  isDropdownOpen,
-  dropdownField,
-  toggleDropdown,
-  renderDropdown,
-  handleNumberChange,
-  handleInputChange,
-  removeTag,
-  resetTagsData,
-}: {
-  tagsData: tagsDataType;
+interface TagsSectionProps {
+  tagsData: TagsDataType;
   primaryLight: string;
   primaryDark: string;
   primaryColor: string;
@@ -62,8 +27,24 @@ export const TagsSection = ({
   ) => void;
   removeTag: (index: number) => void;
   resetTagsData: () => void;
-}) => {
-  // Local state for managing tag selections
+}
+
+export const TagsSection = ({
+  tagsData,
+  primaryLight,
+  primaryDark,
+  primaryColor,
+  getIconForField,
+  hasDropdownOptions,
+  isDropdownOpen,
+  dropdownField,
+  toggleDropdown,
+  renderDropdown,
+  handleNumberChange,
+  handleInputChange,
+  removeTag,
+  resetTagsData,
+}: TagsSectionProps) => {
   const [formData, setFormData] = useState({ ...tagsData });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -71,7 +52,6 @@ export const TagsSection = ({
 
   const user_Id = "model_67c5af423ae5b4ccb85b9a02";
 
-  // Save Changes: Updates tagsData (can be sent to backend)
   const handleSaveChanges = async () => {
     setLoading(true);
     setError(null);
@@ -80,8 +60,8 @@ export const TagsSection = ({
     console.log("Saved Data:", formData);
     try {
       const tagData = {
-        user_Id: user_Id, // Get user ID dynamically
-        work_Field: formData.work_Field, // Extracted Work Fields
+        user_Id: user_Id,
+        work_Field: formData.work_Field,
         location: formData.location,
         age: formData.age,
         height: formData.height,
@@ -98,10 +78,9 @@ export const TagsSection = ({
         hips: formData.hips,
       };
 
-      // Remove fields that are empty arrays or empty strings
       const filteredData = Object.fromEntries(
         Object.entries(tagData).filter(
-          ([_, value]) =>
+          ([, value]) =>
             !((Array.isArray(value) && value.length === 0) || value === "")
         )
       );
@@ -112,16 +91,18 @@ export const TagsSection = ({
       });
       setSuccess(true);
       console.log("Successfully updated brand tags:", response);
-    } catch (error: any) {
-      console.error("Failed to update brand tags:", error);
-      setError(error.message || "Failed to update settings.");
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Failed to update settings.";
+      console.error("Failed to update brand tags:", message);
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    setFormData(tagsData); // Ensure formData is always updated when tagsData changes
+    setFormData(tagsData);
   }, [tagsData]);
 
   const resetStatus = () => {
@@ -152,7 +133,7 @@ export const TagsSection = ({
             }}
           >
             <label
-              className="block text-sm font-semibold mb-2 capitalize flex items-center"
+              className="text-sm font-semibold mb-2 capitalize flex items-center"
               style={{ color: primaryColor }}
             >
               <span className="mr-2 text-xl">{getIconForField(key)}</span>
@@ -236,14 +217,13 @@ export const TagsSection = ({
                   backgroundColor: "#FFF9F5",
                   outlineColor: primaryColor,
                 }}
-                value={value}
+                value={value as unknown as string}
                 onChange={(e) => handleInputChange(key, e.target.value)}
               />
             )}
           </div>
         ))}
       </div>
-      {/* Save and Reset Buttons */}
       <div className="flex justify-end mt-6">
         <button
           className="bg-gray-200 text-gray-800 px-6 py-3 rounded-lg mr-3 font-medium hover:bg-gray-300 transition-colors flex items-center"
@@ -263,7 +243,6 @@ export const TagsSection = ({
           <ChevronRight size={18} className="ml-1" />
         </button>
       </div>
-      {/* Success/Error Messages */}
       {success && (
         <p className="mt-2 text-green-600">Settings updated successfully!</p>
       )}

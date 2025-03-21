@@ -26,9 +26,10 @@ export const fetchData = async (endpoint: string, options: RequestInit = {}) => 
         }
 
         return await response.json();
-    } catch (error: any) {
-        console.error("API Fetch Error:", error.message || error);
+    } catch (error: unknown) {
+        // Replace 'any' with 'unknown' as a safer alternative
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error("API Fetch Error:", errorMessage);
         throw error;
     }
 };
-

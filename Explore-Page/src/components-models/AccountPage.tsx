@@ -4,7 +4,6 @@ import { Menu, X } from "lucide-react";
 import CarnageLogo from "../images/Image-19.png";
 import { fetchData } from "../api/api";
 
-
 type Tab = "IMAGES" | "VIDEOS";
 
 // Add type definitions
@@ -15,6 +14,13 @@ type ImageType = {
 type VideoType = {
   url: string;
   description: string;
+};
+
+// Define the file type returned from API
+type FileResponse = {
+  s3_url: string;
+  description: string;
+  // Add other properties as needed
 };
 
 export function AccountPage({
@@ -49,11 +55,8 @@ export function AccountPage({
     bio: null,
   });
 
+  // We'll access isLoading in the return statement to show a loading state if needed
   const [isLoading, setIsLoading] = useState<boolean>(true);
-
-  // Explicitly type the arrays
-  //const images: ImageType[] = []; // Add image URLs here if available
-  //const videos: VideoType[] = []; // Add video URLs here if available
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -98,7 +101,7 @@ export function AccountPage({
       );
 
       if (response) {
-        const formattedImages = response.map((file: any) => ({
+        const formattedImages = response.map((file: FileResponse) => ({
           url: file.s3_url,
           description: file.description,
         }));
@@ -122,7 +125,7 @@ export function AccountPage({
       );
 
       if (response) {
-        const formattedVideos = response.map((file: any) => ({
+        const formattedVideos = response.map((file: FileResponse) => ({
           url: file.s3_url,
           description: file.description,
         }));
@@ -292,56 +295,62 @@ export function AccountPage({
         />
       </button>
 
-      <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-        <div
-          className="w-48 h-48 rounded-full overflow-hidden bg-black flex items-center justify-center cursor-pointer hover:opacity-75 transition-opacity"
-          onClick={() => setIsProfilePicturePopoverOpen(true)}
-        >
-          <img
-            src={currentProfilePicture}
-            alt="Carnage Logo"
-            className="w-full h-full object-cover"
-          />
+      {isLoading ? (
+        <div className="flex items-center justify-center h-64">
+          <p>Loading profile data...</p>
         </div>
-
-        <div className="flex-1">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-medium">
-              {user.name || "Default User"}
-            </h1>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setIsImagePopoverOpen(true)}
-                className="px-4 py-2 bg-[#DD8560] text-white rounded-full hover:bg-opacity-90 transition-colors hover:scale-105 cursor-pointer"
-              >
-                Image +
-              </button>
-              <button
-                onClick={() => setIsVideoPopoverOpen(true)}
-                className="px-4 py-2 bg-[#DD8560] text-white rounded-full hover:bg-opacity-90 transition-colors hover:scale-105 cursor-pointer"
-              >
-                Video +
-              </button>
-            </div>
+      ) : (
+        <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
+          <div
+            className="w-48 h-48 rounded-full overflow-hidden bg-black flex items-center justify-center cursor-pointer hover:opacity-75 transition-opacity"
+            onClick={() => setIsProfilePicturePopoverOpen(true)}
+          >
+            <img
+              src={currentProfilePicture}
+              alt="Carnage Logo"
+              className="w-full h-full object-cover"
+            />
           </div>
 
-          <div className="flex gap-8 mb-6">
-            <div className="text-center md:text-left hover:text-[#DD8560] transition-colors cursor-pointer">
-              <span className="font-medium">{images.length}</span> Images
+          <div className="flex-1">
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl font-medium">
+                {user.name || "Default User"}
+              </h1>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setIsImagePopoverOpen(true)}
+                  className="px-4 py-2 bg-[#DD8560] text-white rounded-full hover:bg-opacity-90 transition-colors hover:scale-105 cursor-pointer"
+                >
+                  Image +
+                </button>
+                <button
+                  onClick={() => setIsVideoPopoverOpen(true)}
+                  className="px-4 py-2 bg-[#DD8560] text-white rounded-full hover:bg-opacity-90 transition-colors hover:scale-105 cursor-pointer"
+                >
+                  Video +
+                </button>
+              </div>
             </div>
-            <div className="text-center md:text-left hover:text-[#DD8560] transition-colors cursor-pointer">
-              <span className="font-medium">{videos.length}</span> Videos
-            </div>
-          </div>
 
-          <div className="mb-6">
-            <h2 className="text-xl font-medium mb-2">
-              {user.name || "Default User"}
-            </h2>
-            <p className="text-gray-600">{user.bio || "No bio available"}</p>
+            <div className="flex gap-8 mb-6">
+              <div className="text-center md:text-left hover:text-[#DD8560] transition-colors cursor-pointer">
+                <span className="font-medium">{images.length}</span> Images
+              </div>
+              <div className="text-center md:text-left hover:text-[#DD8560] transition-colors cursor-pointer">
+                <span className="font-medium">{videos.length}</span> Videos
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <h2 className="text-xl font-medium mb-2">
+                {user.name || "Default User"}
+              </h2>
+              <p className="text-gray-600">{user.bio || "No bio available"}</p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Profile Picture Upload Modal */}
       {isProfilePicturePopoverOpen && (

@@ -1,25 +1,24 @@
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 
-// Import your images
+// Import your images and components
 import ProjectDetailModal from "./ProjectDetailModal";
-
 import { fetchData } from "../api/api";
 
+// Define types for tabs, images, videos and projects
 type Tab = "PROJECTS" | "VIDEOS" | "IMAGES";
 
-// Add type definitions
-type ImageType = {
-  url: string;
-  description: string;
-};
-type VideoType = {
+export type ImageType = {
   url: string;
   description: string;
 };
 
-// Add this type definition
-type Project = {
+export type VideoType = {
+  url: string;
+  description: string;
+};
+
+export type Project = {
   name: string;
   image: string;
   description: string;
@@ -27,6 +26,20 @@ type Project = {
   minAge: string;
   maxAge: string;
 };
+
+// Define type for projects as returned by the API
+interface APIProject {
+  user_Id: string;
+  project_Id: string;
+  name?: string;
+  description?: string;
+}
+
+// Define type for file responses (used for images and videos)
+interface FileResponse {
+  s3_url: string;
+  description: string;
+}
 
 /**
  * AccountPage Component
@@ -74,13 +87,10 @@ export function AccountPage({
   const user_id = "brand_67c5b2c43ae5b4ccb85b9a11";
 
   const [modelingTags, setModelingTags] = useState<string[]>([]);
-
   const [user, setUser] = useState<{ name: string; bio: string | null }>({
     name: "",
     bio: null,
   });
-
-  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchModelingTags = async () => {
@@ -117,14 +127,11 @@ export function AccountPage({
       const response = await fetchData(
         `files/files/latest?user_id=${user_id}&folder=profile-pic`
       );
-
       if (response && response.s3_url) {
         setCurrentProfilePicture(response.s3_url);
       }
     } catch (error) {
       console.error("Failed to fetch profile picture:", error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -134,16 +141,14 @@ export function AccountPage({
 
   const fetchImages = async () => {
     try {
-      const response = await fetchData(
+      const response: FileResponse[] = await fetchData(
         `files/urls-for-user-id-and-foldername-with-limits?user_id=${user_id}&folder=image`
       );
-
       if (response) {
-        const formattedImages = response.map((file: any) => ({
+        const formattedImages = response.map((file: FileResponse) => ({
           url: file.s3_url,
           description: file.description,
         }));
-
         setImages(formattedImages);
       }
     } catch (error) {
@@ -158,16 +163,14 @@ export function AccountPage({
 
   const fetchVideos = async () => {
     try {
-      const response = await fetchData(
+      const response: FileResponse[] = await fetchData(
         `files/urls-for-user-id-and-foldername-with-limits?user_id=${user_id}&folder=video`
       );
-
       if (response) {
-        const formattedVideos = response.map((file: any) => ({
+        const formattedVideos = response.map((file: FileResponse) => ({
           url: file.s3_url,
           description: file.description,
         }));
-
         setVideos(formattedVideos);
       }
     } catch (error) {
@@ -183,21 +186,27 @@ export function AccountPage({
   const fetchProjects = async () => {
     try {
       // Step 1: Get all projects
-      const projectList = await fetchData("Brandprojects/projects/");
+      const projectList: APIProject[] = await fetchData(
+        "Brandprojects/projects/"
+      );
       if (!projectList) return;
 
       // Step 2: Fetch all project images at once (order-dependent)
-      const imageResponse = await fetchData(
+      const imageResponse: FileResponse[] = await fetchData(
         `files/urls-for-user-id-and-foldername-with-limits?user_id=${user_id}&folder=project`
       );
 
-      // Step 3: Fetch all project tags at once
+      // Step 3: Fetch all project tags at once (with proper type)
       const projectTags = await Promise.all(
-        projectList.map(async (project: any) => {
+        projectList.map(async (project: APIProject) => {
           try {
-            return await fetchData(
+            return (await fetchData(
               `ModellaTag/tags/projects/${project.user_Id}/${project.project_Id}`
-            );
+            )) as {
+              project_Id: string;
+              age: number[] | null;
+              work_Field: string[];
+            };
           } catch {
             return {
               project_Id: project.project_Id,
@@ -209,26 +218,29 @@ export function AccountPage({
       );
 
       // Map tags to project IDs
-      const projectTagMap = projectTags.reduce(
-        (acc: Record<string, any>, tag: any) => {
-          acc[tag.project_Id] = tag;
-          return acc;
-        },
-        {}
-      );
+      const projectTagMap: Record<
+        string,
+        { age: number[] | null; work_Field: string[] }
+      > = projectTags.reduce((acc, tag) => {
+        acc[tag.project_Id] = {
+          age: tag.age,
+          work_Field: tag.work_Field,
+        };
+        return acc;
+      }, {} as Record<string, { age: number[] | null; work_Field: string[] }>);
 
       const projectsWithDetails: Project[] = projectList.map(
-        (project: any, index: number) => ({
+        (project, index) => ({
           name: project.name || "Untitled Project",
-          image: imageResponse[index]?.s3_url || "", // Assign image based on order
+          image: imageResponse[index]?.s3_url || "",
           description: project.description || "No description provided.",
-          tags: projectTagMap[project.project_Id]?.work_Field || [], // Modeling categories
+          tags: projectTagMap[project.project_Id]?.work_Field || [],
           minAge: projectTagMap[project.project_Id]?.age
-            ? String(projectTagMap[project.project_Id].age[0])
-            : "", // Convert to string
+            ? String(projectTagMap[project.project_Id].age![0])
+            : "",
           maxAge: projectTagMap[project.project_Id]?.age
-            ? String(projectTagMap[project.project_Id].age[1])
-            : "", // Convert to string
+            ? String(projectTagMap[project.project_Id].age![1])
+            : "",
         })
       );
 
@@ -682,7 +694,10 @@ export function AccountPage({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/30 backdrop-blur-md">
           <div className="bg-white rounded-lg p-6 w-full max-w-3xl relative shadow-xl">
             <button
-              onClick={() => setIsProfilePicturePopoverOpen(false)}
+              onClick={() => {
+                setIsProfilePicturePopoverOpen(false);
+                setProfilePicture(null);
+              }}
               className="absolute top-4 right-4 text-gray-600 hover:text-[#DD8560]"
             >
               <X className="w-6 h-6 cursor-pointer" />

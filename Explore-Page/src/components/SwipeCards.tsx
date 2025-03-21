@@ -1,4 +1,10 @@
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import {
   motion,
   useMotionValue,
@@ -18,13 +24,51 @@ import {
 
 import { fetchData } from "../api/api";
 
+// Define types
+interface UserDetails {
+  user_Id: string;
+  name: string;
+  description?: string;
+  bio?: string;
+}
+
+interface ProfileImage {
+  s3_url: string;
+}
+
+interface UserTags {
+  age?: string;
+  work_Field?: string;
+}
+
+interface Review {
+  ratedBy_Id: string;
+  review?: string;
+}
+
+interface Testimonial {
+  text: string;
+  author: string;
+}
+
+interface Card {
+  id: string;
+  imageUrl: string | null;
+  name: string;
+  age: string;
+  description: string;
+  aboutMe: string;
+  interests: string[];
+  testimonials: Testimonial[];
+}
+
 // Define the props type
 interface SwipeCardsProps {
   toggleSidebar: () => void; // Function to toggle sidebar
   isSidebarOpen: boolean; // State of the sidebar
 }
 
-const fetchRecentReviews = async (userId: string) => {
+const fetchRecentReviews = async (userId: string): Promise<Review[]> => {
   try {
     const response = await fetchData(`ratings/recent/${userId}`, {
       method: "GET",
@@ -37,7 +81,7 @@ const fetchRecentReviews = async (userId: string) => {
   }
 };
 
-const fetchMatchedUserIds = async (userId: string) => {
+const fetchMatchedUserIds = async (userId: string): Promise<string[]> => {
   try {
     console.log("Fetching matched user IDs for:", userId);
     const response = await fetchData(
@@ -56,40 +100,50 @@ const fetchMatchedUserIds = async (userId: string) => {
 };
 
 // Fetch user details with error handling
-const fetchUserDetails = async (userId: string) => {
+const fetchUserDetails = async (
+  userId: string
+): Promise<UserDetails | null> => {
   try {
     const data = await fetchData(`users/${userId}`);
     return data; // Return the user details if the request is successful
-  } catch (error: any) {
+  } catch (error) {
     console.error(
       `Error fetching user details for ${userId}:`,
-      error.message || error
+      error instanceof Error ? error.message : error
     );
+    return null;
   }
 };
 
 // Fetch user profile image with error handling
-const fetchUserProfileImage = async (userId: string) => {
+const fetchUserProfileImage = async (
+  userId: string
+): Promise<ProfileImage[] | null> => {
   try {
     const data = await fetchData(
       `files/urls-for-user-id-and-foldername-with-limits?user_id=${userId}&folder=profile-pic&limit=1`
     );
     return data; // Return the profile image URL data if successful
-  } catch (error: any) {
+  } catch (error) {
     console.error(
       `Error fetching profile image for ${userId}:`,
-      error.message || error
+      error instanceof Error ? error.message : error
     );
+    return null;
   }
 };
 
 // Fetch user tags with error handling
-const fetchUserTags = async (userId: string) => {
+const fetchUserTags = async (userId: string): Promise<UserTags | null> => {
   try {
     const data = await fetchData(`ModellaTag/tags/models/${userId}`);
     return data; // Return the user tags data if successful
-  } catch (error: any) {
-    console.error(`Error fetching tags for ${userId}:`, error.message || error);
+  } catch (error) {
+    console.error(
+      `Error fetching tags for ${userId}:`,
+      error instanceof Error ? error.message : error
+    );
+    return null;
   }
 };
 
@@ -98,15 +152,14 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
   isSidebarOpen,
 }) => {
   const [cards, setCards] = useState<Card[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(cards.length - 1);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [showLegend, setShowLegend] = useState(false);
 
-  // const [userIds, setUserIds] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const userId = "brand_67c5b2c43ae5b4ccb85b9a11";
 
-  const fetchCardData = async (id: string) => {
+  const fetchCardData = async (id: string): Promise<Card | null> => {
     try {
       const [userDetails, imageResponse, userTags, reviews] = await Promise.all(
         [
@@ -117,8 +170,10 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
         ]
       );
 
+      if (!userDetails) return null;
+
       const testimonialsData = await Promise.all(
-        reviews.map(async (review: any) => {
+        reviews.map(async (review: Review) => {
           const authorDetails = await fetchUserDetails(review.ratedBy_Id);
           return {
             text: review.review || "No review text",
@@ -133,8 +188,8 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
         description: userDetails.description || "No description available.",
         aboutMe: userDetails.bio || "No bio available.",
         imageUrl: imageResponse?.[0]?.s3_url || null,
-        age: userTags.age || "unknown",
-        interests: userTags.work_Field || "empty",
+        age: userTags?.age || "unknown",
+        interests: userTags?.work_Field ? [userTags.work_Field] : [],
         testimonials: testimonialsData,
       };
     } catch (error) {
@@ -143,12 +198,14 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
     }
   };
 
-  const loadCards = async () => {
+  const loadCards = useCallback(async () => {
     setLoading(true);
     try {
       const userIds = await fetchMatchedUserIds(userId);
       const cardsData = await Promise.all(userIds.map(fetchCardData));
-      const filteredCards = cardsData.filter(Boolean); // Remove null values
+      const filteredCards = cardsData.filter(
+        (card): card is Card => card !== null
+      );
       setCards(filteredCards);
 
       setCurrentIndex(filteredCards.length - 1);
@@ -158,11 +215,11 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
       console.error("Error loading cards:", error);
     }
     setLoading(false);
-  };
+  }, [userId]);
 
   useEffect(() => {
     loadCards();
-  }, [userId]); // Dependency array ensures it runs when userId changes
+  }, [loadCards]); // Now properly including loadCards in the dependency array
 
   if (loading) return <p>Loading models...</p>;
 
@@ -342,7 +399,7 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
 
           <AnimatePresence mode="wait">
             {cards.map((card, index) => (
-              <Card
+              <CardComponent
                 key={card.id}
                 cards={cards}
                 setCards={setCards}
@@ -392,13 +449,12 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
   );
 };
 
-const DetailedView = ({
-  card,
-  onClose,
-}: {
+interface DetailedViewProps {
   card: Card;
   onClose: () => void;
-}) => {
+}
+
+const DetailedView: React.FC<DetailedViewProps> = ({ card, onClose }) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 50 }}
@@ -423,7 +479,7 @@ const DetailedView = ({
         >
           <div className="relative h-[300px] md:h-[400px] lg:h-[500px]">
             <img
-              src={card.imageUrl}
+              src={card.imageUrl || "/default-image.jpg"}
               alt={`${card.name}, ${card.age}`}
               className="h-full w-full object-cover"
             />
@@ -495,7 +551,15 @@ const DetailedView = ({
   );
 };
 
-const Card = ({
+interface CardComponentProps extends Card {
+  setCards: Dispatch<SetStateAction<Card[]>>;
+  cards: Card[];
+  currentIndex: number;
+  index: number;
+  onSelect: () => void;
+}
+
+const CardComponent: React.FC<CardComponentProps> = ({
   id,
   imageUrl,
   name,
@@ -505,17 +569,6 @@ const Card = ({
   currentIndex,
   index,
   onSelect,
-}: {
-  id: number;
-  imageUrl: string;
-  name: string;
-  age: number;
-  description: string;
-  setCards: Dispatch<SetStateAction<Card[]>>;
-  cards: Card[];
-  currentIndex: number;
-  index: number;
-  onSelect: () => void;
 }) => {
   const x = useMotionValue(0);
   const rotateRaw = useTransform(x, [-150, 150], [-18, 18]);
@@ -591,7 +644,7 @@ const Card = ({
       </AnimatePresence>
 
       <img
-        src={imageUrl}
+        src={imageUrl || "/default-image.jpg"}
         alt={`${name}, ${age}`}
         className="h-full w-full rounded-2xl object-cover"
       />
@@ -606,19 +659,3 @@ const Card = ({
 };
 
 export default SwipeCards;
-
-type Testimonial = {
-  text: string;
-  author: string;
-};
-
-type Card = {
-  id: number;
-  imageUrl: string;
-  name: string;
-  age: number;
-  description: string;
-  aboutMe: string;
-  interests: string[];
-  testimonials: Testimonial[];
-};

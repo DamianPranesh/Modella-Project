@@ -1,6 +1,15 @@
 import { User, Bell, Moon, Globe, Lock } from "lucide-react";
 import { fetchData } from "../api/api";
 import { useState } from "react";
+import { UserSettingsData } from "./SettingsPage";
+
+interface UserSettingsSectionProps {
+  userSettingsData: UserSettingsData;
+  primaryLight: string;
+  primaryDark: string;
+  primaryColor: string;
+  getIconForField: (field: string) => string;
+}
 
 export const UserSettingsSection = ({
   userSettingsData,
@@ -8,28 +17,21 @@ export const UserSettingsSection = ({
   primaryDark,
   primaryColor,
   getIconForField,
-}: // handleUserSettingChange,
-{
-  userSettingsData: any;
-  primaryLight: string;
-  primaryDark: string;
-  primaryColor: string;
-  getIconForField: (field: string) => string;
-  //handleUserSettingChange: (field: string, value: any) => void;
-}) => {
-  const [formData, setFormData] = useState(userSettingsData);
+}: UserSettingsSectionProps) => {
+  const [formData, setFormData] = useState<UserSettingsData>(userSettingsData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
 
   const user_Id = "model_67c5af423ae5b4ccb85b9a02";
 
-  // Handle input changes
-  const handleChange = (field: string, value: any) => {
-    setFormData((prev: any) => ({ ...prev, [field]: value }));
+  const handleChange = (
+    field: keyof UserSettingsData,
+    value: string | boolean
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Send update request to backend
   const updateUserSettings = async () => {
     setLoading(true);
     setError(null);
@@ -37,7 +39,7 @@ export const UserSettingsSection = ({
 
     try {
       const payload = {
-        name: formData.name, // Map business name to 'name'
+        name: formData.name,
         bio: formData.bio,
         description: formData.description,
       };
@@ -48,19 +50,21 @@ export const UserSettingsSection = ({
       });
 
       setSuccess(true);
-    } catch (err: any) {
-      setError(err.message || "Failed to update settings.");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to update settings.";
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Reset form data to original business settings
   const handleReset = () => {
     setFormData({ ...userSettingsData });
     setSuccess(false);
     setError(null);
   };
+
   return (
     <div className="p-6 bg-gradient-to-br from-white to-orange-50">
       <h2
@@ -70,7 +74,6 @@ export const UserSettingsSection = ({
         <User className="mr-2" size={24} /> Account Settings
       </h2>
 
-      {/* Profile Information */}
       <div className="bg-white p-6 rounded-xl shadow-md mb-6">
         <h3
           className="text-lg font-semibold mb-4"
@@ -145,7 +148,6 @@ export const UserSettingsSection = ({
         </div>
       </div>
 
-      {/* Settings */}
       <div className="bg-white p-6 rounded-xl shadow-md">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div
@@ -170,28 +172,22 @@ export const UserSettingsSection = ({
               <input
                 type="checkbox"
                 className="opacity-0 w-0 h-0"
-                checked={userSettingsData.notifications}
+                checked={formData.notifications}
                 onChange={() =>
-                  handleChange("notifications", !userSettingsData.notifications)
+                  handleChange("notifications", !formData.notifications)
                 }
               />
               <span
                 className={`absolute inset-0 rounded-full transition-all ${
-                  userSettingsData.notifications
-                    ? "bg-opacity-100"
-                    : "bg-gray-300"
+                  formData.notifications ? "bg-opacity-100" : "bg-gray-300"
                 }`}
                 style={{
-                  backgroundColor: userSettingsData.notifications
-                    ? primaryColor
-                    : "",
+                  backgroundColor: formData.notifications ? primaryColor : "",
                 }}
               />
               <span
                 className={`absolute w-6 h-6 bg-white rounded-full shadow-md top-1 transition-all transform ${
-                  userSettingsData.notifications
-                    ? "translate-x-7"
-                    : "translate-x-1"
+                  formData.notifications ? "translate-x-7" : "translate-x-1"
                 }`}
               />
             </div>
@@ -219,24 +215,20 @@ export const UserSettingsSection = ({
               <input
                 type="checkbox"
                 className="opacity-0 w-0 h-0"
-                checked={userSettingsData.darkMode}
-                onChange={() =>
-                  handleChange("darkMode", !userSettingsData.darkMode)
-                }
+                checked={formData.darkMode}
+                onChange={() => handleChange("darkMode", !formData.darkMode)}
               />
               <span
                 className={`absolute inset-0 rounded-full transition-all ${
-                  userSettingsData.darkMode ? "bg-opacity-100" : "bg-gray-300"
+                  formData.darkMode ? "bg-opacity-100" : "bg-gray-300"
                 }`}
                 style={{
-                  backgroundColor: userSettingsData.darkMode
-                    ? primaryColor
-                    : "",
+                  backgroundColor: formData.darkMode ? primaryColor : "",
                 }}
               />
               <span
                 className={`absolute w-6 h-6 bg-white rounded-full shadow-md top-1 transition-all transform ${
-                  userSettingsData.darkMode ? "translate-x-7" : "translate-x-1"
+                  formData.darkMode ? "translate-x-7" : "translate-x-1"
                 }`}
               />
             </div>
@@ -263,7 +255,7 @@ export const UserSettingsSection = ({
             <select
               className="border rounded-lg p-2 bg-white focus:ring-2 focus:outline-none shadow-sm"
               style={{ borderColor: primaryLight }}
-              value={userSettingsData.language}
+              value={formData.language}
               onChange={(e) => handleChange("language", e.target.value)}
             >
               <option>English</option>
@@ -294,7 +286,7 @@ export const UserSettingsSection = ({
             <select
               className="border rounded-lg p-2 bg-white focus:ring-2 focus:outline-none shadow-sm"
               style={{ borderColor: primaryLight }}
-              value={userSettingsData.privacy}
+              value={formData.privacy}
               onChange={(e) => handleChange("privacy", e.target.value)}
             >
               <option>Public</option>
@@ -305,7 +297,6 @@ export const UserSettingsSection = ({
         </div>
       </div>
 
-      {/* Buttons: Save & Reset */}
       <div className="flex justify-end mt-4">
         <button
           className="bg-gray-200 text-gray-800 px-6 py-3 rounded-lg mr-3 font-medium hover:bg-gray-300 transition-colors"
@@ -326,7 +317,6 @@ export const UserSettingsSection = ({
         </button>
       </div>
 
-      {/* Success/Error Messages */}
       {success && (
         <p className="mt-2 text-green-600">Settings updated successfully!</p>
       )}

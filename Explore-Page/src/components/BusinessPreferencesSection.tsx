@@ -1,25 +1,9 @@
 import { Settings, X, Plus, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { fetchData } from "../api/api";
-
 import { PreferencesDataType } from "./BusinessSettingsPage";
 
-export const BusinessPreferencesSection = ({
-  preferencesData,
-  primaryLight,
-  primaryDark,
-  primaryColor,
-  getIconForField,
-  hasDropdownOptions,
-  isDropdownOpen,
-  dropdownField,
-  toggleDropdown,
-  renderDropdown,
-  handleNumberChange,
-  handleInputChange,
-  removePreferenceOption,
-  resetPreferencesData,
-}: {
+interface BusinessPreferencesSectionProps {
   preferencesData: PreferencesDataType;
   primaryLight: string;
   primaryDark: string;
@@ -43,11 +27,30 @@ export const BusinessPreferencesSection = ({
   ) => void;
   removePreferenceOption: (field: string, index: number) => void;
   resetPreferencesData: () => void;
-}) => {
-  const [formData, setFormData] = useState({ ...preferencesData });
+}
+
+export const BusinessPreferencesSection = ({
+  preferencesData,
+  primaryLight,
+  primaryDark,
+  primaryColor,
+  getIconForField,
+  hasDropdownOptions,
+  isDropdownOpen,
+  dropdownField,
+  toggleDropdown,
+  renderDropdown,
+  handleNumberChange,
+  handleInputChange,
+  removePreferenceOption,
+  resetPreferencesData,
+}: BusinessPreferencesSectionProps) => {
+  const [formData, setFormData] = useState<PreferencesDataType>({
+    ...preferencesData,
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<boolean>(false);
+  const [success, setSuccess] = useState(false);
 
   const user_Id = "brand_67c5b2c43ae5b4ccb85b9a11";
 
@@ -68,7 +71,7 @@ export const BusinessPreferencesSection = ({
     console.log("Saved Data:", formData);
     try {
       const preferenceData = {
-        user_Id: user_Id, // Get user ID dynamically
+        user_Id: user_Id,
         age: formData.age,
         height: formData.height,
         natural_eye_color: formData.natural_eye_color,
@@ -88,7 +91,7 @@ export const BusinessPreferencesSection = ({
 
       const filteredData = Object.fromEntries(
         Object.entries(preferenceData).filter(
-          ([_, value]) => !(Array.isArray(value) && value.length === 0)
+          ([, value]) => !(Array.isArray(value) && value.length === 0)
         )
       );
 
@@ -101,16 +104,17 @@ export const BusinessPreferencesSection = ({
       );
       setSuccess(true);
       console.log("Successfully updated brand tags:", response);
-    } catch (error: any) {
-      console.error("Failed to update brand tags:", error);
-      setError(error.message || "Failed to update settings.");
+    } catch (error) {
+      const err = error instanceof Error ? error.message : String(error);
+      console.error("Failed to update brand tags:", err);
+      setError(err || "Failed to update settings.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    setFormData(preferencesData); // Ensure formData is always updated when tagsData changes
+    setFormData(preferencesData);
   }, [preferencesData]);
 
   const resetStatus = () => {
@@ -141,7 +145,7 @@ export const BusinessPreferencesSection = ({
             }}
           >
             <label
-              className="block text-sm font-semibold mb-2 capitalize flex items-center"
+              className="text-sm font-semibold mb-2 capitalize flex items-center"
               style={{ color: primaryColor }}
             >
               <span className="mr-2 text-xl">{getIconForField(key)}</span>
@@ -230,7 +234,6 @@ export const BusinessPreferencesSection = ({
           </div>
         ))}
       </div>
-      {/* Save and Reset Buttons */}
       <div className="flex justify-end mt-6">
         <button
           className="bg-gray-200 text-gray-800 px-6 py-3 rounded-lg mr-3 font-medium hover:bg-gray-300 transition-colors flex items-center"
@@ -250,7 +253,6 @@ export const BusinessPreferencesSection = ({
           <ChevronRight size={18} className="ml-1" />
         </button>
       </div>
-      {/* Success/Error Messages */}
       {success && (
         <p className="mt-2 text-green-600">Settings updated successfully!</p>
       )}
