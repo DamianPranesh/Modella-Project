@@ -83,14 +83,9 @@ export function AccountPage({
   const [selectedImage, setSelectedImage] = useState<ImageType | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<VideoType | null>(null);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
+  const [modelingTags, setModelingTags] = useState<string[]>([]);
 
   const user_id = "brand_67c5b2c43ae5b4ccb85b9a11";
-
-  const [modelingTags, setModelingTags] = useState<string[]>([]);
-  // const [user, setUser] = useState<{ name: string; bio: string | null }>({
-  //   name: "",
-  //   bio: null,
-  // });
   const [user, setUser] = useState<{
     name: string;
     bio: string | null;
@@ -566,7 +561,7 @@ export function AccountPage({
 
           <div className="mb-6">
             <h2 className="text-xl font-medium mb-2">
-              {user.email || "Default email"}
+              Email: {user.email || "Default email"}
             </h2>
             <p className="text-gray-600">{user.bio || "No bio available"}</p>
           </div>

@@ -50,9 +50,14 @@ export function AccountPage({
 
   const user_id = "model_67c5af423ae5b4ccb85b9a02";
 
-  const [user, setUser] = useState<{ name: string; bio: string | null }>({
+  const [user, setUser] = useState<{
+    name: string;
+    bio: string | null;
+    email: string;
+  }>({
     name: "",
     bio: null,
+    email: "",
   });
 
   // We'll access isLoading in the return statement to show a loading state if needed
@@ -65,6 +70,7 @@ export function AccountPage({
         setUser({
           name: userData.name,
           bio: userData.bio,
+          email: userData.email,
         });
       } catch (error) {
         console.error("Failed to fetch user data:", error);
@@ -344,7 +350,7 @@ export function AccountPage({
 
             <div className="mb-6">
               <h2 className="text-xl font-medium mb-2">
-                {user.name || "Default User"}
+                Email: {user.email || "Default email"}
               </h2>
               <p className="text-gray-600">{user.bio || "No bio available"}</p>
             </div>

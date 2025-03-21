@@ -316,7 +316,7 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
                     </div>
                     <div className="mb-6">
                       <p className="text-gray-700 leading-relaxed font-bold">
-                        {model.email}
+                        Email: {model.email}
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(model.email);
