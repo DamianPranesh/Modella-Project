@@ -11,6 +11,7 @@ type Model = {
   id: string;
   name: string;
   bio: string;
+  email: string;
   age: number;
   type: string[];
   image: string[];
@@ -92,7 +93,7 @@ export function SavedList({
         for (const id of savedUserIds) {
           // Fetch basic user data
           const userResponse = await fetchData(`users/${id}`);
-          const { user_Id, name, bio, social_Media_URL } = userResponse;
+          const { user_Id, name, bio, social_Media_URL, email } = userResponse;
 
           // Fetch additional model tag data from ModellaTag endpoint
           const tagResponse = await fetchData(`ModellaTag/tags/models/${id}`);
@@ -110,7 +111,8 @@ export function SavedList({
           newModels.push({
             id: user_Id,
             name: name,
-            bio: bio,
+            bio: bio || "No bio available",
+            email: email,
             age: modelTag.age || 0,
             type: modelTag.work_Field || ["Unknown"],
             image:
