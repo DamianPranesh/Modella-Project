@@ -87,9 +87,18 @@ export function AccountPage({
   const user_id = "brand_67c5b2c43ae5b4ccb85b9a11";
 
   const [modelingTags, setModelingTags] = useState<string[]>([]);
-  const [user, setUser] = useState<{ name: string; bio: string | null }>({
+  // const [user, setUser] = useState<{ name: string; bio: string | null }>({
+  //   name: "",
+  //   bio: null,
+  // });
+  const [user, setUser] = useState<{
+    name: string;
+    bio: string | null;
+    email: string;
+  }>({
     name: "",
     bio: null,
+    email: "",
   });
 
   useEffect(() => {
@@ -113,6 +122,7 @@ export function AccountPage({
         setUser({
           name: userData.name,
           bio: userData.bio,
+          email: userData.email,
         });
       } catch (error) {
         console.error("Failed to fetch user data:", error);
@@ -556,7 +566,7 @@ export function AccountPage({
 
           <div className="mb-6">
             <h2 className="text-xl font-medium mb-2">
-              {user.name || "Default User"}
+              {user.email || "Default email"}
             </h2>
             <p className="text-gray-600">{user.bio || "No bio available"}</p>
           </div>

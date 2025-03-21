@@ -10,11 +10,13 @@ import {
   Calendar,
   Camera,
 } from "lucide-react";
+import toast, { Toaster } from "react-hot-toast";
 
 type Model = {
   id: string;
   name: string;
   bio: string;
+  email: string;
   age: number;
   type: string[];
   image: string[];
@@ -312,6 +314,27 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
                         </p>
                       </div>
                     </div>
+                    <div className="mb-6">
+                      <p className="text-gray-700 leading-relaxed font-bold">
+                        {model.email}
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(model.email);
+                            toast.success(
+                              `email has been copied to clipboard! ✅`,
+                              {
+                                duration: 2000,
+                              }
+                            );
+                          }}
+                          className="ml-2 text-blue-500 hover:text-blue-700"
+                          aria-label="Copy email"
+                        >
+                          📋
+                        </button>
+                      </p>
+                    </div>
+                    <Toaster position="top-center" reverseOrder={false} />
                   </>
                 )}
 
