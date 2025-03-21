@@ -12,24 +12,12 @@ import logging
 from config.logging_config import *
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
+from config.rate_limiter import limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from fastapi import Request
+from fastapi.responses import JSONResponse
 
-# Define the lifespan handler
-# @asynccontextmanager
-# async def lifespan(app: FastAPI):
-#     try:
-#         # Actions to perform on app startup
-#         await user_collection.create_index("user_Id", unique=True)
-#         await user_collection.create_index("email", unique=True)
-#         logger.info("Unique indexes created successfully")
-#         print("Unique indexes created")
-#     except Exception as e:
-#         logger.error(f"Error creating indexes: {str(e)}")
-
-#     yield  # FastAPI app is running here
-
-#     # Actions to perform on app shutdown (if needed)
-#     print("App is shutting down")
-#     logger.info("Application is shutting down")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -83,15 +71,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Add SlowAPI middleware
+app.add_middleware(SlowAPIMiddleware)
+
+app.state.limiter = limiter
+
+# Global rate limit error handler
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Rate limit exceeded. Please try again later."}
+    )
+
 # Create or retrieve a logger for the application
 #logger = logging.getLogger("fastapi")
-
-# Include the tag routes
-# app.include_router(tag_router)
-
-# Include the preferences routes
-# app.include_router(preferences_router)
-
 
 # Include the user routes
 app.include_router(user_router)

@@ -12,13 +12,6 @@ async def create_rating(rating: Rating):
         raise HTTPException(status_code=400, detail=response["error"])
     return response
 
-# @router.put("/{rating_id}", response_model=dict)
-# async def update_rating(rating_id: str, rating: Rating):
-#     response = await update_rating_service(rating_id, rating)
-#     if "error" in response:
-#         raise HTTPException(status_code=400, detail=response["error"])
-#     return response
-
 @router.put("/{rating_id}", response_model=dict)
 async def update_rating(rating_id: str, ratedBy_Id: str, update_data: Dict[str, Any]):
     # Call the updated service function with the rating_id, ratedBy_Id, and the update data

@@ -5,7 +5,7 @@ from typing import List
 from pydantic import BaseModel
 from pymongo import ReturnDocument
 from models.Modella_preference import BrandModelPreferenceFilterRequest, ModelBrandPreferenceData, ModelBrandPreferenceFilterRequest, ModelProjectPreferenceData, BrandModelPreferenceData, ModelProjectPreferenceFilterRequest
-from models.Modella_tag import CreateRandomTagsRequest, ModelTagFilterRequest, ProjectTagFilterRequest
+from models.Modella_tag import CreateRandomTagsRequest, ProjectTagFilterRequest
 from services.Modellatag_service import filter_modelproject_tags
 from services.keywords import get_keywords
 from services.model_convert import convert_model

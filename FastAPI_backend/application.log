@@ -10,3 +10,6 @@
 2025-03-15 07:00:51,241 - services.file_service - WARNING - Upload attempt by non-existent project: project_67cc81f1f853e4ee8c8b0f49
 2025-03-15 07:01:57,737 - services.file_service - WARNING - Upload attempt by non-existent project: project_67cc81f1f853e4ee8c8b0f49
 2025-03-15 07:03:41,216 - services.file_service - WARNING - Upload attempt by non-existent project: project_67cc81f1f853e4ee8c8b0f49
+2025-03-20 14:55:23,582 - slowapi - WARNING - ratelimit 5 per 3 minute (127.0.0.1) exceeded at endpoint: /api/v1/users/
+2025-03-20 14:55:38,957 - slowapi - WARNING - ratelimit 5 per 3 minute (127.0.0.1) exceeded at endpoint: /api/v1/users/
+2025-03-20 14:59:10,832 - slowapi - WARNING - ratelimit 5 per 3 minute (127.0.0.1) exceeded at endpoint: /api/v1/users/

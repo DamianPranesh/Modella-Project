@@ -7,7 +7,6 @@ from typing import List, Optional
 from models.Modella_tag import BrandTagFilterRequest, CreateRandomTagsRequest, ModelTagData, BrandTagData, ModelTagFilterRequest, ProjectTagData, ProjectTagFilterRequest
 from config.setting import  user_collection, model_tags_collection, brand_tags_collection, project_tags_collection
 from services.keywords import get_keywords
-# from remove.preferences_services import get_unused_user_ids
 from services.validate_tag import validate_tag_data
 
 
