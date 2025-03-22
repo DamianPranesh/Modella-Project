@@ -10,11 +10,13 @@ import {
   Calendar,
   Camera,
 } from "lucide-react";
+import toast, { Toaster } from "react-hot-toast";
 
 type Model = {
   id: string;
   name: string;
   bio: string;
+  email: string;
   age: string[];
   type: string[];
   image: string[];
@@ -33,29 +35,11 @@ type Model = {
 
 // Extra data for the enhanced profile
 const additionalModelData = {
-  // bio: "Sri Lanka's No. 1 active and lifestyle brand. Our products are a reflection of the pride we take in our work.",
-  // location: "Sri Lanka, CMB",
-  // profileImages: [
-  //   "https://i.imgur.com/3JhCoyw.jpeg",
-  //   "https://i.imgur.com/XIVOqmT.jpeg",
-  //   "/api/placeholder/800/1000",
-  // ],
   recentWork: [
     { title: "Paris Fashion Week", date: "March 2025" },
     { title: "Vogue Italia Editorial", date: "January 2025" },
     { title: "Summer Campaign - Luxury Brand", date: "December 2024" },
   ],
-  // measurements: {
-  //   bust: '32"',
-  //   waist: '24"',
-  //   hips: '34"',
-  //   shoes: "8.5 US",
-  // },
-  // socialLinks: {
-  //   instagram: "@modelhandle",
-  //   tiktok: "@modelhandle",
-  //   portfolio: "www.modelportfolio.com",
-  // },
 };
 
 interface ModelDetailModalProps {
@@ -332,6 +316,27 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
                         </p>
                       </div>
                     </div>
+                    <div className="mb-6">
+                      <p className="text-gray-700 leading-relaxed font-bold">
+                        Email: {model.email}
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(model.email);
+                            toast.success(
+                              `email has been copied to clipboard! ✅`,
+                              {
+                                duration: 2000,
+                              }
+                            );
+                          }}
+                          className="ml-2 text-blue-500 hover:text-blue-700"
+                          aria-label="Copy email"
+                        >
+                          📋
+                        </button>
+                      </p>
+                    </div>
+                    <Toaster position="top-center" reverseOrder={false} />
                   </>
                 )}
 

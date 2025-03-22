@@ -10,6 +10,7 @@ type Model = {
   id: string;
   name: string;
   bio: string;
+  email: string;
   age: string[];
   type: string[];
   image: string[];
@@ -25,6 +26,8 @@ type Model = {
   shoeSize: string[];
   location: string;
 };
+
+const userId = "model_67c5af423ae5b4ccb85b9a02";
 
 export function SavedList({
   toggleSidebar,
@@ -45,13 +48,17 @@ export function SavedList({
   const [selectedModelForDetail, setSelectedModelForDetail] =
     useState<Model | null>(null);
 
-  const userId = "model_67c5af423ae5b4ccb85b9a02";
   const [savedUserIds, setSavedUserIds] = useState<string[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [savedModels, setSavedModels] = useState<Model[]>([]);
 
   useEffect(() => {
     const fetchSavedUserIds = async () => {
       try {
+        setLoading(true);
+        setError(null);
+
         // Fetch saved user IDs
         const savedListResponse = await fetchData(`savedList/${userId}`);
         const ids = savedListResponse.saved_Ids || [];
@@ -59,7 +66,10 @@ export function SavedList({
         console.log("Fetched saved user IDs:", ids); // Log to console
         setSavedUserIds(ids);
       } catch (error) {
+        setError("Failed to load saved user IDs.");
         console.error("Error fetching saved user IDs:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -80,7 +90,7 @@ export function SavedList({
           const { user_Id } = projectResponse;
 
           const userResponse = await fetchData(`users/${user_Id}`);
-          const { name, bio, social_Media_URL } = userResponse;
+          const { name, bio, social_Media_URL, email } = userResponse;
 
           // Fetch additional model tag data from ModellaTag endpoint
           const tagResponse = await fetchData(
@@ -105,7 +115,8 @@ export function SavedList({
           newModels.push({
             id: id,
             name: name,
-            bio: bio,
+            bio: bio || "No bio available",
+            email: email,
             age: projectTag.age || ["?", "?"],
             type: projectTag.work_Field || ["Unknown"],
             image: profileImage || [],
@@ -204,6 +215,12 @@ export function SavedList({
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* Display loading or error messages if present */}
+      {loading && (
+        <p className="text-gray-500 text-center mb-4">Loading saved list...</p>
+      )}
+      {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+
       {/* Hamburger Menu and Compare Button */}
       <div className="flex justify-between items-center mb-8">
         <button
