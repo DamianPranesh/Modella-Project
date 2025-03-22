@@ -172,7 +172,11 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
     loadCards();
   }, [loadCards]);
 
-  if (loading) return <p>Loading projects...</p>;
+  if (loading) return (
+    <div className="text-center">
+  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+    <p className="mt-4 text-gray-600">Loading Projects...</p>
+  </div>);
 
   const handleAccept = async () => {
     if (cards.length === 0) return; // Prevent errors if no cards are left

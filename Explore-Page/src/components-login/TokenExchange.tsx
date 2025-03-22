@@ -164,8 +164,7 @@ const TokenExchange = () => {
 
         {/* Display error if it exists */}
         {error && (
-          <div className="text-red-500 text-center mt-4">
-            {error}
+          <div className="text-white text-center mt-4">
           </div>
         )}
 

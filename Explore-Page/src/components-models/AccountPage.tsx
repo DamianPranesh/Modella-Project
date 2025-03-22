@@ -302,8 +302,9 @@ export function AccountPage({
       </button>
 
       {isLoading ? (
-        <div className="flex items-center justify-center h-64">
-          <p>Loading profile data...</p>
+        <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading Profile Data...</p>
         </div>
       ) : (
         <div className="flex flex-col md:flex-row items-center md:items-start gap-8">

@@ -57,7 +57,7 @@ function App() {
   useEffect(() => {
     async function fetchUserRole() {
       try {
-
+        
         const storedRole = sessionStorage.getItem('userRole');
         console.log('Stored role:', storedRole);
         if (storedRole) {
@@ -103,7 +103,17 @@ function App() {
     }
 
     fetchUserRole();
-  }, []);
+
+    const loadingTimeout = setTimeout(() => {
+      if (loading) {
+        console.log('Loading timeout reached, redirecting to login');
+        setLoading(false);
+        window.location.href = 'http://localhost:8000/login';
+      }
+    }, 5000);
+
+    return () => clearTimeout(loadingTimeout);
+  }, [loading]);
 
   function getCookie(name: string) {
     const value = `; ${document.cookie}`;

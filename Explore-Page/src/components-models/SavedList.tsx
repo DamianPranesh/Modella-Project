@@ -217,7 +217,10 @@ export function SavedList({
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Display loading or error messages if present */}
       {loading && (
-        <p className="text-gray-500 text-center mb-4">Loading saved list...</p>
+          <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading Saved Lists...</p>
+          </div>
       )}
       {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 
