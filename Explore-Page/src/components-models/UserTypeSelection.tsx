@@ -6,6 +6,15 @@ interface UserTypeSelectionProps {
 }
 
 export function UserTypeSelection({ setUserType }: UserTypeSelectionProps) {
+// Helper function to get cookies
+  const getCookie = (name: string): string | null => {
+    const cookieValue = document.cookie
+      .split('; ')
+      .find(row => row.startsWith(name + '='));
+    
+    return cookieValue ? cookieValue.split('=')[1] : null;
+  };
+  
   // State to track the user's selection (model or business)
   const [selectedType, setSelectedType] = useState<"model" | "business" | null>(
     null
@@ -17,20 +26,56 @@ export function UserTypeSelection({ setUserType }: UserTypeSelectionProps) {
     setSelectedType(type);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
+    console.log("Confirming selection...");
     if (selectedType) {
-      // Start the fade-out animation by setting isAnimating to true
+      console.log("Selection confirmed:", selectedType);
       setIsAnimating(true);
+  
+      setTimeout(async () => {
+        try {
+          console.log("Setting role...");
+          // const token = await getAccessTokenSilently({
+          //   timeoutInSeconds: 15,
+          // }); // Get Auth0 access token
+          // Comment
 
-      // Wait for the animation to complete before updating the parent component
-      // The setTimeout duration (500ms) matches the CSS transition duration
-      setTimeout(() => {
-        // Update the parent component with the selected user type
-        setUserType(selectedType);
-        // The App component will automatically redirect to /explore
+          const token = getCookie('access_token');
+          console.log("Token retrieved:", token); // Debugging
+  
+          const response = await fetch("http://localhost:8000/api/select-role", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`, // Send the token
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              role: selectedType, // No user_id, backend extracts from token
+            }),
+          });
+          // Comment
+          console.log("Fetch request made:", response); // Debugging
+
+  
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || "Failed to set role");
+          }
+  
+          setUserType(selectedType);
+          console.log("Role successfully set!");
+          sessionStorage.setItem("userRole", selectedType); // Store role in session
+          window.location.href = "/explore"; // Redirect to explore page
+        } catch (error: unknown) {
+          if (error instanceof Error) {
+            console.error("Error setting role:", error.message);
+          } else {
+            console.error("Error setting role:", String(error));
+          }
+        }
       }, 500);
-    }
-  };
+    } 
+  }; 
 
   return (
     <div
@@ -146,7 +191,7 @@ export function UserTypeSelection({ setUserType }: UserTypeSelectionProps) {
                     text-[#DD8560] border-2 border-[#DD8560] hover:bg-[#DD8560]/5
                     transition-colors duration-300"
                 >
-                  Change Selection
+                  Clear Selection
                 </button>
                 <button
                   onClick={handleConfirm}

@@ -76,27 +76,17 @@ const TokenExchange = () => {
   // Edit 1 End
 
   useEffect(() => {
-    //Edit 2 
-    // First check if we already have tokens in cookies
-    console.log('Checking existing auth...');
-    const isAuthenticated = checkExistingAuth();
-
-    if (isAuthenticated) {
-      // User already has tokens, validate them and proceed
-      const accessToken = getCookie('access_token')!;
-      fetchRoleAndRedirect(accessToken);
-      return;
-    }
-    //Edit 2 End
-
     // Step 1: Get the 'code' from the URL query parameters
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
 
     // Step 2: Check if the 'code' exists, then send it to the backend to exchange for tokens
     if (code) {
-        console.log("Code:", code);
-      // Send the code to the backend to get the access token and id token
+      console.log("Code:", code);
+
+      document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie = "id_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          // Send the code to the backend to get the access token and id token
       fetch(`http://localhost:8000/token?code=${code}`, {
         method: 'GET',
         credentials: 'include',
@@ -150,7 +140,17 @@ const TokenExchange = () => {
           console.error(err);
         });
     } else {
-      setError('Authorization code not found in URL');
+      console.log('No code found, checking existing auth...');
+      const isAuthenticated = checkExistingAuth();
+      
+      if (isAuthenticated) {
+        const accessToken = getCookie('access_token')!;
+        fetchRoleAndRedirect(accessToken);
+      } else {
+        // No code and no existing tokens, redirect to login
+        console.log('No authentication found, redirecting to login');
+        window.location.href = 'http://localhost:8000/login';
+      }
     }
 
     // Add what to do if code is not there
