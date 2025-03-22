@@ -12,10 +12,10 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@auth0/auth0-react": "^2.3.0",
     "@fontsource/junge": "^5.2.5",
     "@tailwindcss/vite": "^4.0.0",
     "date-fns": "^4.1.0",
-    "@auth0/auth0-react": "^2.3.0",
     "framer-motion": "^12.3.1",
     "lucide-react": "^0.474.0",
     "react": "^18.3.1",
