@@ -214,14 +214,7 @@ function App() {
                     />
                   }
                 />
-                <Route
-                  path="/login"
-                  element={
-                    <LoginPage
-                      
-                    />
-                }
-                />
+              
 
                 {/* Add more routes as needed */}
               </>

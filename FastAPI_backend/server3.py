@@ -17,6 +17,8 @@ AUTH0_AUDIENCE = os.getenv("AUTH0_AUDIENCE")
 REDIRECT_URI = os.getenv("REDIRECT_URI")
 AUTH0_ALGORITHM = "RS256"
 
+print(f"Auth0 Domain: {AUTH0_DOMAIN}")
+
 app = FastAPI()
 
 # Add CORS middleware
