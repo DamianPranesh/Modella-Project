@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useCallback } from 'react';
 
 
 const TokenExchange = () => {
@@ -17,7 +18,7 @@ const TokenExchange = () => {
   };
   // Edit 1
   // Helper function to check if user is already authenticated
-  const checkExistingAuth = (): boolean => {
+  const checkExistingAuth = useCallback((): boolean => {
     const accessToken = getCookie('access_token');
     const idToken = getCookie('id_token');
     
@@ -30,10 +31,10 @@ const TokenExchange = () => {
       return true;
     }
     return false;
-  };
+  }, []);
 
   // Function to fetch user role and redirect
-  const fetchRoleAndRedirect = (accessToken: string) => {
+  const fetchRoleAndRedirect = useCallback((accessToken: string) => {
     fetch('http://localhost:8000/api/user-role', {
       method: 'GET',
       headers: {
@@ -71,7 +72,7 @@ const TokenExchange = () => {
           window.location.href = 'http://localhost:8000/login';
         }
       });
-  };
+  }, [navigate]);
   // Edit 1 End
 
   useEffect(() => {
@@ -153,13 +154,26 @@ const TokenExchange = () => {
     }
 
     // Add what to do if code is not there
-  }, [navigate]);
+  }, [checkExistingAuth, fetchRoleAndRedirect, navigate]);
 
   return ( 
     <div className="flex min-h-screen items-center justify-center bg-white">
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
         <p className="mt-4 text-gray-600">Loading...</p>
+
+        {/* Display error if it exists */}
+        {error && (
+          <div className="text-red-500 text-center mt-4">
+            {error}
+          </div>
+        )}
+
+        {/* Display tokens if they exist */}
+        {tokens && (
+          <div className="text-gray-600 text-center mt-4">
+          </div>
+        )}
       </div>
     </div>
   );
