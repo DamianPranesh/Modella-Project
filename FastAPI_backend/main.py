@@ -1,12 +1,14 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
+from starlette.responses import RedirectResponse, JSONResponse
 from routes.file_routes import router as file_router
 from routes.user_routes import router as user_router
 from routes.rating_routes import router as rating_router
+from routes.project_routes import router as project_router
+from routes.role_management import router as role_router
 from services.Modellatag_service import router as Modellatag_router
 from services.Modella_preference_service import router as ModellaPref_router
 from services.keywords import router as keyword_router
 from models.saved_list import router as savedList_router
-from routes.project_routes import router as project_router
 from config.setting import *
 import logging
 from config.logging_config import *
@@ -15,9 +17,20 @@ from fastapi.middleware.cors import CORSMiddleware
 from config.rate_limiter import limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
-from fastapi import Request
-from fastapi.responses import JSONResponse
+from dotenv import load_dotenv
+import os
+import requests
 
+
+# Load environment variables
+load_dotenv()
+
+AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
+AUTH0_CLIENT_ID = os.getenv("AUTH0_CLIENT_ID")
+AUTH0_CLIENT_SECRET = os.getenv("AUTH0_CLIENT_SECRET")
+AUTH0_AUDIENCE = os.getenv("AUTH0_AUDIENCE")
+REDIRECT_URI = os.getenv("REDIRECT_URI")
+AUTH0_ALGORITHM = "RS256"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -110,6 +123,63 @@ app.include_router(savedList_router)
 
 # Include the project managing routes
 app.include_router(project_router)
+
+# Include the role management router
+app.include_router(role_router, prefix="/api")
+
+# Auth0 login endpoint
+@app.get("/login")
+def login():
+    return RedirectResponse(
+        f"https://{AUTH0_DOMAIN}/authorize"
+        f"?response_type=code"
+        f"&client_id={AUTH0_CLIENT_ID}"
+        f"&redirect_uri={REDIRECT_URI}"
+        f"&scope=offline_access openid profile email"
+        f"&audience={AUTH0_AUDIENCE}"
+    )
+
+# Auth0 token endpoint
+@app.get("/token")
+def get_access_token(code: str, response: Response):
+    print(f"Received code: {code}")
+    payload = (
+        "grant_type=authorization_code"
+        f"&client_id={AUTH0_CLIENT_ID}"
+        f"&client_secret={AUTH0_CLIENT_SECRET}"
+        f"&code={code}"
+        f"&redirect_uri={REDIRECT_URI}"
+    )
+    headers = {"content-type": "application/x-www-form-urlencoded"}
+    response_data = requests.post(f"https://{AUTH0_DOMAIN}/oauth/token", data=payload, headers=headers)
+    print(response_data)
+    print(f"Response Text: {response_data.text}")
+
+    response_json = response_data.json()
+
+    access_token = response_json.get("access_token")
+    id_token = response_json.get("id_token")
+
+    print(f"Access Token is : {access_token}")
+    # Uncomment the following code if you want to set cookies
+    # if access_token and id_token:
+    #     response.set_cookie(
+    #         key="access_token", 
+    #         value=access_token, 
+    #         httponly=True, 
+    #         secure=False, 
+    #         samesite="Lax",
+    #     )
+    #     response.set_cookie(
+    #         key="id_token", 
+    #         value=id_token, 
+    #         httponly=True, 
+    #         secure=False, 
+    #         samesite="Lax",
+    #     )
+    print(response.headers)
+
+    return {"access_token": access_token, "id_token": id_token}
 
 # Optional: Add a root endpoint
 @app.get("/")
