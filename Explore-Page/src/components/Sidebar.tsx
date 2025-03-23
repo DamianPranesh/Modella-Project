@@ -50,6 +50,7 @@ export function Sidebar({ isOpen, toggleSidebar, userType }: SidebarProps) {
           </span>
         </div>
 
+        {/* All the navigation items are listed below */}
         <nav className="flex-1 flex flex-col justify-start space-y-2 mt-4 font-medium min-h-0">
           <div className="py-4">
             <NavItem
