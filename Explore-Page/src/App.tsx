@@ -8,6 +8,7 @@ import {
 import { Sidebar } from "./components/Sidebar";
 import { UserTypeSelection } from "./components-models/UserTypeSelection";
 import { ExplorePage } from "./components/ExplorePage";
+import ChatsPage from "./components-chats/HomePage";
 
 // Business components
 import { AccountPage } from "./components/AccountPage";
@@ -182,6 +183,15 @@ function App() {
               path="/auth/callback" 
               element={
                 <TokenExchange 
+                />
+              } 
+            />
+
+            {/* Add the Chat Page route */}
+            <Route 
+              path="/chats" 
+              element={
+                <ChatsPage 
                 />
               } 
             />
