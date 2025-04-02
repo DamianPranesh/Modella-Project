@@ -1,10 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Route,
-  Routes,
-  Navigate,
-  useLocation
-} from "react-router-dom";
+import { Route, Routes, Navigate, useLocation } from "react-router-dom";
 import { Sidebar } from "./components/Sidebar";
 import { UserTypeSelection } from "./components-models/UserTypeSelection";
 import { ExplorePage } from "./components/ExplorePage";
@@ -20,16 +15,14 @@ import { AccountPage as ModelAccountPage } from "./components-models/AccountPage
 import ModelSwipeCards from "./components-models/SwipeCards";
 import { SavedList as ModelSavedList } from "./components-models/SavedList";
 import ModelSettingsPage from "./components-models/SettingsPage";
-import TokenExchange from './components-login/TokenExchange';
-
+import TokenExchange from "./components-login/TokenExchange";
+import { UserProvider } from "./components-login/UserContext";
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [userType, setUserType] = useState<"model" | "business" | null>(null);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
-
-
 
   const toggleSidebar = () => {
     setSidebarOpen(!isSidebarOpen);
@@ -57,47 +50,45 @@ function App() {
   useEffect(() => {
     async function fetchUserRole() {
       try {
-        
-        const storedRole = sessionStorage.getItem('userRole');
-        console.log('Stored role:', storedRole);
+        const storedRole = sessionStorage.getItem("userRole");
+        console.log("Stored role:", storedRole);
         if (storedRole) {
-          console.log('Using stored role:', storedRole);
+          console.log("Using stored role:", storedRole);
           setUserType(storedRole as "model" | "business");
           setLoading(false);
           return;
         }
 
-        const accessToken = getCookie('access_token'); // Get the access token from the cookie
+        const accessToken = getCookie("access_token"); // Get the access token from the cookie
 
         if (!accessToken) {
-          console.error('Access token not found');
+          console.error("Access token not found");
           return;
         }
-    
+
         // Make the request to the /user-role endpoint
-        const response = await fetch('http://localhost:8000/api/user-role', {
-          method: 'GET',
+        const response = await fetch("http://localhost:8000/api/user-role", {
+          method: "GET",
           headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          }
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
         });
-        
+
         if (!response.ok) {
-          console.error('Failed to fetch user role. Status:', response.status);
+          console.error("Failed to fetch user role. Status:", response.status);
           setLoading(false);
           return;
         }
 
         const data = await response.json();
-        sessionStorage.setItem('userRole', data.role);
-        console.log('Data:', data);
-        console.log('User Role:', data.role);
+        sessionStorage.setItem("userRole", data.role);
+        console.log("Data:", data);
+        console.log("User Role:", data.role);
         setUserType(data.role);
         setLoading(false);
-
       } catch (error) {
-        console.error('Error occurred while fetching user role:', error);
+        console.error("Error occurred while fetching user role:", error);
         setLoading(false);
       }
     }
@@ -106,9 +97,9 @@ function App() {
 
     const loadingTimeout = setTimeout(() => {
       if (loading) {
-        console.log('Loading timeout reached, redirecting to login');
+        console.log("Loading timeout reached, redirecting to login");
         setLoading(false);
-        window.location.href = 'http://localhost:8000/login';
+        window.location.href = "http://localhost:8000/login";
       }
     }, 5000);
 
@@ -118,15 +109,15 @@ function App() {
   function getCookie(name: string) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
-    console.log('Parts:', parts);
-    console.log('Value:', value);
-    if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+    console.log("Parts:", parts);
+    console.log("Value:", value);
+    if (parts.length === 2) return parts.pop()?.split(";").shift() || null;
     return null;
   }
 
   // Special case - on auth callback route, always show TokenExchange
   const isAuthCallbackRoute = location.pathname === "/auth/callback";
-  
+
   // Show loading indicator while determining user state, except on auth callback
   if (loading && !isAuthCallbackRoute) {
     return (
@@ -144,49 +135,43 @@ function App() {
   }
 
   // Check if user has selected a type
-  const type = sessionStorage.getItem('userRole');
+  const type = sessionStorage.getItem("userRole");
 
   if (type === "null") {
     return <UserTypeSelection setUserType={setUserType} />;
   }
 
   return (
-    
-      <div className="flex min-h-screen bg-white">
-        <Sidebar
-          isOpen={isSidebarOpen}
-          toggleSidebar={toggleSidebar}
-          userType={type as "model" | "business"}
-        />
-        <main
-          className={`flex-1 p-8 transition-margin ${
-            isSidebarOpen ? "md:ml-[250px]" : "ml-0"
-          }`}
-        >
-          <Routes>
-            {/* Redirect root path to /explore */}
-            <Route path="/" element={<Navigate to="/explore" />} />
+    <div className="flex min-h-screen bg-white">
+      <Sidebar
+        isOpen={isSidebarOpen}
+        toggleSidebar={toggleSidebar}
+        userType={type as "model" | "business"}
+      />
+      <main
+        className={`flex-1 p-8 transition-margin ${
+          isSidebarOpen ? "md:ml-[250px]" : "ml-0"
+        }`}
+      >
+        <Routes>
+          {/* Redirect root path to /explore */}
+          <Route path="/" element={<Navigate to="/explore" />} />
 
-            {/* Common route */}
-            <Route
-              path="/explore"
-              element={
-                <ExplorePage
-                  toggleSidebar={toggleSidebar}
-                  isSidebarOpen={isSidebarOpen}
-                />
-              }
-            />
-            {/* Add the TokenExchange route for callback after login */}
-            <Route 
-              path="/auth/callback" 
-              element={
-                <TokenExchange 
-                />
-              } 
-            />
-            
-            {/* Conditional routes based on user type */}
+          {/* Common route */}
+          <Route
+            path="/explore"
+            element={
+              <ExplorePage
+                toggleSidebar={toggleSidebar}
+                isSidebarOpen={isSidebarOpen}
+              />
+            }
+          />
+          {/* Add the TokenExchange route for callback after login */}
+          <Route path="/auth/callback" element={<TokenExchange />} />
+
+          {/* Conditional routes based on user type */}
+          <UserProvider>
             {userType === "business" ? (
               <>
                 <Route
@@ -209,11 +194,7 @@ function App() {
                 />
                 <Route
                   path="/settings"
-                  element={
-                    <SettingsPage
-                      toggleSidebar={toggleSidebar}
-                    />
-                  }
+                  element={<SettingsPage toggleSidebar={toggleSidebar} />}
                 />
                 <Route
                   path="/saved"
@@ -224,7 +205,6 @@ function App() {
                     />
                   }
                 />
-              
 
                 {/* Add more routes as needed */}
               </>
@@ -250,11 +230,7 @@ function App() {
                 />
                 <Route
                   path="/settings"
-                  element={
-                    <ModelSettingsPage
-                      toggleSidebar={toggleSidebar}
-                    />
-                  }
+                  element={<ModelSettingsPage toggleSidebar={toggleSidebar} />}
                 />
                 <Route
                   path="/saved"
@@ -267,10 +243,10 @@ function App() {
                 />
               </>
             )}
-          </Routes>
-        </main>
-      </div>
-    
+          </UserProvider>
+        </Routes>
+      </main>
+    </div>
   );
 }
 

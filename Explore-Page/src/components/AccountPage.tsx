@@ -4,6 +4,7 @@ import { Menu, X } from "lucide-react";
 // Import your images and components
 import ProjectDetailModal from "./ProjectDetailModal";
 import { fetchData } from "../api/api";
+import { useUser } from "../components-login/UserContext";
 
 // Define types for tabs, images, videos and projects
 type Tab = "PROJECTS" | "VIDEOS" | "IMAGES";
