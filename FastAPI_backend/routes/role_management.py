@@ -282,7 +282,7 @@ async def fetch_user_details(
     role = await get_user_role(user_id, token)
     
     # Fetch the user's name from Auth0
-    user_name = await get_userName(user_id, token)
+    # user_name = await get_userName(user_id, token)
     
     # Fetch the user's email from Auth0
     url = f"https://{AUTH0_DOMAIN}/api/v2/users/{user_id}"
@@ -302,7 +302,7 @@ async def fetch_user_details(
     return {
         "user_id": user_id,
         "role": role,
-        "user_name": user_name,  # Include the user name here
+        # "user_name": user_name,  # Include the user name here
         "email": email
     }
 

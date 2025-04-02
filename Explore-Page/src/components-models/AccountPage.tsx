@@ -3,6 +3,7 @@ import { Menu, X } from "lucide-react";
 
 import CarnageLogo from "../images/Image-19.png";
 import { fetchData } from "../api/api";
+// import { useUser } from "../components-login/UserContext";
 
 type Tab = "IMAGES" | "VIDEOS";
 
@@ -48,6 +49,8 @@ export function AccountPage({
   const [selectedVideo, setSelectedVideo] = useState<VideoType | null>(null);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
 
+  // const { userId } = useUser();
+  // const user_id = userId || "model_67c5af423ae5b4ccb85b9a02";
   const user_id = "model_67c5af423ae5b4ccb85b9a02";
 
   const [user, setUser] = useState<{
@@ -303,7 +306,7 @@ export function AccountPage({
 
       {isLoading ? (
         <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading Profile Data...</p>
         </div>
       ) : (

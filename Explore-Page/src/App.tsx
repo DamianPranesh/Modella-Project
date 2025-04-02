@@ -67,7 +67,7 @@ function App() {
         }
 
         // Make the request to the /user-role endpoint
-        const response = await fetch("http://localhost:8000/api/user-role", {
+        const response = await fetch("http://localhost:8000/api/user-details", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -142,36 +142,36 @@ function App() {
   }
 
   return (
-    <div className="flex min-h-screen bg-white">
-      <Sidebar
-        isOpen={isSidebarOpen}
-        toggleSidebar={toggleSidebar}
-        userType={type as "model" | "business"}
-      />
-      <main
-        className={`flex-1 p-8 transition-margin ${
-          isSidebarOpen ? "md:ml-[250px]" : "ml-0"
-        }`}
-      >
-        <Routes>
-          {/* Redirect root path to /explore */}
-          <Route path="/" element={<Navigate to="/explore" />} />
+    <UserProvider>
+      <div className="flex min-h-screen bg-white">
+        <Sidebar
+          isOpen={isSidebarOpen}
+          toggleSidebar={toggleSidebar}
+          userType={type as "model" | "business"}
+        />
+        <main
+          className={`flex-1 p-8 transition-margin ${
+            isSidebarOpen ? "md:ml-[250px]" : "ml-0"
+          }`}
+        >
+          <Routes>
+            {/* Redirect root path to /explore */}
+            <Route path="/" element={<Navigate to="/explore" />} />
 
-          {/* Common route */}
-          <Route
-            path="/explore"
-            element={
-              <ExplorePage
-                toggleSidebar={toggleSidebar}
-                isSidebarOpen={isSidebarOpen}
-              />
-            }
-          />
-          {/* Add the TokenExchange route for callback after login */}
-          <Route path="/auth/callback" element={<TokenExchange />} />
+            {/* Common route */}
+            <Route
+              path="/explore"
+              element={
+                <ExplorePage
+                  toggleSidebar={toggleSidebar}
+                  isSidebarOpen={isSidebarOpen}
+                />
+              }
+            />
+            {/* Add the TokenExchange route for callback after login */}
+            <Route path="/auth/callback" element={<TokenExchange />} />
 
-          {/* Conditional routes based on user type */}
-          <UserProvider>
+            {/* Conditional routes based on user type */}
             {userType === "business" ? (
               <>
                 <Route
@@ -243,10 +243,10 @@ function App() {
                 />
               </>
             )}
-          </UserProvider>
-        </Routes>
-      </main>
-    </div>
+          </Routes>
+        </main>
+      </div>
+    </UserProvider>
   );
 }
 

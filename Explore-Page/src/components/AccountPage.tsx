@@ -86,7 +86,9 @@ export function AccountPage({
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
   const [modelingTags, setModelingTags] = useState<string[]>([]);
 
-  const user_id = "brand_67c5b2c43ae5b4ccb85b9a11";
+  // const user_id = "brand_67c5b2c43ae5b4ccb85b9a11";
+  const { userId } = useUser();
+  const user_id = userId || "brand_67c5b2c43ae5b4ccb85b9a12";
   const [user, setUser] = useState<{
     name: string;
     bio: string | null;
