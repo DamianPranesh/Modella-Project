@@ -18,6 +18,9 @@ class ModelTagData(BaseModel):
     gender: Optional[str] = None
     location: Optional[str] = None
     shoe_Size: Optional[int] = None
+    bust_chest: Optional[int] = None
+    waist: Optional[int] = None
+    hips: Optional[int] = None
     saved_time: Optional[datetime] = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
@@ -35,6 +38,9 @@ class ModelTagFilterRequest(BaseModel):
     gender: Optional[str] = None
     location: Optional[str] = None
     shoe_Size: Optional[int] = None
+    bust_chest: Optional[int] = None
+    waist: Optional[int] = None
+    hips: Optional[int] = None
 
 class BrandTagData(BaseModel):
     client_Type: str = "Brand"
@@ -66,6 +72,9 @@ class ProjectTagData(BaseModel):
     gender: Optional[List[str]] = None
     location: Optional[str] = None
     shoe_Size: Optional[Tuple[int,int]] = None
+    bust_chest: Optional[Tuple[int,int]] = None
+    waist: Optional[Tuple[int,int]] = None
+    hips: Optional[Tuple[int,int]] = None
     saved_time: Optional[datetime] = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class ProjectTagFilterRequest(BaseModel):
@@ -83,6 +92,9 @@ class ProjectTagFilterRequest(BaseModel):
     gender: Optional[List[str]] = None
     location: Optional[str] = None
     shoe_Size: Optional[Tuple[int,int]] = None
+    bust_chest: Optional[Tuple[int,int]] = None
+    waist: Optional[Tuple[int,int]] = None
+    hips: Optional[Tuple[int,int]] = None
 
 class CreateRandomTagsRequest(BaseModel):
     count: int

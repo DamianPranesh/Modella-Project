@@ -1,7 +1,7 @@
 from fastapi import APIRouter, UploadFile, File
 from typing import List, Optional
 from services.file_service import (
-    get_files_urls_by_folder, upload_file, get_files, download_file, delete_file, update_visibility, get_file_url, get_files_urls_by_user_folders
+    get_file_by_project, get_files_urls_by_folder, get_latest_file_by_user_folder, upload_file, get_files, download_file, delete_file, update_visibility, get_file_url, get_files_urls_by_user_folders
 )
 
 from models.file_model import FileMetadataOnURL
@@ -9,8 +9,8 @@ from models.file_model import FileMetadataOnURL
 router = APIRouter(prefix="/files", tags=["File Management"])
 
 @router.post("/upload/")
-async def upload(file: UploadFile = File(...), user_id: str = "default_user", folder: str = "image", is_private: bool = False):
-    return await upload_file(file, user_id, folder, is_private)
+async def upload(file: UploadFile = File(...), user_id: str = "default_user", folder: str = "image", is_private: bool = False, description: str ="No description",project_id: Optional[str] = None):
+    return await upload_file(file, user_id, folder, is_private, description, project_id)
 
 @router.get("/files/", response_model=List[dict])
 async def list_files(user_id: str = None):
@@ -59,3 +59,24 @@ async def get_file_urls_by_user_id_and_folder_with_limits(user_id: str, folder: 
     # Call the get_file_url function to retrieve the file URLs
     files = await get_files_urls_by_user_folders(user_id=user_id, folder= folder, limit=limit)
     return files
+
+
+@router.get("/files/latest", response_model=Optional[FileMetadataOnURL])
+async def get_latest_file(
+    user_id: str,
+    folder: Optional[str] = None, 
+):
+    """
+    API endpoint to get the latest file uploaded by the authenticated user.
+    """
+    return await get_latest_file_by_user_folder(user_id=user_id, folder=folder)
+
+@router.get("/files-project", response_model=Optional[FileMetadataOnURL])
+async def get_project_file(
+    user_id: str,
+    project_id: str, 
+):
+    """
+    API endpoint to get the project file uploaded by the authenticated user.
+    """
+    return await get_file_by_project(user_id=user_id, project_id=project_id)

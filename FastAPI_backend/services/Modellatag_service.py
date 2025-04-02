@@ -58,7 +58,7 @@ async def create_brand_tag(tag: BrandTagData):
 
 @router.post("/tags/projects/", response_model=ProjectTagData)
 async def create_project_tag(tag: ProjectTagData):
-    tag.project_Id = f"project_{ObjectId()}" # Unique ID generation
+    #tag.project_Id = f"project_{ObjectId()}" # Unique ID generation
 
     existing_tag = await project_tags_collection.find_one({"project_id": tag.project_Id})
     if existing_tag:
@@ -80,6 +80,68 @@ async def create_project_tag(tag: ProjectTagData):
     raise HTTPException(status_code=500, detail="Failed to create project tag")
 
 
+@router.put("/tags/upsert/models/", response_model=ModelTagData)
+async def upsert_model_tag(tag_data: ModelTagData):
+    # Check if user_Id exists in user_collection
+    user_exists = await user_collection.find_one({"user_Id": tag_data.user_Id})
+    if not user_exists:
+        raise HTTPException(status_code=400, detail="Invalid user_Id. User does not exist.")
+
+    # Find existing tag
+    existing_tag = await model_tags_collection.find_one({"user_Id": tag_data.user_Id})
+
+    if existing_tag:
+        # Merge only provided fields while keeping existing data
+        updated_tag_data = {**existing_tag, **{k: v for k, v in tag_data.model_dump().items() if v is not None}}
+    else:
+        # If no existing tag, create a new one
+        updated_tag_data = tag_data.model_dump()
+
+    # Validate merged data
+    updated_tag = ModelTagData(**updated_tag_data)
+    validate_tag_data(updated_tag)
+
+    # Upsert the tag
+    updated_tag = await model_tags_collection.find_one_and_update(
+        {"user_Id": tag_data.user_Id},
+        {"$set": updated_tag_data},
+        upsert=True,
+        return_document=ReturnDocument.AFTER
+    )
+
+    return ModelTagData(**updated_tag)
+
+
+@router.put("/tags/upsert/brands/", response_model=BrandTagData)
+async def upsert_brand_tag(tag_data: BrandTagData):
+    # Check if user_Id exists in user_collection
+    user_exists = await user_collection.find_one({"user_Id": tag_data.user_Id})
+    if not user_exists:
+        raise HTTPException(status_code=400, detail="Invalid user_Id. User does not exist.")
+
+    # Find existing tag
+    existing_tag = await brand_tags_collection.find_one({"user_Id": tag_data.user_Id})
+
+    if existing_tag:
+        # Merge only provided fields while keeping existing data
+        updated_tag_data = {**existing_tag, **{k: v for k, v in tag_data.model_dump().items() if v is not None}}
+    else:
+        # If no existing tag, create a new one
+        updated_tag_data = tag_data.model_dump()
+
+    # Validate merged data
+    updated_tag = BrandTagData(**updated_tag_data)
+    validate_tag_data(updated_tag)
+
+    # Upsert the tag
+    updated_tag = await brand_tags_collection.find_one_and_update(
+        {"user_Id": tag_data.user_Id},
+        {"$set": updated_tag_data},
+        upsert=True,
+        return_document=ReturnDocument.AFTER
+    )
+
+    return BrandTagData(**updated_tag)
 
 
 
@@ -390,6 +452,9 @@ async def generate_tag(tag_type: str):
             gender=choice(get_keywords("genders")),
             location=choice(get_keywords("locations")),
             shoe_Size=randint(31, 50),  # Random shoe size
+            bust_chest=randint(61, 117),
+            waist=randint(51, 91),
+            hips=randint(61, 107),
             saved_time=datetime.now(timezone.utc)
         )
 
@@ -405,10 +470,11 @@ async def generate_tag(tag_type: str):
     
     elif tag_type == "Project":
         tag = ProjectTagData(
+            project_Id = f"project_{ObjectId()}",
             user_Id=user_id,
             is_project=True,
             age=((randint(18, 25), randint(26, 35))),  # Age range for project tags
-            height=((randint(150, 170), randint(171, 200))),  # Height range for project tags
+            height=((randint(150, 170), randint(171, 191))),  # Height range for project tags
             natural_eye_color=sample(get_keywords("natural_eye_colors"), 2),  # Sample 2 eye colors
             body_Type=sample(get_keywords("body_types"), 2),  # Sample 2 body types
             work_Field=sample(get_keywords("work_fields"), 3),  # Random 3 work fields
@@ -419,6 +485,9 @@ async def generate_tag(tag_type: str):
             gender=sample(get_keywords("genders"), 2),  # Sample 2 genders
             location=choice(get_keywords("locations")),
             shoe_Size=((randint(31, 35), randint(36, 50))),  # Shoe size range
+            bust_chest=((randint(61, 70), randint(71, 117))),
+            waist=((randint(51, 65), randint(66, 91))),
+            hips=((randint(61, 70), randint(71, 107))),
             saved_time=datetime.now(timezone.utc)
         )
     

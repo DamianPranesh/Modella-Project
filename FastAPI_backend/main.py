@@ -6,6 +6,9 @@ from routes.user_routes import router as user_router
 from routes.rating_routes import router as rating_router
 from services.Modellatag_service import router as Modellatag_router
 from services.Modella_preference_service import router as ModellaPref_router
+from services.keywords import router as keyword_router
+from models.saved_list import router as savedList_router
+from routes.project_routes import router as project_router
 from config.setting import user_collection
 import logging
 from config.logging_config import *
@@ -72,6 +75,14 @@ app.include_router(Modellatag_router)
 # Include the preference managing routes
 app.include_router(ModellaPref_router)
 
+# Include the keyword managing routes
+app.include_router(keyword_router)
+
+# Include the Saved List managing routes
+app.include_router(savedList_router)
+
+# Include the project managing routes
+app.include_router(project_router)
 
 # Optional: Add a root endpoint
 @app.get("/")

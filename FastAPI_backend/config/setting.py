@@ -20,6 +20,8 @@ collection_preferences = db["preferences"]
 user_collection = db["users"]
 rating_collection = db["ratings"]
 file_collection = db["file_metadata"]
+project_collection =db["projects"]
+saved_list_collection=db["SavedList"]
 
 
 model_tags_collection = db["models_tags"]
