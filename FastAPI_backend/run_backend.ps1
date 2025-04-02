@@ -1,5 +1,6 @@
 # Activate the virtual environment
-& .\mvenv\Scripts\Activate.ps1
+& .\kvenv\Scripts\Activate.ps1
+#& .\mvenv\Scripts\Activate.ps1
 
 # Run the backend using uvicorn
 uvicorn main:app --reload
