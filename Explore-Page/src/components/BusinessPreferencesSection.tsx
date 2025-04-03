@@ -1,6 +1,7 @@
 import { Settings, X, Plus, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { fetchData } from "../api/api";
+import { useUser } from "../components-login/UserContext";
 import { PreferencesDataType } from "./BusinessSettingsPage";
 
 interface BusinessPreferencesSectionProps {
@@ -52,7 +53,9 @@ export const BusinessPreferencesSection = ({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const user_Id = "brand_67c5b2c43ae5b4ccb85b9a11";
+  // user_Id = "brand_67c5b2c43ae5b4ccb85b9a11";
+  const { userId } = useUser();
+  const user_Id = userId || "";
 
   const defaultRanges: Record<string, [number, number]> = {
     age: [8, 100],

@@ -2,6 +2,7 @@ import { Settings, X, Plus, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { fetchData } from "../api/api";
 import { PreferencesDataType } from "./SettingsPage";
+import { useUser } from "../components-login/UserContext";
 
 interface PreferencesSectionProps {
   preferencesData: PreferencesDataType;
@@ -49,7 +50,9 @@ export const PreferencesSection = ({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
 
-  const user_Id = "model_67c5af423ae5b4ccb85b9a02";
+  // const user_Id = "model_67c5af423ae5b4ccb85b9a02";
+  const { userId } = useUser();
+  const user_Id = userId || "";
 
   const defaultRanges: Record<string, [number, number]> = {
     age: [8, 100],

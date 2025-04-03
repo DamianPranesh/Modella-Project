@@ -1,6 +1,7 @@
 import { Tags, ChevronRight, X, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { fetchData } from "../api/api";
+import { useUser } from "../components-login/UserContext";
 import { TagsDataType } from "./SettingsPage";
 
 interface TagsSectionProps {
@@ -50,7 +51,9 @@ export const TagsSection = ({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
 
-  const user_Id = "model_67c5af423ae5b4ccb85b9a02";
+  // const user_Id = "model_67c5af423ae5b4ccb85b9a02";
+  const { userId } = useUser();
+  const user_Id = userId || "";
 
   const handleSaveChanges = async () => {
     setLoading(true);

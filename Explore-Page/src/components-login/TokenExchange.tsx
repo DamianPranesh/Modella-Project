@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCallback } from "react";
 
+import { useUser } from "../components-login/UserContext";
+import { fetchData } from "../api/api";
+
 const TokenExchange = () => {
   const [error, setError] = useState<string | null>(null);
   const [tokens, setTokens] = useState<{
@@ -9,6 +12,8 @@ const TokenExchange = () => {
     id_token: string;
   } | null>(null);
   const navigate = useNavigate();
+
+  const { userId, setUserId } = useUser();
 
   // Helper function to get cookies
   const getCookie = (name: string): string | null => {
@@ -52,7 +57,7 @@ const TokenExchange = () => {
           }
           return response.json();
         })
-        .then((userData) => {
+        .then(async (userData) => {
           const { user_id, role, email } = userData;
 
           // Log user details
@@ -62,6 +67,25 @@ const TokenExchange = () => {
 
           // Store the role in sessionStorage
           sessionStorage.setItem("userRole", role);
+
+          // Send user data to the backend
+          try {
+            const response = await fetchData(`users`, {
+              method: "POST",
+              body: JSON.stringify({
+                google_Id: user_id,
+                role: role === "business" ? "brand" : role,
+                email,
+              }),
+            });
+
+            console.log("User details successfully sent to backend:", response);
+            if (response && response.user_Id) {
+              setUserId(response.user_Id); // Update the context with new userId
+            }
+          } catch (err) {
+            console.error("Error sending user details:", err);
+          }
 
           // Redirect to the appropriate page
           if (role) {
@@ -129,7 +153,7 @@ const TokenExchange = () => {
               },
             })
               .then((response) => response.json())
-              .then((userData) => {
+              .then(async (userData) => {
                 const { user_id, role, email } = userData;
 
                 // Log user details
@@ -139,6 +163,28 @@ const TokenExchange = () => {
 
                 // Store the role in sessionStorage
                 sessionStorage.setItem("userRole", role);
+
+                // Send user data to the backend
+                try {
+                  const response = await fetchData(`users`, {
+                    method: "POST",
+                    body: JSON.stringify({
+                      google_Id: user_id,
+                      role: role === "business" ? "brand" : role,
+                      email,
+                    }),
+                  });
+
+                  console.log(
+                    "User details successfully sent to backend:",
+                    response
+                  );
+                  if (response && response.user_Id) {
+                    setUserId(response.user_Id); // Update the context with new userId
+                  }
+                } catch (err) {
+                  console.error("Error sending user details:", err);
+                }
 
                 // Now redirect to the appropriate page
                 if (role) {
@@ -177,6 +223,11 @@ const TokenExchange = () => {
 
     // Add what to do if code is not there
   }, [checkExistingAuth, fetchRoleAndRedirect, navigate]);
+
+  // Log the userId after it has been updated
+  useEffect(() => {
+    console.log("User ID in context (after state update):", userId);
+  }, [userId]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-white">

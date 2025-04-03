@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import { fetchData } from "../api/api";
+import { useUser } from "../components-login/UserContext";
 
 // Define types
 interface UserDetails {
@@ -68,9 +69,9 @@ interface SwipeCardsProps {
   isSidebarOpen: boolean; // State of the sidebar
 }
 
-const fetchRecentReviews = async (userId: string): Promise<Review[]> => {
+const fetchRecentReviews = async (user__Id: string): Promise<Review[]> => {
   try {
-    const response = await fetchData(`ratings/recent/${userId}`, {
+    const response = await fetchData(`ratings/recent/${user__Id}`, {
       method: "GET",
     });
     console.log("Fetched reviews:", response);
@@ -81,11 +82,11 @@ const fetchRecentReviews = async (userId: string): Promise<Review[]> => {
   }
 };
 
-const fetchMatchedUserIds = async (userId: string): Promise<string[]> => {
+const fetchMatchedUserIds = async (user__Id: string): Promise<string[]> => {
   try {
-    console.log("Fetching matched user IDs for:", userId);
+    console.log("Fetching matched user IDs for:", user__Id);
     const response = await fetchData(
-      `ModellaPreference/brand-Model-preference-matched-ids-by-user-id/${userId}`,
+      `ModellaPreference/brand-Model-preference-matched-ids-by-user-id/${user__Id}`,
       {
         method: "POST",
         body: JSON.stringify({}),
@@ -101,14 +102,14 @@ const fetchMatchedUserIds = async (userId: string): Promise<string[]> => {
 
 // Fetch user details with error handling
 const fetchUserDetails = async (
-  userId: string
+  user__Id: string
 ): Promise<UserDetails | null> => {
   try {
-    const data = await fetchData(`users/${userId}`);
+    const data = await fetchData(`users/${user__Id}`);
     return data; // Return the user details if the request is successful
   } catch (error) {
     console.error(
-      `Error fetching user details for ${userId}:`,
+      `Error fetching user details for ${user__Id}:`,
       error instanceof Error ? error.message : error
     );
     return null;
@@ -117,16 +118,16 @@ const fetchUserDetails = async (
 
 // Fetch user profile image with error handling
 const fetchUserProfileImage = async (
-  userId: string
+  user__Id: string
 ): Promise<ProfileImage[] | null> => {
   try {
     const data = await fetchData(
-      `files/urls-for-user-id-and-foldername-with-limits?user_id=${userId}&folder=profile-pic&limit=1`
+      `files/urls-for-user-id-and-foldername-with-limits?user_id=${user__Id}&folder=profile-pic&limit=1`
     );
     return data; // Return the profile image URL data if successful
   } catch (error) {
     console.error(
-      `Error fetching profile image for ${userId}:`,
+      `Error fetching profile image for ${user__Id}:`,
       error instanceof Error ? error.message : error
     );
     return null;
@@ -134,13 +135,13 @@ const fetchUserProfileImage = async (
 };
 
 // Fetch user tags with error handling
-const fetchUserTags = async (userId: string): Promise<UserTags | null> => {
+const fetchUserTags = async (user__Id: string): Promise<UserTags | null> => {
   try {
-    const data = await fetchData(`ModellaTag/tags/models/${userId}`);
+    const data = await fetchData(`ModellaTag/tags/models/${user__Id}`);
     return data; // Return the user tags data if successful
   } catch (error) {
     console.error(
-      `Error fetching tags for ${userId}:`,
+      `Error fetching tags for ${user__Id}:`,
       error instanceof Error ? error.message : error
     );
     return null;
@@ -157,7 +158,10 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
   const [showLegend, setShowLegend] = useState(false);
 
   const [loading, setLoading] = useState<boolean>(true);
-  const userId = "brand_67c5b2c43ae5b4ccb85b9a11";
+
+  // const userId = "brand_67c5b2c43ae5b4ccb85b9a11";
+  const { userId } = useUser();
+  const user__Id = userId || "";
 
   const fetchCardData = async (id: string): Promise<Card | null> => {
     try {
@@ -201,7 +205,7 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
   const loadCards = useCallback(async () => {
     setLoading(true);
     try {
-      const userIds = await fetchMatchedUserIds(userId);
+      const userIds = await fetchMatchedUserIds(user__Id);
       const cardsData = await Promise.all(userIds.map(fetchCardData));
       const filteredCards = cardsData.filter(
         (card): card is Card => card !== null
@@ -215,18 +219,19 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
       console.error("Error loading cards:", error);
     }
     setLoading(false);
-  }, [userId]);
+  }, [user__Id]);
 
   useEffect(() => {
     loadCards();
   }, [loadCards]); // Now properly including loadCards in the dependency array
 
-  if (loading) return(
-    <div className="text-center">
-    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
-      <p className="mt-4 text-gray-600">Loading Models...</p>
-    </div>);         
-  
+  if (loading)
+    return (
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Loading Models...</p>
+      </div>
+    );
 
   const navigateCards = (direction: "prev" | "next") => {
     if (direction === "prev" && currentIndex > 0) {
@@ -243,7 +248,7 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
     const currentCardId = currentCard.id; // Extract user ID of the accepted profile
 
     try {
-      const response = await fetchData(`savedList/add?user_id=${userId}`, {
+      const response = await fetchData(`savedList/add?user_id=${user__Id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -280,7 +285,7 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
     const currentCardId = currentCard.id; // Extract user ID of the rejected profile
 
     try {
-      const response = await fetchData(`savedList/remove?user_id=${userId}`, {
+      const response = await fetchData(`savedList/remove?user_id=${user__Id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

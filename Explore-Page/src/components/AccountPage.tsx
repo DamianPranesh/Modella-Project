@@ -88,7 +88,7 @@ export function AccountPage({
 
   // const user_id = "brand_67c5b2c43ae5b4ccb85b9a11";
   const { userId } = useUser();
-  const user_id = userId || "brand_67c5b2c43ae5b4ccb85b9a12";
+  const user_id = userId || "";
   const [user, setUser] = useState<{
     name: string;
     bio: string | null;
@@ -195,7 +195,7 @@ export function AccountPage({
     try {
       // Step 1: Get all projects
       const projectList: APIProject[] = await fetchData(
-        "Brandprojects/projects/"
+        `Brandprojects/projects/user/${user_id}`
       );
       if (!projectList) return;
 

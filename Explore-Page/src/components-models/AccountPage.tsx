@@ -3,7 +3,7 @@ import { Menu, X } from "lucide-react";
 
 import CarnageLogo from "../images/Image-19.png";
 import { fetchData } from "../api/api";
-// import { useUser } from "../components-login/UserContext";
+import { useUser } from "../components-login/UserContext";
 
 type Tab = "IMAGES" | "VIDEOS";
 
@@ -49,9 +49,9 @@ export function AccountPage({
   const [selectedVideo, setSelectedVideo] = useState<VideoType | null>(null);
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
 
-  // const { userId } = useUser();
-  // const user_id = userId || "model_67c5af423ae5b4ccb85b9a02";
-  const user_id = "model_67c5af423ae5b4ccb85b9a02";
+  // const user_id = "model_67c5af423ae5b4ccb85b9a02";
+  const { userId } = useUser();
+  const user_id = userId || "";
 
   const [user, setUser] = useState<{
     name: string;

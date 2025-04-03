@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import { fetchData } from "../api/api";
+import { useUser } from "../components-login/UserContext";
 
 // Define the props type
 interface SwipeCardsProps {
@@ -40,11 +41,11 @@ type Card = {
   interests: string[];
 };
 
-const fetchMatchedProjectIds = async (userId: string) => {
+const fetchMatchedProjectIds = async (user__Id: string) => {
   try {
-    console.log("Fetching matched project IDs for:", userId);
+    console.log("Fetching matched project IDs for:", user__Id);
     const response = await fetchData(
-      `ModellaPreference/Model-project-preference-matched-project-ids-by-user-id/${userId}`,
+      `ModellaPreference/Model-project-preference-matched-project-ids-by-user-id/${user__Id}`,
       {
         method: "POST",
         body: JSON.stringify({}),
@@ -70,10 +71,10 @@ const fetchProjectDetails = async (projectId: string) => {
   }
 };
 
-const fetchProjectImage = async (userId: string, projectId: string) => {
+const fetchProjectImage = async (user__Id: string, projectId: string) => {
   try {
     const data = await fetchData(
-      `files/files-project?user_id=${userId}&project_id=${projectId}`
+      `files/files-project?user_id=${user__Id}&project_id=${projectId}`
     );
     return data; // Return the profile image URL data if successful
   } catch (error: unknown) {
@@ -84,27 +85,27 @@ const fetchProjectImage = async (userId: string, projectId: string) => {
   }
 };
 
-const fetchProjectTags = async (userId: string, projectId: string) => {
+const fetchProjectTags = async (user__Id: string, projectId: string) => {
   try {
     const data = await fetchData(
-      `ModellaTag/tags/projects/${userId}/${projectId}`
+      `ModellaTag/tags/projects/${user__Id}/${projectId}`
     );
     return data; // Return the user tags data if successful
   } catch (error: unknown) {
     console.error(
-      `Error fetching tags for ${userId}:`,
+      `Error fetching tags for ${user__Id}:`,
       error instanceof Error ? error.message : error
     );
   }
 };
 
-const fetchUserDetails = async (userId: string) => {
+const fetchUserDetails = async (user__Id: string) => {
   try {
-    const data = await fetchData(`users/${userId}`);
+    const data = await fetchData(`users/${user__Id}`);
     return data; // Return the user details if the request is successful
   } catch (error: unknown) {
     console.error(
-      `Error fetching user details for ${userId}:`,
+      `Error fetching user details for ${user__Id}:`,
       error instanceof Error ? error.message : error
     );
   }
@@ -120,7 +121,10 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
   const [showLegend, setShowLegend] = useState(false);
 
   const [loading, setLoading] = useState<boolean>(true);
-  const userId = "model_67c5af423ae5b4ccb85b9a02";
+
+  // const userId = "model_67c5af423ae5b4ccb85b9a02";
+  const { userId } = useUser();
+  const user__Id = userId || "";
 
   const fetchCardData = async (projectId: string) => {
     try {
@@ -156,7 +160,7 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
   const loadCards = useCallback(async () => {
     setLoading(true);
     try {
-      const projectIds = await fetchMatchedProjectIds(userId);
+      const projectIds = await fetchMatchedProjectIds(user__Id);
       const cardsData = await Promise.all(projectIds.map(fetchCardData));
       const filteredCards = cardsData.filter(Boolean) as Card[];
       setCards(filteredCards);
@@ -166,17 +170,19 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
       console.error("Error loading cards:", error);
     }
     setLoading(false);
-  }, [userId]);
+  }, [user__Id]);
 
   useEffect(() => {
     loadCards();
   }, [loadCards]);
 
-  if (loading) return (
-    <div className="text-center">
-  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
-    <p className="mt-4 text-gray-600">Loading Projects...</p>
-  </div>);
+  if (loading)
+    return (
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Loading Projects...</p>
+      </div>
+    );
 
   const handleAccept = async () => {
     if (cards.length === 0) return; // Prevent errors if no cards are left
@@ -186,7 +192,7 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
 
     try {
       const response = await fetchData(
-        `savedList/add-project?user_id=${userId}`,
+        `savedList/add-project?user_id=${user__Id}`,
         {
           method: "POST",
           headers: {
@@ -226,7 +232,7 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
 
     try {
       const response = await fetchData(
-        `savedList/remove-project?user_id=${userId}`,
+        `savedList/remove-project?user_id=${user__Id}`,
         {
           method: "POST",
           headers: {

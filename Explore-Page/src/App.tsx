@@ -16,13 +16,17 @@ import ModelSwipeCards from "./components-models/SwipeCards";
 import { SavedList as ModelSavedList } from "./components-models/SavedList";
 import ModelSettingsPage from "./components-models/SettingsPage";
 import TokenExchange from "./components-login/TokenExchange";
-import { UserProvider } from "./components-login/UserContext";
+//import { UserProvider } from "./components-login/UserContext";
+
+import { useUser } from "./components-login/UserContext";
+import { fetchData } from "./api/api";
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [userType, setUserType] = useState<"model" | "business" | null>(null);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
+  const { userId, setUserId } = useUser();
 
   const toggleSidebar = () => {
     setSidebarOpen(!isSidebarOpen);
@@ -86,6 +90,26 @@ function App() {
         console.log("Data:", data);
         console.log("User Role:", data.role);
         setUserType(data.role);
+
+        // Send user data to the backend
+        try {
+          const response = await fetchData(`users`, {
+            method: "POST",
+            body: JSON.stringify({
+              google_Id: data.user_id,
+              role: data.role === "business" ? "brand" : data.role,
+              email: data.email,
+            }),
+          });
+
+          console.log("User details successfully sent to backend:", response);
+          if (response && response.user_Id) {
+            setUserId(response.user_Id); // Update the context with new userId
+          }
+        } catch (err) {
+          console.error("Error sending user details:", err);
+        }
+
         setLoading(false);
       } catch (error) {
         console.error("Error occurred while fetching user role:", error);
@@ -105,6 +129,11 @@ function App() {
 
     return () => clearTimeout(loadingTimeout);
   }, [loading]);
+
+  // Log the userId after it has been updated
+  useEffect(() => {
+    console.log("User ID in context (after state update):", userId);
+  }, [userId]);
 
   function getCookie(name: string) {
     const value = `; ${document.cookie}`;
@@ -142,111 +171,111 @@ function App() {
   }
 
   return (
-    <UserProvider>
-      <div className="flex min-h-screen bg-white">
-        <Sidebar
-          isOpen={isSidebarOpen}
-          toggleSidebar={toggleSidebar}
-          userType={type as "model" | "business"}
-        />
-        <main
-          className={`flex-1 p-8 transition-margin ${
-            isSidebarOpen ? "md:ml-[250px]" : "ml-0"
-          }`}
-        >
-          <Routes>
-            {/* Redirect root path to /explore */}
-            <Route path="/" element={<Navigate to="/explore" />} />
+    // <UserProvider>
+    <div className="flex min-h-screen bg-white">
+      <Sidebar
+        isOpen={isSidebarOpen}
+        toggleSidebar={toggleSidebar}
+        userType={type as "model" | "business"}
+      />
+      <main
+        className={`flex-1 p-8 transition-margin ${
+          isSidebarOpen ? "md:ml-[250px]" : "ml-0"
+        }`}
+      >
+        <Routes>
+          {/* Redirect root path to /explore */}
+          <Route path="/" element={<Navigate to="/explore" />} />
 
-            {/* Common route */}
-            <Route
-              path="/explore"
-              element={
-                <ExplorePage
-                  toggleSidebar={toggleSidebar}
-                  isSidebarOpen={isSidebarOpen}
-                />
-              }
-            />
-            {/* Add the TokenExchange route for callback after login */}
-            <Route path="/auth/callback" element={<TokenExchange />} />
+          {/* Common route */}
+          <Route
+            path="/explore"
+            element={
+              <ExplorePage
+                toggleSidebar={toggleSidebar}
+                isSidebarOpen={isSidebarOpen}
+              />
+            }
+          />
+          {/* Add the TokenExchange route for callback after login */}
+          <Route path="/auth/callback" element={<TokenExchange />} />
 
-            {/* Conditional routes based on user type */}
-            {userType === "business" ? (
-              <>
-                <Route
-                  path="/account"
-                  element={
-                    <AccountPage
-                      toggleSidebar={toggleSidebar}
-                      isSidebarOpen={isSidebarOpen}
-                    />
-                  }
-                />
-                <Route
-                  path="/swipe"
-                  element={
-                    <SwipeCards
-                      toggleSidebar={toggleSidebar}
-                      isSidebarOpen={isSidebarOpen}
-                    />
-                  }
-                />
-                <Route
-                  path="/settings"
-                  element={<SettingsPage toggleSidebar={toggleSidebar} />}
-                />
-                <Route
-                  path="/saved"
-                  element={
-                    <SavedList
-                      toggleSidebar={toggleSidebar}
-                      isSidebarOpen={isSidebarOpen}
-                    />
-                  }
-                />
+          {/* Conditional routes based on user type */}
+          {userType === "business" ? (
+            <>
+              <Route
+                path="/account"
+                element={
+                  <AccountPage
+                    toggleSidebar={toggleSidebar}
+                    isSidebarOpen={isSidebarOpen}
+                  />
+                }
+              />
+              <Route
+                path="/swipe"
+                element={
+                  <SwipeCards
+                    toggleSidebar={toggleSidebar}
+                    isSidebarOpen={isSidebarOpen}
+                  />
+                }
+              />
+              <Route
+                path="/settings"
+                element={<SettingsPage toggleSidebar={toggleSidebar} />}
+              />
+              <Route
+                path="/saved"
+                element={
+                  <SavedList
+                    toggleSidebar={toggleSidebar}
+                    isSidebarOpen={isSidebarOpen}
+                  />
+                }
+              />
 
-                {/* Add more routes as needed */}
-              </>
-            ) : (
-              <>
-                <Route
-                  path="/account"
-                  element={
-                    <ModelAccountPage
-                      toggleSidebar={toggleSidebar}
-                      isSidebarOpen={isSidebarOpen}
-                    />
-                  }
-                />
-                <Route
-                  path="/swipe"
-                  element={
-                    <ModelSwipeCards
-                      toggleSidebar={toggleSidebar}
-                      isSidebarOpen={isSidebarOpen}
-                    />
-                  }
-                />
-                <Route
-                  path="/settings"
-                  element={<ModelSettingsPage toggleSidebar={toggleSidebar} />}
-                />
-                <Route
-                  path="/saved"
-                  element={
-                    <ModelSavedList
-                      toggleSidebar={toggleSidebar}
-                      isSidebarOpen={isSidebarOpen}
-                    />
-                  }
-                />
-              </>
-            )}
-          </Routes>
-        </main>
-      </div>
-    </UserProvider>
+              {/* Add more routes as needed */}
+            </>
+          ) : (
+            <>
+              <Route
+                path="/account"
+                element={
+                  <ModelAccountPage
+                    toggleSidebar={toggleSidebar}
+                    isSidebarOpen={isSidebarOpen}
+                  />
+                }
+              />
+              <Route
+                path="/swipe"
+                element={
+                  <ModelSwipeCards
+                    toggleSidebar={toggleSidebar}
+                    isSidebarOpen={isSidebarOpen}
+                  />
+                }
+              />
+              <Route
+                path="/settings"
+                element={<ModelSettingsPage toggleSidebar={toggleSidebar} />}
+              />
+              <Route
+                path="/saved"
+                element={
+                  <ModelSavedList
+                    toggleSidebar={toggleSidebar}
+                    isSidebarOpen={isSidebarOpen}
+                  />
+                }
+              />
+            </>
+          )}
+        </Routes>
+      </main>
+    </div>
+    // </UserProvider>
   );
 }
 

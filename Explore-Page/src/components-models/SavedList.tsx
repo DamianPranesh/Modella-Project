@@ -5,6 +5,7 @@ import { Menu, X } from "lucide-react";
 import ComparisonModal from "./ComparisonModel";
 import ModelDetailModal from "./ModelDetailModal";
 import { fetchData } from "../api/api";
+import { useUser } from "../components-login/UserContext";
 
 type Model = {
   id: string;
@@ -27,7 +28,7 @@ type Model = {
   location: string;
 };
 
-const userId = "model_67c5af423ae5b4ccb85b9a02";
+// const userId = "model_67c5af423ae5b4ccb85b9a02";
 
 export function SavedList({
   toggleSidebar,
@@ -53,6 +54,9 @@ export function SavedList({
   const [error, setError] = useState<string | null>(null);
   const [savedModels, setSavedModels] = useState<Model[]>([]);
 
+  const { userId } = useUser();
+  const user__Id = userId || "";
+
   useEffect(() => {
     const fetchSavedUserIds = async () => {
       try {
@@ -60,7 +64,7 @@ export function SavedList({
         setError(null);
 
         // Fetch saved user IDs
-        const savedListResponse = await fetchData(`savedList/${userId}`);
+        const savedListResponse = await fetchData(`savedList/${user__Id}`);
         const ids = savedListResponse.saved_Ids || [];
 
         console.log("Fetched saved user IDs:", ids); // Log to console
@@ -217,10 +221,10 @@ export function SavedList({
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Display loading or error messages if present */}
       {loading && (
-          <div className="text-center">
+        <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading Saved Lists...</p>
-          </div>
+          <p className="mt-4 text-gray-600">Loading Saved Lists...</p>
+        </div>
       )}
       {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 

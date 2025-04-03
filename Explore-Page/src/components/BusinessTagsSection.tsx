@@ -1,6 +1,7 @@
 import { Tags, ChevronRight, X, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { fetchData } from "../api/api";
+import { useUser } from "../components-login/UserContext";
 
 type BusinessTagsData = {
   work_Field: string[];
@@ -47,7 +48,9 @@ export const BusinessTagsSection = ({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const user_Id = "brand_67c5b2c43ae5b4ccb85b9a11";
+  // const user_Id = "brand_67c5b2c43ae5b4ccb85b9a11";
+  const { userId } = useUser();
+  const user_Id = userId || "";
 
   // Save changes (send to backend)
   const handleSaveChanges = async () => {

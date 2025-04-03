@@ -1,5 +1,6 @@
 import { User, Bell, Moon, Globe, Lock } from "lucide-react";
 import { fetchData } from "../api/api";
+import { useUser } from "../components-login/UserContext";
 import { useState } from "react";
 import { UserSettingsData } from "./SettingsPage";
 
@@ -23,7 +24,9 @@ export const UserSettingsSection = ({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
 
-  const user_Id = "model_67c5af423ae5b4ccb85b9a02";
+  // const user_Id = "model_67c5af423ae5b4ccb85b9a02";
+  const { userId } = useUser();
+  const user_Id = userId || "";
 
   const handleChange = (
     field: keyof UserSettingsData,
