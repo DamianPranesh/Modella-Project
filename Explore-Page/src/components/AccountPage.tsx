@@ -563,10 +563,15 @@ export function AccountPage({
           </div>
 
           <div className="mb-6">
-            <h2 className="text-xl font-medium mb-2">
-              Email: {user.email || "Default email"}
+            <h2 className="inline text-lg font-semibold text-[#DD8560] mr-2">
+              Email:
             </h2>
-            <p className="text-gray-600">{user.bio || "No bio available"}</p>
+            <span className="text-gray-900 text-sm">
+              {user.email || "Default email"}
+            </span>
+            <p className="text-gray-600 mt-2">
+              {user.bio || "No bio available"}
+            </p>
           </div>
         </div>
       </div>
