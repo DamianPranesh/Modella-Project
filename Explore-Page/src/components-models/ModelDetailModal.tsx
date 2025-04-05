@@ -470,9 +470,9 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
             <div className="p-4 sm:p-6 border-t border-gray-200 bg-white mt-auto">
               <button
                 onClick={handleContactModel}
-                className="w-full py-3 bg-[#DD8560] text-white rounded-xl hover:bg-[#DD8560]/90 transition-all duration-300 font-medium text-sm uppercase tracking-wider shadow-lg hover:shadow-pink-200/50 transform hover:-translate-y-0.5 cursor-pointer"
+                className="w-full py-3 bg-[#DD8560]/50 text-white rounded-xl transition-all duration-300 font-medium text-sm uppercase tracking-wider shadow-lg cursor-not-allowed"
               >
-                Contact Model
+                Contact the Brand
               </button>
             </div>
           </div>
