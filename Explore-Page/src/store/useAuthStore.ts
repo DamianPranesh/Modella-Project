@@ -121,7 +121,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ authUser: null });
       toast.success("Logged out successfully");
       get().disconnectSocket();
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof AxiosError) {
         toast.error(error.response?.data?.message || "Logout failed");
       } else {
@@ -136,7 +136,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const res = await axiosInstance.put<User>("/auth/update-profile", data);
       set({ authUser: res.data });
       toast.success("Profile updated successfully");
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof AxiosError) {
         toast.error(error.response?.data?.message || "Profile update failed");
       } else {
