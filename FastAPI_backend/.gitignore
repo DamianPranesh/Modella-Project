@@ -6,7 +6,10 @@ __pycache__/
 remove/
 
 # Ignore virtual environments
+kvenv/
 mvenv/
 
 # Ignore environment variables file
 .env
+
+application.log

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Building2 } from "lucide-react";
 import { fetchData } from "../api/api";
+import { useUser } from "../components-login/UserContext";
 
 interface BusinessSettings {
   businessName: string;
@@ -33,7 +34,9 @@ export const BusinessSettingsSection = ({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const user_Id = "brand_67c5b2c43ae5b4ccb85b9a11";
+  // const user_Id = "brand_67c5b2c43ae5b4ccb85b9a11";
+  const { userId } = useUser();
+  const user_Id = userId || "";
 
   const handleChange = (field: keyof BusinessSettings, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));

@@ -7,11 +7,16 @@ from fastapi import Request
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
-@router.post("/", status_code=201, response_model=Dict)
+# @router.post("/", status_code=201, response_model=Dict)
+# async def create_user_endpoint(user: User):
+#     """Create a new user"""
+#     created_user = await create_user(user)
+#     return created_user
+@router.post("/", status_code=201, response_model=Dict[str, str])
 async def create_user_endpoint(user: User):
-    """Create a new user"""
-    created_user = await create_user(user)
-    return created_user
+    """Create a new user and return only the user_Id"""
+    user_id = await create_user(user)
+    return {"user_Id": user_id}
 
 @router.get("/{user_Id}", response_model=Dict)
 async def get_user_endpoint(user_Id: str):
@@ -30,7 +35,7 @@ async def delete_user_endpoint(user_Id: str):
 
 
 @router.get("/", response_model=List[Dict])
-@limiter.limit("5/3 minutes")
+# @limiter.limit("5/3 minutes")
 async def list_users_endpoint(request: Request, skip: int = 0, limit: int = 100):
     """List all users with pagination"""
     return await list_users(skip=skip, limit=limit)

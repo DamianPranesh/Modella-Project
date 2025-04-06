@@ -11,10 +11,7 @@ async def create_user(user: User):
     # Check for existing email
     existing_user = await user_collection.find_one({"email": user.email})
     if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User with this email already exists.",
-        )
+        return existing_user.get("user_Id")
     
     # Convert to dict and get all fields from User model
     user_dict = {
@@ -52,9 +49,10 @@ async def create_user(user: User):
     )
     
     # Return the complete user data
-    created_user = await user_collection.find_one({"_id": result.inserted_id})
-    created_user["_id"] = str(created_user["_id"])
-    return created_user
+    # created_user = await user_collection.find_one({"_id": result.inserted_id})
+    # created_user["_id"] = str(created_user["_id"])
+    # return created_user
+    return generated_user_id 
 
 async def get_user(user_Id: str):
     user = await user_collection.find_one({"user_Id": user_Id})

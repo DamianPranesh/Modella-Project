@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, Header, Request, Cookie
 from pydantic import BaseModel
-import httpx
+import httpx 
 import os
 from dotenv import load_dotenv
 from jose import jwt, JWTError
@@ -285,3 +285,38 @@ async def fetch_user_role_cookie(
     role = await get_user_role(user_id, token)
     
     return {"user_id": user_id, "role": role}
+
+@router.get("/user-details")
+async def fetch_user_details(
+    user_id: str = Depends(get_user_id_from_token),
+    token: str = Depends(get_auth0_token)
+):
+    """Fetch the user_id, role, username, and email of the authenticated user."""
+    # Fetch the user's role from Auth0
+    role = await get_user_role(user_id, token)
+    
+    # Fetch the user's name from Auth0
+    # user_name = await get_userName(user_id, token)
+    
+    # Fetch the user's email from Auth0
+    url = f"https://{AUTH0_DOMAIN}/api/v2/users/{user_id}"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers)
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail=response.json())
+        user_data = response.json()
+        email = user_data.get("email")
+    
+    # Return the user details including user_name
+    return {
+        "user_id": user_id,
+        "role": role,
+        # "user_name": user_name,  # Include the user name here
+        "email": email
+    }
+

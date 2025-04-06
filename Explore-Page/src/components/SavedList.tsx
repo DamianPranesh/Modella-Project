@@ -5,6 +5,7 @@ import { Menu, X } from "lucide-react";
 import ComparisonModal from "./ComparisonModel";
 import ModelDetailModal from "./ModelDetailModal";
 import { fetchData } from "../api/api";
+import { useUser } from "../components-login/UserContext";
 
 // Define the Model type
 type Model = {
@@ -29,7 +30,7 @@ type Model = {
   shoeSize: string;
 };
 
-const userId = "brand_67c5b2c43ae5b4ccb85b9a11";
+// const user__Id = "brand_67c5b2c43ae5b4ccb85b9a11";
 
 // Define the SavedList component
 export function SavedList({
@@ -58,6 +59,9 @@ export function SavedList({
   const [error, setError] = useState<string | null>(null);
   const [savedModels, setSavedModels] = useState<Model[]>([]);
 
+  const { userId } = useUser();
+  const user__Id = userId || "";
+
   useEffect(() => {
     const fetchSavedUserIds = async () => {
       try {
@@ -65,7 +69,7 @@ export function SavedList({
         setError(null);
 
         // Fetch saved user IDs
-        const savedListResponse = await fetchData(`savedList/${userId}`);
+        const savedListResponse = await fetchData(`savedList/${user__Id}`);
         const ids = savedListResponse.saved_Ids || [];
 
         console.log("Fetched saved user IDs:", ids); // Log to console

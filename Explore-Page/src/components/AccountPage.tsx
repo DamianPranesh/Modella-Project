@@ -4,6 +4,7 @@ import { Menu, X } from "lucide-react";
 // Import your images and components
 import ProjectDetailModal from "./ProjectDetailModal";
 import { fetchData } from "../api/api";
+import { useUser } from "../components-login/UserContext";
 
 // Define types for tabs, images, videos and projects
 type Tab = "PROJECTS" | "VIDEOS" | "IMAGES";
@@ -85,7 +86,9 @@ export function AccountPage({
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
   const [modelingTags, setModelingTags] = useState<string[]>([]);
 
-  const user_id = "brand_67c5b2c43ae5b4ccb85b9a11";
+  // const user_id = "brand_67c5b2c43ae5b4ccb85b9a11";
+  const { userId } = useUser();
+  const user_id = userId || "";
   const [user, setUser] = useState<{
     name: string;
     bio: string | null;
@@ -192,7 +195,7 @@ export function AccountPage({
     try {
       // Step 1: Get all projects
       const projectList: APIProject[] = await fetchData(
-        "Brandprojects/projects/"
+        `Brandprojects/projects/user/${user_id}`
       );
       if (!projectList) return;
 
@@ -560,10 +563,15 @@ export function AccountPage({
           </div>
 
           <div className="mb-6">
-            <h2 className="text-xl font-medium mb-2">
-              Email: {user.email || "Default email"}
+            <h2 className="inline text-lg font-semibold text-[#DD8560] mr-2">
+              Email:
             </h2>
-            <p className="text-gray-600">{user.bio || "No bio available"}</p>
+            <span className="text-gray-900 text-sm">
+              {user.email || "Default email"}
+            </span>
+            <p className="text-gray-600 mt-2">
+              {user.bio || "No bio available"}
+            </p>
           </div>
         </div>
       </div>

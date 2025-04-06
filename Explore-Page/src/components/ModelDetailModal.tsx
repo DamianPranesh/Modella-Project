@@ -11,6 +11,7 @@ import {
   Camera,
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
+import { getCalApi } from "@calcom/embed-react";
 
 type Model = {
   id: string;
@@ -74,6 +75,21 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
       document.body.style.top = `-${scrollY}px`;
       document.body.style.width = "100%";
 
+      // Initialize Cal.com when modal opens
+      const initCal = async () => {
+        const cal = await getCalApi({ namespace: "15min" });
+        cal("ui", {
+          cssVarsPerTheme: {
+            light: { "cal-brand": "#DD8560" },
+            dark: { "cal-brand": "#DD8560" },
+          },
+          hideEventTypeDetails: false,
+          layout: "month_view",
+        });
+      };
+
+      initCal();
+
       return () => {
         document.body.style.position = "";
         document.body.style.top = "";
@@ -101,10 +117,16 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
   // For demonstration, use the model's image as first image and placeholders for rest
   const allImages = model.image;
 
-  const handleContactModel = () => {
-    // Implement contact functionality here
-    console.log(`Contacting model: ${model.name}`);
-    // Implement contact functionality as needed.
+  const handleBookModel = () => {
+    // This will trigger the Cal.com popup
+    const button = document.querySelector(
+      '[data-cal-namespace="15min"]'
+    ) as HTMLElement;
+    if (button) {
+      button.click();
+    } else {
+      console.error("Calendar booking button not found");
+    }
   };
 
   return (
@@ -460,17 +482,28 @@ const ModelDetailModal: React.FC<ModelDetailModalProps> = ({
               </div>
             </div>
 
-            {/* Action buttons */}
+            {/* Action buttons - Updated to "Book Model" */}
             <div className="p-4 sm:p-6 border-t border-gray-200 bg-white mt-auto">
               <button
-                onClick={handleContactModel}
+                onClick={handleBookModel}
                 className="w-full py-3 bg-[#DD8560] text-white rounded-xl hover:bg-[#DD8560]/90 transition-all duration-300 font-medium text-sm uppercase tracking-wider shadow-lg hover:shadow-pink-200/50 transform hover:-translate-y-0.5 cursor-pointer"
               >
-                Contact Model
+                Book Model
               </button>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Hidden Cal.com button that will be triggered programmatically */}
+      <div className="hidden">
+        <button
+          data-cal-namespace="15min"
+          data-cal-link="kevin-d-rymop2/15min"
+          data-cal-config='{"layout":"month_view"}'
+        >
+          Calendar Popup
+        </button>
       </div>
     </div>
   );
