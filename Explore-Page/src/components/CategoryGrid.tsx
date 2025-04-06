@@ -42,10 +42,12 @@ export function CategoryGrid() {
       </div>
 
       {loading ? (
+        <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
-        	<p className="mt-4 text-gray-600">Loading...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#DD8560] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
         </div>
+      </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-4 max-w-7xl mx-auto">
           {selectedCategory === "Models" &&

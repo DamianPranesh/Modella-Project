@@ -20,6 +20,10 @@ router = APIRouter()
 class RoleRequest(BaseModel):
     role: str  # User selects "model" or "business"
 
+class TokenVerificationResponse(BaseModel):
+    is_valid: bool
+    user_id: str = None
+
 async def get_auth0_token():
     """Fetch an Auth0 Management API token."""
     url = f"https://{AUTH0_DOMAIN}/oauth/token"
@@ -211,6 +215,16 @@ def get_user_id_from_cookie(request: Request):
     except JWTError as e:
         raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")
 
+@router.get("/verify-token", response_model=TokenVerificationResponse)
+async def verify_token(authorization: str = Header(None)):
+    """Verify if the token is valid and return the user ID."""
+    try:
+        user_id = get_user_id_from_token(authorization)
+        return TokenVerificationResponse(is_valid=True, user_id=user_id)
+    except HTTPException:
+        # Return a 200 response with is_valid=False instead of raising an exception
+        return TokenVerificationResponse(is_valid=False)
+    
 @router.post("/select-role")
 async def select_role(
     request: RoleRequest,

@@ -1,8 +1,10 @@
-import daisyui from "daisyui";
+import daisyui from 'daisyui';
 
-/** @type {import('tailwindcss').Config} */
 export default {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
   theme: {
     extend: {},
   },
@@ -30,17 +32,9 @@ export default {
           "warning": "oklch(82% 0.189 84.429)",
           "warning-content": "oklch(41% 0.112 45.904)",
           "error": "oklch(71% 0.194 13.428)",
-          "error-content": "oklch(27% 0.105 12.094)",
-          "border": "1px",
-          "radius-selector": "0.5rem",
-          "radius-field": "0.25rem",
-          "radius-box": "0.5rem",
-          "size-selector": "0.25rem",
-          "size-field": "0.25rem",
-          "depth": "1",
-          "noise": "0",
-        },
-      },
-    ],
-  },
-};
+          "error-content": "oklch(27% 0.105 12.094)"
+        }
+      }
+    ]
+  }
+}

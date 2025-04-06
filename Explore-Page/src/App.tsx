@@ -9,6 +9,7 @@ import { Sidebar } from "./components/Sidebar";
 import { UserTypeSelection } from "./components-models/UserTypeSelection";
 import { ExplorePage } from "./components/ExplorePage";
 import ChatsPage from "./components-chats/HomePage";
+import { ProtectedRoute } from "./components/ProtectedRoute"; // Import the ProtectedRoute
 
 // Business components
 import { AccountPage } from "./components/AccountPage";
@@ -29,8 +30,6 @@ function App() {
   const [userType, setUserType] = useState<"model" | "business" | null>(null);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
-
-
 
   const toggleSidebar = () => {
     setSidebarOpen(!isSidebarOpen);
@@ -58,6 +57,11 @@ function App() {
   useEffect(() => {
     async function fetchUserRole() {
       try {
+        // Skip auth check for the callback route
+        if (location.pathname === "/auth/callback") {
+          setLoading(false);
+          return;
+        }
         
         const storedRole = sessionStorage.getItem('userRole');
         console.log('Stored role:', storedRole);
@@ -72,6 +76,11 @@ function App() {
 
         if (!accessToken) {
           console.error('Access token not found');
+          // Only redirect to login if we're not already in an auth-related route
+          if (location.pathname !== "/" && !location.pathname.includes("/auth")) {
+            window.location.href = 'http://localhost:8000/login';
+          }
+          setLoading(false);
           return;
         }
     
@@ -86,6 +95,10 @@ function App() {
         
         if (!response.ok) {
           console.error('Failed to fetch user role. Status:', response.status);
+          // Only redirect on authentication errors (401, 403)
+          if (response.status === 401 || response.status === 403) {
+            window.location.href = 'http://localhost:8000/login';
+          }
           setLoading(false);
           return;
         }
@@ -100,27 +113,17 @@ function App() {
       } catch (error) {
         console.error('Error occurred while fetching user role:', error);
         setLoading(false);
+        // Don't automatically redirect on all errors, let the protected routes handle auth
       }
     }
 
     fetchUserRole();
-
-    const loadingTimeout = setTimeout(() => {
-      if (loading) {
-        console.log('Loading timeout reached, redirecting to login');
-        setLoading(false);
-        window.location.href = 'http://localhost:8000/login';
-      }
-    }, 5000);
-
-    return () => clearTimeout(loadingTimeout);
-  }, [loading]);
+    // No timeout needed - we're handling errors properly
+  }, [location.pathname]); // Depend on location to recheck when routes change
 
   function getCookie(name: string) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
-    console.log('Parts:', parts);
-    console.log('Value:', value);
     if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
     return null;
   }
@@ -131,9 +134,9 @@ function App() {
   // Show loading indicator while determining user state, except on auth callback
   if (loading && !isAuthCallbackRoute) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white">
+      <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#DD8560] mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>
@@ -148,139 +151,156 @@ function App() {
   const type = sessionStorage.getItem('userRole');
 
   if (type === "null") {
-    return <UserTypeSelection setUserType={setUserType} />;
+    return (
+      <ProtectedRoute>
+        <UserTypeSelection setUserType={setUserType} />
+      </ProtectedRoute>
+    );
   }
 
   return (
-    
-      <div className="flex min-h-screen bg-white">
-        <Sidebar
-          isOpen={isSidebarOpen}
-          toggleSidebar={toggleSidebar}
-          userType={type as "model" | "business"}
-        />
-        <main
-          className={`flex-1 p-8 transition-margin ${
-            isSidebarOpen ? "md:ml-[250px]" : "ml-0"
-          }`}
-        >
-          <Routes>
-            {/* Redirect root path to /explore */}
-            <Route path="/" element={<Navigate to="/explore" />} />
+    <div className="flex min-h-screen bg-white" data-theme="modella">
+      <Sidebar
+        isOpen={isSidebarOpen}
+        toggleSidebar={toggleSidebar}
+        userType={type as "model" | "business"}
+      />
+      <main
+        className={`flex-1 p-8 transition-margin ${
+          isSidebarOpen ? "md:ml-[250px]" : "ml-0"
+        }`}
+      >
+        <Routes>
+          {/* Redirect root path to /explore */}
+          <Route path="/" element={<Navigate to="/explore" />} />
 
-            {/* Common route */}
-            <Route
-              path="/explore"
-              element={
+          {/* Common route */}
+          <Route
+            path="/explore"
+            element={
+              <ProtectedRoute>
                 <ExplorePage
                   toggleSidebar={toggleSidebar}
                   isSidebarOpen={isSidebarOpen}
                 />
-              }
-            />
-            {/* Add the TokenExchange route for callback after login */}
-            <Route 
-              path="/auth/callback" 
-              element={
-                <TokenExchange 
-                />
-              } 
-            />
+              </ProtectedRoute>
+            }
+          />
+          {/* Add the TokenExchange route for callback after login */}
+          <Route 
+            path="/auth/callback" 
+            element={
+              <TokenExchange />
+            } 
+          />
 
-            {/* Add the Chat Page route */}
-            <Route 
-              path="/chats" 
-              element={
-                <ChatsPage 
-                />
-              } 
-            />
-            
-            {/* Conditional routes based on user type */}
-            {userType === "business" ? (
-              <>
-                <Route
-                  path="/account"
-                  element={
+          {/* Add the Chat Page route */}
+          <Route 
+            path="/chats" 
+            element={
+              <ProtectedRoute>
+                <ChatsPage />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Conditional routes based on user type */}
+          {userType === "business" ? (
+            <>
+              <Route
+                path="/account"
+                element={
+                  <ProtectedRoute>
                     <AccountPage
                       toggleSidebar={toggleSidebar}
                       isSidebarOpen={isSidebarOpen}
                     />
-                  }
-                />
-                <Route
-                  path="/swipe"
-                  element={
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/swipe"
+                element={
+                  <ProtectedRoute>
                     <SwipeCards
                       toggleSidebar={toggleSidebar}
                       isSidebarOpen={isSidebarOpen}
                     />
-                  }
-                />
-                <Route
-                  path="/settings"
-                  element={
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
                     <SettingsPage
                       toggleSidebar={toggleSidebar}
                     />
-                  }
-                />
-                <Route
-                  path="/saved"
-                  element={
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/saved"
+                element={
+                  <ProtectedRoute>
                     <SavedList
                       toggleSidebar={toggleSidebar}
                       isSidebarOpen={isSidebarOpen}
                     />
-                  }
-                />
-              
-
-                {/* Add more routes as needed */}
-              </>
-            ) : (
-              <>
-                <Route
-                  path="/account"
-                  element={
+                  </ProtectedRoute>
+                }
+              />
+            </>
+          ) : (
+            <>
+              <Route
+                path="/account"
+                element={
+                  <ProtectedRoute>
                     <ModelAccountPage
                       toggleSidebar={toggleSidebar}
                       isSidebarOpen={isSidebarOpen}
                     />
-                  }
-                />
-                <Route
-                  path="/swipe"
-                  element={
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/swipe"
+                element={
+                  <ProtectedRoute>
                     <ModelSwipeCards
                       toggleSidebar={toggleSidebar}
                       isSidebarOpen={isSidebarOpen}
                     />
-                  }
-                />
-                <Route
-                  path="/settings"
-                  element={
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
                     <ModelSettingsPage
                       toggleSidebar={toggleSidebar}
                     />
-                  }
-                />
-                <Route
-                  path="/saved"
-                  element={
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/saved"
+                element={
+                  <ProtectedRoute>
                     <ModelSavedList
                       toggleSidebar={toggleSidebar}
                       isSidebarOpen={isSidebarOpen}
                     />
-                  }
-                />
-              </>
-            )}
-          </Routes>
-        </main>
-      </div>
-    
+                  </ProtectedRoute>
+                }
+              />
+            </>
+          )}
+        </Routes>
+      </main>
+    </div>
   );
 }
 
