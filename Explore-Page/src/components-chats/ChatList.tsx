@@ -44,7 +44,7 @@ const Chatlist: React.FC = () => {
             />
             <span className="text-sm">Show online only</span>
           </label>
-          <span className="text-xs text-zinc-500">({onlineUsers.length - 1} online)</span>
+          <span className="text-xs text-zinc-500">({onlineUsers.length} online)</span>
         </div>
       </div>
 
