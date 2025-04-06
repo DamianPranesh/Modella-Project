@@ -2,6 +2,7 @@ import { create } from "zustand";
 import toast from "react-hot-toast";
 import { axiosInstance } from "../lib/axios";
 import { useAuthStore } from "./useAuthStore.ts";
+import { AxiosError } from "axios";
 
 // Interfaces for type safety
 interface User {
@@ -54,8 +55,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
     try {
       const res = await axiosInstance.get<User[]>("/messages/users");
       set({ users: res.data });
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to fetch users");
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data?.message || "Failed to fetch users");
+      } else {
+        toast.error("Failed to fetch users");
+      }
     } finally {
       set({ isUsersLoading: false });
     }
@@ -66,8 +71,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
     try {
       const res = await axiosInstance.get<Message[]>(`/messages/${userId}`);
       set({ messages: res.data });
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to fetch messages");
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data?.message || "Failed to fetch messages");
+      } else {
+        toast.error("Failed to fetch messages");
+      }
     } finally {
       set({ isMessagesLoading: false });
     }
@@ -83,8 +92,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
     try {
       const res = await axiosInstance.post<Message>(`/messages/send/${selectedUser._id}`, messageData);
       set({ messages: [...messages, res.data] });
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to send message");
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data?.message || "Failed to send message");
+      } else {
+        toast.error("Failed to send message");
+      }
     }
   },
 
