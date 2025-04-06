@@ -39,7 +39,7 @@ export const SelectRole = () => {
       // Wait for the animation
       setTimeout(() => {
         // Redirect based on the selected role
-        navigate(selectedType === 'model' ? '/components-models/SettingsPage' : '/components/BusinessSettingsPage');
+        navigate('/settings');
       }, 500);
       
     } catch (error) {
