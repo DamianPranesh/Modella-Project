@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:8000/api/v1"; // Change this for production
+const API_BASE_URL = "http://modella-project.up.railway.app/api/v1"; // Change this for production
 
 export const fetchData = async (endpoint: string, options: RequestInit = {}) => {
     try {

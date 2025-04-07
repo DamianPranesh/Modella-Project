@@ -78,14 +78,14 @@ function App() {
           console.error('Access token not found');
           // Only redirect to login if we're not already in an auth-related route
           if (location.pathname !== "/" && !location.pathname.includes("/auth")) {
-            window.location.href = 'http://localhost:8000/login';
+            window.location.href = 'http://modella-project.up.railway.app/login';
           }
           setLoading(false)
           return;
         }
 
         // Make the request to the /user-role endpoint
-        const response = await fetch("http://localhost:8000/api/user-details", {
+        const response = await fetch("http://modella-project.up.railway.app/api/user-details", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -97,7 +97,7 @@ function App() {
           console.error('Failed to fetch user role. Status:', response.status);
           // Only redirect on authentication errors (401, 403)
           if (response.status === 401 || response.status === 403) {
-            window.location.href = 'http://localhost:8000/login';
+            window.location.href = 'http://modella-project.up.railway.app/login';
           }
           setLoading(false);
           return;

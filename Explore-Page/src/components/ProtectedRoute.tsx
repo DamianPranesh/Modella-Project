@@ -55,7 +55,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
       // Verify token with the backend
       try {
-        const response = await fetch('http://localhost:8000/api/verify-token', {
+        const response = await fetch('http://modella-project.up.railway.app/api/verify-token', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -102,7 +102,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   // If not authenticated, redirect to login
   if (!authState.isAuthenticated) {
-    window.location.href = 'http://localhost:8000/login';
+    window.location.href = 'http://modella-project.up.railway.app/login';
     
     // Show a brief message while redirecting
     return (
