@@ -43,7 +43,7 @@ const TokenExchange = () => {
   // Function to fetch user role and redirect
   const fetchRoleAndRedirect = useCallback(
     (accessToken: string) => {
-      fetch("http://modella-project.up.railway.app/api/user-details", {
+      fetch("https://modella-project.up.railway.app/api/user-details", {
         method: "GET",
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -105,7 +105,7 @@ const TokenExchange = () => {
             setError("Authentication expired. Please login again.");
           } else {
             console.log("Redirecting to login page...");
-            window.location.href = "http://modella-project.up.railway.app/login";
+            window.location.href = "https://modella-project.up.railway.app/login";
           }
         });
     },
@@ -127,7 +127,7 @@ const TokenExchange = () => {
       document.cookie =
         "id_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
       // Send the code to the backend to get the access token and id token
-      fetch(`http://modella-project.up.railway.app/token?code=${code}`, {
+      fetch(`https://modella-project.up.railway.app/token?code=${code}`, {
         method: "GET",
         credentials: "include",
       })
@@ -145,7 +145,7 @@ const TokenExchange = () => {
 
             const accessToken = data.access_token;
 
-            fetch("http://modella-project.up.railway.app/api/user-details", {
+            fetch("https://modella-project.up.railway.app/api/user-details", {
               method: "GET",
               headers: {
                 Authorization: `Bearer ${accessToken}`,
@@ -217,7 +217,7 @@ const TokenExchange = () => {
       } else {
         // No code and no existing tokens, redirect to login
         console.log("No authentication found, redirecting to login");
-        window.location.href = "http://modella-project.up.railway.app/login";
+        window.location.href = "https://modella-project.up.railway.app/login";
       }
     }
 

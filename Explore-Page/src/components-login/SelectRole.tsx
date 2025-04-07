@@ -23,7 +23,7 @@ export const SelectRole = () => {
       const token = await getAccessTokenSilently();
       
       // Call your API to update the user's role
-      const response = await fetch('http://modella-project.up.railway.app/api/select-role', {
+      const response = await fetch('https://modella-project.up.railway.app/api/select-role', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

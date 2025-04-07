@@ -43,7 +43,7 @@ export function UserTypeSelection({ setUserType }: UserTypeSelectionProps) {
           const token = getCookie('access_token');
           console.log("Token retrieved:", token); // Debugging
   
-          const response = await fetch("http://modella-project.up.railway.app/api/select-role", {
+          const response = await fetch("https://modella-project.up.railway.app/api/select-role", {
             method: "POST",
             headers: {
               Authorization: `Bearer ${token}`, // Send the token
