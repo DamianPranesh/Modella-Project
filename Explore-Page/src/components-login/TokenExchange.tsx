@@ -41,7 +41,7 @@ const TokenExchange = () => {
   }, []);
 
   // Ensure context updates before navigation
-  const handleAuthSuccess = async (userData: any, userId: string) => {
+  const handleAuthSuccess = async (userData: {role?: string}, userId: string) => {
     // Update the context with new userId
     setUserId(userId);
     
