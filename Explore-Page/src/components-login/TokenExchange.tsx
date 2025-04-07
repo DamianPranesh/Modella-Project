@@ -46,7 +46,7 @@ const TokenExchange = () => {
     setUserId(userId);
     
     // Add a small delay to ensure context updates propagate
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 5000));
     
     // Navigate using consistent method
     if (userData.role) {
