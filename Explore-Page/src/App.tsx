@@ -4,7 +4,7 @@ import { Sidebar } from "./components/Sidebar";
 import { UserTypeSelection } from "./components-models/UserTypeSelection";
 import { ExplorePage } from "./components/ExplorePage";
 import ChatsPage from "./components-chats/HomePage";
-import { ProtectedRoute } from "./components/ProtectedRoute"; // Import the ProtectedRoute
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 // Business components
 import { AccountPage } from "./components/AccountPage";
@@ -18,7 +18,6 @@ import ModelSwipeCards from "./components-models/SwipeCards";
 import { SavedList as ModelSavedList } from "./components-models/SavedList";
 import ModelSettingsPage from "./components-models/SettingsPage";
 import TokenExchange from "./components-login/TokenExchange";
-//import { UserProvider } from "./components-login/UserContext";
 
 import { useUser } from "./components-login/UserContext";
 import { fetchData } from "./api/api";
@@ -80,7 +79,7 @@ function App() {
           if (location.pathname !== "/" && !location.pathname.includes("/auth")) {
             window.location.href = 'https://modella-project.up.railway.app/login';
           }
-          setLoading(false)
+          setLoading(false);
           return;
         }
 
@@ -123,6 +122,9 @@ function App() {
           console.log("User details successfully sent to backend:", response);
           if (response && response.user_Id) {
             setUserId(response.user_Id); // Update the context with new userId
+            
+            // Add a small delay to ensure context updates propagate
+            await new Promise(resolve => setTimeout(resolve, 100));
           }
         } catch (err) {
           console.error("Error sending user details:", err);
@@ -137,8 +139,7 @@ function App() {
     }
 
     fetchUserRole();
-    // No timeout needed - we're handling errors properly
-  }, [location.pathname]); // Depend on location to recheck when routes change
+  }, [location.pathname, setUserId]); // Added setUserId to dependencies
 
   // Log the userId after it has been updated
   useEffect(() => {

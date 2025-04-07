@@ -26,7 +26,7 @@ interface UserProviderProps {
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   // Hardcoding the userId here
-  const [userId, setUserId] = useState<string | null>(" "); // Hardcoded userId
+  const [userId, setUserId] = useState<string | null>(null); // Hardcoded userId
 
   return (
     <UserContext.Provider value={{ userId, setUserId }}>

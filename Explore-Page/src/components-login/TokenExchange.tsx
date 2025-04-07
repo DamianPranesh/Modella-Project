@@ -23,7 +23,7 @@ const TokenExchange = () => {
 
     return cookieValue ? cookieValue.split("=")[1] : null;
   };
-  // Edit 1
+  
   // Helper function to check if user is already authenticated
   const checkExistingAuth = useCallback((): boolean => {
     const accessToken = getCookie("access_token");
@@ -39,6 +39,22 @@ const TokenExchange = () => {
     }
     return false;
   }, []);
+
+  // Ensure context updates before navigation
+  const handleAuthSuccess = async (userData: any, userId: string) => {
+    // Update the context with new userId
+    setUserId(userId);
+    
+    // Add a small delay to ensure context updates propagate
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Navigate using consistent method
+    if (userData.role) {
+      navigate("/explore");
+    } else {
+      navigate("/select-role");
+    }
+  };
 
   // Function to fetch user role and redirect
   const fetchRoleAndRedirect = useCallback(
@@ -81,17 +97,13 @@ const TokenExchange = () => {
 
             console.log("User details successfully sent to backend:", response);
             if (response && response.user_Id) {
-              setUserId(response.user_Id); // Update the context with new userId
+              // Use the new handler for consistent auth completion
+              await handleAuthSuccess(userData, response.user_Id);
             }
           } catch (err) {
             console.error("Error sending user details:", err);
-          }
-
-          // Redirect to the appropriate page
-          if (role) {
-            navigate("/explore");
-          } else {
-            navigate("/select-role");
+            // Still navigate even if there was an error
+            await handleAuthSuccess(userData, user_id);
           }
         })
         .catch((err) => {
@@ -111,7 +123,6 @@ const TokenExchange = () => {
     },
     [navigate]
   );
-  // Edit 1 End
 
   useEffect(() => {
     // Step 1: Get the 'code' from the URL query parameters
@@ -180,19 +191,13 @@ const TokenExchange = () => {
                     response
                   );
                   if (response && response.user_Id) {
-                    setUserId(response.user_Id); // Update the context with new userId
+                    // Use the new handler for consistent auth completion
+                    await handleAuthSuccess(userData, response.user_Id);
                   }
                 } catch (err) {
                   console.error("Error sending user details:", err);
-                }
-
-                // Now redirect to the appropriate page
-                if (role) {
-                  window.location.href = "/explore";
-                } else {
-                  // Redirect to role selection if no role found
-                  window.location.href = "/";
-                  // window.location.href = '/select-role';
+                  // Still navigate even if there was an error
+                  await handleAuthSuccess(userData, user_id);
                 }
               })
               .catch((err) => {
@@ -220,8 +225,6 @@ const TokenExchange = () => {
         window.location.href = "https://modella-project.up.railway.app/login";
       }
     }
-
-    // Add what to do if code is not there
   }, [checkExistingAuth, fetchRoleAndRedirect, navigate]);
 
   // Log the userId after it has been updated
@@ -236,7 +239,7 @@ const TokenExchange = () => {
         <p className="mt-4 text-gray-600">Loading...</p>
 
         {/* Display error if it exists */}
-        {error && <div className="text-white text-center mt-4"></div>}
+        {error && <div className="text-red-500 text-center mt-4">{error}</div>}
 
         {/* Display tokens if they exist */}
         {tokens && <div className="text-gray-600 text-center mt-4"></div>}
