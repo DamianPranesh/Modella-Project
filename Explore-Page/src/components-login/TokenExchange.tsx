@@ -239,7 +239,7 @@ const TokenExchange = () => {
         <p className="mt-4 text-gray-600">Loading...</p>
 
         {/* Display error if it exists */}
-        {error && <div className="text-red-500 text-center mt-4">{error}</div>}
+        {error && <div className="text-white text-center mt-4">{error}</div>}
 
         {/* Display tokens if they exist */}
         {tokens && <div className="text-gray-600 text-center mt-4"></div>}

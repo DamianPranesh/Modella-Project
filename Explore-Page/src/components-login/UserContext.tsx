@@ -1,13 +1,16 @@
 // UserContext.tsx
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 
 // Define the types for the context
 interface UserContextType {
-  userId: string | null;
-  setUserId: (userId: string) => void; // This can still be useful if you decide to update the userId later
+  userId: string;
+  setUserId: (userId: string) => void;
 }
 
-// Create the context with a default value of undefined
+// Default hardcoded user ID as fallback
+const DEFAULT_USER_ID = "brand_67f25df4de04fc160d150db1";
+
+// Create the context with a default value
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 // Custom hook to use the UserContext
@@ -25,8 +28,22 @@ interface UserProviderProps {
 }
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
-  // Hardcoding the userId here
-  const [userId, setUserId] = useState<string | null>(null); // Hardcoded userId
+  // Initialize with default user ID or from localStorage if available
+  const [userId, setUserIdState] = useState<string>(() => {
+    return localStorage.getItem("userId") || DEFAULT_USER_ID;
+  });
+
+  // Wrapper for setUserId that also updates localStorage
+  const setUserId = (newUserId: string) => {
+    console.log("Setting userId in context to:", newUserId);
+    localStorage.setItem("userId", newUserId);
+    setUserIdState(newUserId);
+  };
+
+  // Log when userId changes
+  useEffect(() => {
+    console.log("UserContext userId:", userId);
+  }, [userId]);
 
   return (
     <UserContext.Provider value={{ userId, setUserId }}>
