@@ -124,7 +124,7 @@ function App() {
             setUserId(response.user_Id); // Update the context with new userId
             
             // Add a small delay to ensure context updates propagate
-            await new Promise(resolve => setTimeout(resolve, 5000));
+            await new Promise(resolve => setTimeout(resolve, 3000));
           }
         } catch (err) {
           console.error("Error sending user details:", err);

@@ -1,11 +1,12 @@
 const API_BASE_URL = "https://modella-project.up.railway.app/api/v1"; // Change this for production
 
 export const fetchData = async (endpoint: string, options: RequestInit = {}) => {
+    const secureBaseUrl = API_BASE_URL.replace('http:', 'https:');
     try {
         // Check if the request body is FormData
         const isFormData = options.body instanceof FormData;
 
-        const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
+        const response = await fetch(`${secureBaseUrl}/${endpoint}`, {
             ...options,
             headers: isFormData
                 ? { ...(options.headers || {}) } // Don't set Content-Type for FormData!
