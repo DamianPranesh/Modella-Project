@@ -249,24 +249,23 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
     const currentCardId = currentCard.id; // Extract user ID of the accepted profile
 
     try {
-      const response = await fetchData(`savedList/add?user_id=${user__Id}`, {
+      const response = await fetchData(`matches/request?business_id=${user__Id}&model_id=${currentCardId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-        },
-        body: JSON.stringify([currentCardId]), // Sending the accepted card's user_id
+        }
       });
-
-      console.log("Saved match:", response);
-      toast.success(`${currentCard.name} has been added to your matches! 💕`, {
+  
+      console.log("Match request created:", response);
+      toast.success(`Request sent to ${currentCard.name}! 💕`, {
         icon: "✅",
         duration: 2000,
       });
-
+  
       // Remove the card from the list
       const updatedCards = cards.filter((_, index) => index !== currentIndex);
       setCards(updatedCards);
-
+  
       // Adjust index or reload new cards
       if (updatedCards.length === 0) {
         loadCards();
@@ -274,10 +273,10 @@ const SwipeCards: React.FC<SwipeCardsProps> = ({
         setCurrentIndex(updatedCards.length - 1);
       }
     } catch (error) {
-      console.error("Error saving match:", error);
-      toast.error("Failed to save match. Please try again.");
+      console.error("Error creating match request:", error);
+      toast.error("Failed to send match request. Please try again.");
     }
-  };
+  }
 
   const handleReject = async () => {
     if (cards.length === 0) return; // Prevent errors if no cards are left

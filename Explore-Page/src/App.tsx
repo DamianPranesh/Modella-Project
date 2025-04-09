@@ -18,6 +18,8 @@ import ModelSwipeCards from "./components-models/SwipeCards";
 import { SavedList as ModelSavedList } from "./components-models/SavedList";
 import ModelSettingsPage from "./components-models/SettingsPage";
 import TokenExchange from "./components-login/TokenExchange";
+import PendingRequestsPage from "./components/PendingRequestsPage"; 
+
 //import { UserProvider } from "./components-login/UserContext";
 
 import { useUser } from "./components-login/UserContext";
@@ -319,6 +321,19 @@ function App() {
                     />
                   </ProtectedRoute>
                 }
+              />
+              <Route
+                path="/pending-requests"
+                element={
+                  <ProtectedRoute>
+                    <PendingRequestsPage
+                    />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="*" element={
+                <Navigate to="/explore" replace />
+                } 
               />
             </>
           )}

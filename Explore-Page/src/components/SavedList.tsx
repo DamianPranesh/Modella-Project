@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Trash2 } from "lucide-react";
+import toast, { Toaster } from "react-hot-toast";
 import ComparisonModal from "./ComparisonModel";
 import ModelDetailModal from "./ModelDetailModal";
 import { fetchData } from "../api/api";
@@ -28,9 +29,17 @@ type Model = {
   waist: string;
   hips: string;
   shoeSize: string;
+  matchedAt?: string; // New field for match timestamp
 };
 
-// const user__Id = "brand_67c5b2c43ae5b4ccb85b9a11";
+// Define the Match response type
+type MatchResponse = {
+  user_id: string;
+  name: string;
+  profile_pic: string | null;
+  description: string;
+  matched_at: string;
+};
 
 // Define the SavedList component
 export function SavedList({
@@ -52,9 +61,11 @@ export function SavedList({
     useState<boolean>(false);
   const [selectedModelForDetail, setSelectedModelForDetail] =
     useState<Model | null>(null);
+  const [removingModelId, setRemovingModelId] = useState<string | null>(null);
+  const [isRemoving, setIsRemoving] = useState<boolean>(false);
 
   // Dynamic modification
-  const [savedUserIds, setSavedUserIds] = useState<string[]>([]);
+  const [matchedUserIds, setMatchedUserIds] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [savedModels, setSavedModels] = useState<Model[]>([]);
@@ -63,27 +74,56 @@ export function SavedList({
   const user__Id = userId || "";
 
   useEffect(() => {
-    const fetchSavedUserIds = async () => {
+    const fetchMatchedUsers = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Fetch saved user IDs
-        const savedListResponse = await fetchData(`savedList/${user__Id}`);
-        const ids = savedListResponse.saved_Ids || [];
+        // Fetch confirmed matches using the new endpoint
+        const matchesResponse = await fetchData(`matches/confirmed/${user__Id}`);
+        const matches = matchesResponse.matches || [];
 
-        console.log("Fetched saved user IDs:", ids); // Log to console
-        setSavedUserIds(ids);
+        console.log("Fetched matches:", matches); // Log to console
+        
+        // Extract user IDs from matches
+        const ids = matches.map((match: MatchResponse) => match.user_id);
+        setMatchedUserIds(ids);
+
+        // Create initial models from match data
+        const initialModels = matches.map((match: MatchResponse) => ({
+          id: match.user_id,
+          name: match.name,
+          bio: match.description || "No bio available",
+          email: "",
+          age: 0,
+          type: [],
+          image: match.profile_pic ? [match.profile_pic] : ["/placeholder.svg"],
+          socialUrls: [],
+          height: "",
+          eyeColor: "",
+          bodyType: "",
+          skinTone: "",
+          gender: "",
+          experience: "",
+          location: "",
+          bust: "",
+          waist: "",
+          hips: "",
+          shoeSize: "",
+          matchedAt: match.matched_at
+        }));
+
+        setSavedModels(initialModels);
       } catch (err) {
-        setError("Failed to load saved user IDs.");
-        console.error("Error fetching saved user IDs:", err);
+        setError("Failed to load matches.");
+        console.error("Error fetching matches:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchSavedUserIds();
-  }, []);
+    fetchMatchedUsers();
+  }, [user__Id]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -91,41 +131,38 @@ export function SavedList({
         setLoading(true);
         setError(null);
 
-        // Step 2: Iterate over savedUserIds and fetch user data for each user_Id
-        const newModels: Model[] = []; // New array to store the fetched models
+        // Step 2: Iterate over matchedUserIds and fetch user data for each user_Id
+        const updatedModels = [...savedModels]; // Start with existing basic data
 
-        for (const id of savedUserIds) {
-          // Fetch basic user data
-          const userResponse = await fetchData(`users/${id}`);
-          const { user_Id, name, bio, social_Media_URL, email } = userResponse;
-
+        for (let i = 0; i < matchedUserIds.length; i++) {
+          const id = matchedUserIds[i];
+          const existingModelIndex = updatedModels.findIndex(model => model.id === id);
+          
+          if (existingModelIndex === -1) continue; // Skip if model not found in initial data
+          
           // Fetch additional model tag data from ModellaTag endpoint
           const tagResponse = await fetchData(`ModellaTag/tags/models/${id}`);
           const modelTag = tagResponse ? tagResponse : {};
 
-          // Fetch the profile image URL(s)
-          const fileUrlResponse = await fetchData(
-            `files/urls-for-user-id-and-foldername-with-limits?user_id=${id}&folder=profile-pic&limit=4`
-          );
-          const profileImage = Array.isArray(fileUrlResponse)
-            ? fileUrlResponse.map((file: { s3_url: string }) => file.s3_url)
-            : [];
+          // Fetch the profile image URL(s) if not already loaded
+          if (!updatedModels[existingModelIndex].image[0] || updatedModels[existingModelIndex].image[0] === "/placeholder.svg") {
+            const fileUrlResponse = await fetchData(
+              `files/urls-for-user-id-and-foldername-with-limits?user_id=${id}&folder=profile-pic&limit=4`
+            );
+            const profileImage = Array.isArray(fileUrlResponse)
+              ? fileUrlResponse.map((file: { s3_url: string }) => file.s3_url)
+              : [];
+            
+            if (profileImage.length > 0) {
+              updatedModels[existingModelIndex].image = profileImage;
+            }
+          }
 
-          // Step 3: Create a model object and add it to the newModels array
-          newModels.push({
-            id: user_Id,
-            name: name,
-            bio: bio || "No bio available",
-            email: email,
+          // Update model with additional data
+          updatedModels[existingModelIndex] = {
+            ...updatedModels[existingModelIndex],
             age: modelTag.age || 0,
-            type: modelTag.work_Field || ["Unknown"],
-            image:
-              profileImage.length > 0 ? profileImage : ["/placeholder.svg"],
-            socialUrls: social_Media_URL || [
-              "@modellahandle",
-              "@modellahandle",
-              "www.modelportfolio.com",
-            ],
+            type: modelTag.work_Field ? [modelTag.work_Field] : ["Unknown"],
             height: modelTag.height || "?",
             eyeColor: modelTag.natural_eye_color || "Unknown",
             bodyType: modelTag.body_Type || "Unknown",
@@ -137,29 +174,58 @@ export function SavedList({
             waist: modelTag.waist || "?",
             hips: modelTag.hips || "?",
             shoeSize: modelTag.shoe_Size || "?",
-          });
-
-          // Optionally log to the console as well
-          console.log(
-            `User ID: ${user_Id}, Name: ${name}, Profile Image: ${profileImage}, Model Data:`,
-            modelTag
-          );
+          };
         }
 
-        // Step 4: Update the fetchedModels state with the new models
-        setSavedModels(newModels);
+        // Update savedModels with the enriched data
+        setSavedModels(updatedModels);
       } catch (err) {
-        setError("Failed to load user data.");
+        setError("Failed to load complete user data.");
         console.error("Error fetching user data:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    if (savedUserIds.length > 0) {
+    if (matchedUserIds.length > 0 && savedModels.length > 0) {
       fetchUserData();
     }
-  }, [savedUserIds]);
+  }, [matchedUserIds, savedModels.length]);
+
+  // Function to remove a match
+  const handleRemoveMatch = async (modelId: string) => {
+    try {
+      setRemovingModelId(modelId);
+      setIsRemoving(true);
+      
+      // Use new endpoint to update match status to rejected
+      // Use query parameters instead of request body
+      const result = await fetchData(`matches/respond?model_id=${modelId}&business_id=${user__Id}&accept=false`, {
+        method: "POST"
+        // No body needed as we're using query parameters
+      });
+      //lagshan change
+
+      // Update the local state to reflect the removal
+      setMatchedUserIds(prevIds => prevIds.filter(id => id !== modelId));
+      setSavedModels(prevModels => prevModels.filter(model => model.id !== modelId));
+
+      // Update the local state to reflect the removal
+      setMatchedUserIds(prevIds => prevIds.filter(id => id !== modelId));
+      setSavedModels(prevModels => prevModels.filter(model => model.id !== modelId));
+      
+      console.log("Match removed successfully:", result.message);
+      
+      // Show toast notification
+      toast.success(`Match removed successfully`);
+    } catch (err) {
+      console.error("Error removing match:", err);
+      setError("Failed to remove match.");
+    } finally {
+      setRemovingModelId(null);
+      setIsRemoving(false);
+    }
+  };
 
   // Prevent background scrolling when any modal is open
   useEffect(() => {
@@ -230,8 +296,8 @@ export function SavedList({
       {loading && (
         <div className="flex min-h-screen items-center justify-center">
           <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#DD8560] mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading Saved Lists...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#DD8560] mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading Matches...</p>
           </div>
         </div>
       )}
@@ -273,15 +339,16 @@ export function SavedList({
               >
                 OK
               </button>
+              <Toaster position="top-center" reverseOrder={false} />
             </div>
           )}
         </div>
       </div>
 
-      {/* Grid layout for saved models */}
-      {savedUserIds.length === 0 ? (
+      {/* Grid layout for matches */}
+      {matchedUserIds.length === 0 ? (
         <p className="text-gray-500 text-center mt-6">
-          No saved items in the Saved List
+          No matches yet. Keep swiping to find new models!
         </p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -289,16 +356,18 @@ export function SavedList({
             <div
               key={model.id}
               className="group relative cursor-pointer"
-              onClick={() => {
-                if (!isSelectionActive) {
-                  setSelectedModelForDetail(model);
-                  setModelDetailModalOpen(true);
-                } else {
-                  toggleModelSelection(model.id);
-                }
-              }}
             >
-              <div className="aspect-[3/4] rounded-3xl overflow-hidden bg-gray-100">
+              <div 
+                className="aspect-[3/4] rounded-3xl overflow-hidden bg-gray-100"
+                onClick={() => {
+                  if (!isSelectionActive) {
+                    setSelectedModelForDetail(model);
+                    setModelDetailModalOpen(true);
+                  } else {
+                    toggleModelSelection(model.id);
+                  }
+                }}
+              >
                 <img
                   src={model.image[0] || "/placeholder.svg"}
                   alt={model.name}
@@ -310,9 +379,32 @@ export function SavedList({
                   <p className="font-medium">NAME: {model.name}</p>
                   <p>AGE: {model.age}</p>
                 </div>
-                <p className="text-sm text-gray-600">
-                  TYPE: {model.type.join(", ")}
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-600">
+                    TYPE: {model.type.join(", ")}
+                  </p>
+                  {/* Remove button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveMatch(model.id);
+                    }}
+                    className="text-red-500 hover:text-red-700 transition-colors"
+                    disabled={isRemoving && removingModelId === model.id}
+                    aria-label={`Remove match with ${model.name}`}
+                  >
+                    {isRemoving && removingModelId === model.id ? (
+                      <div className="w-5 h-5 animate-spin rounded-full border-t-2 border-red-500" />
+                    ) : (
+                      <Trash2 className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+                {model.matchedAt && (
+                  <p className="text-xs text-gray-500">
+                    Matched on: {new Date(model.matchedAt).toLocaleDateString()}
+                  </p>
+                )}
               </div>
               {isSelectionActive && (
                 <button

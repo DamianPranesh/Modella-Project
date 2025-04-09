@@ -1,10 +1,13 @@
 import React from "react";
 import { X } from "lucide-react";
+import { getCalApi } from "@calcom/embed-react";
+import toast, { Toaster } from "react-hot-toast";
 
 type ComparisonModel = {
   id: string;
   name: string;
   bio: string;
+  email: string; // Added email property
   age: number;
   type: string[];
   image: string[];
@@ -36,11 +39,35 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({
   // Call useEffect unconditionally.
   React.useEffect(() => {
     if (isOpen) {
-      // You may add any side-effects needed when modal is open
-      // For now, we simply log that the modal is open.
+      // Initialize Cal.com when modal opens
+      const initCal = async () => {
+        const cal = await getCalApi({ namespace: "15min" });
+        cal("ui", {
+          cssVarsPerTheme: {
+            light: { "cal-brand": "#DD8560" },
+            dark: { "cal-brand": "#DD8560" },
+          },
+          hideEventTypeDetails: false,
+          layout: "month_view",
+        });
+      };
+
+      initCal();
       console.log("Comparison modal is open");
     }
   }, [isOpen]);
+
+  const handleBookModel = (modelId: string) => {
+    // This will trigger the Cal.com popup
+    const button = document.querySelector(
+      `[data-cal-namespace="15min"][data-model-id="${modelId}"]`
+    ) as HTMLElement;
+    if (button) {
+      button.click();
+    } else {
+      console.error("Calendar booking button not found for model:", modelId);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -164,17 +191,63 @@ const ComparisonModal: React.FC<ComparisonModalProps> = ({
                       <span className="font-medium">Skin Tone:</span>
                       <span>{model.skinTone}</span>
                     </p>
-                    <p className="text-gray-700 flex justify-between pb-1">
+                    <p className="text-gray-700 flex justify-between border-b border-gray-200 pb-1">
                       <span className="font-medium">Experience:</span>
                       <span>{model.experience}</span>
                     </p>
                   </div>
+
+                  {/* Email with Copy Button */}
+                  <div className="mt-4 mb-4 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <p className="text-gray-700 font-medium flex items-center justify-between">
+                      <span className="text-sm">Email:</span>
+                      <span className="text-sm truncate max-w-[150px]">{model.email}</span>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(model.email);
+                          toast.success(`${model.name}'s email copied to clipboard! ✅`, {
+                            duration: 2000,
+                          });
+                        }}
+                        className="text-blue-500 hover:text-blue-700"
+                        aria-label="Copy email"
+                      >
+                        📋
+                      </button>
+                    </p>
+                  </div>
+                  
+                  {/* Book Model Button */}
+                  <button
+                    onClick={() => handleBookModel(model.id)}
+                    className="w-full py-3 bg-[#DD8560] text-white rounded-xl hover:bg-[#DD8560]/90 transition-all duration-300 font-medium text-sm uppercase tracking-wider shadow-lg hover:shadow-pink-200/50 transform hover:-translate-y-0.5 cursor-pointer"
+                  >
+                    Book Model
+                  </button>
                 </div>
               </div>
             ))}
           </div>
         </div>
       </div>
+
+      {/* Hidden Cal.com buttons for each model */}
+      <div className="hidden">
+        {validModels.map((model) => (
+          <button
+            key={model.id}
+            data-cal-namespace="15min"
+            data-cal-link="kevin-d-rymop2/15min"
+            data-cal-config='{"layout":"month_view"}'
+            data-model-id={model.id}
+          >
+            Calendar Popup for {model.name}
+          </button>
+        ))}
+      </div>
+      
+      {/* Toast notifications */}
+      <Toaster position="top-center" reverseOrder={false} />
     </div>
   );
 };
