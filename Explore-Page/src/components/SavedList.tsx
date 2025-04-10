@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Trash2 } from "lucide-react";
 import ComparisonModal from "./ComparisonModel";
 import ModelDetailModal from "./ModelDetailModal";
 import { fetchData } from "../api/api";
@@ -30,8 +30,6 @@ type Model = {
   shoeSize: string;
 };
 
-// const user__Id = "brand_67c5b2c43ae5b4ccb85b9a11";
-
 // Define the SavedList component
 export function SavedList({
   toggleSidebar,
@@ -52,6 +50,8 @@ export function SavedList({
     useState<boolean>(false);
   const [selectedModelForDetail, setSelectedModelForDetail] =
     useState<Model | null>(null);
+  const [removingModelId, setRemovingModelId] = useState<string | null>(null);
+  const [isRemoving, setIsRemoving] = useState<boolean>(false);
 
   // Dynamic modification
   const [savedUserIds, setSavedUserIds] = useState<string[]>([]);
@@ -160,6 +160,40 @@ export function SavedList({
       fetchUserData();
     }
   }, [savedUserIds]);
+
+  // Function to remove a model from the saved list
+  const handleRemoveModel = async (modelId: string) => {
+    try {
+      setRemovingModelId(modelId);
+      setIsRemoving(true);
+      
+      // Call the API to remove the model from the saved list using the fetchData utility
+      // Match the API call format used in SwipeCards component
+      const result = await fetchData(`savedList/remove?user_id=${user__Id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify([modelId]), // Send as array of one ID
+      });
+
+      // Update the local state to reflect the removal
+      setSavedUserIds(prevIds => prevIds.filter(id => id !== modelId));
+      setSavedModels(prevModels => prevModels.filter(model => model.id !== modelId));
+      
+      console.log("Model removed successfully:", result.message);
+      
+      // Note: If you want to add toast notifications, import the toast library first
+      // import toast from 'react-hot-toast';
+      // toast.success(`Model removed from saved list`);
+    } catch (err) {
+      console.error("Error removing model:", err);
+      setError("Failed to remove model from saved list.");
+    } finally {
+      setRemovingModelId(null);
+      setIsRemoving(false);
+    }
+  };
 
   // Prevent background scrolling when any modal is open
   useEffect(() => {
@@ -289,16 +323,18 @@ export function SavedList({
             <div
               key={model.id}
               className="group relative cursor-pointer"
-              onClick={() => {
-                if (!isSelectionActive) {
-                  setSelectedModelForDetail(model);
-                  setModelDetailModalOpen(true);
-                } else {
-                  toggleModelSelection(model.id);
-                }
-              }}
             >
-              <div className="aspect-[3/4] rounded-3xl overflow-hidden bg-gray-100">
+              <div 
+                className="aspect-[3/4] rounded-3xl overflow-hidden bg-gray-100"
+                onClick={() => {
+                  if (!isSelectionActive) {
+                    setSelectedModelForDetail(model);
+                    setModelDetailModalOpen(true);
+                  } else {
+                    toggleModelSelection(model.id);
+                  }
+                }}
+              >
                 <img
                   src={model.image[0] || "/placeholder.svg"}
                   alt={model.name}
@@ -310,9 +346,27 @@ export function SavedList({
                   <p className="font-medium">NAME: {model.name}</p>
                   <p>AGE: {model.age}</p>
                 </div>
-                <p className="text-sm text-gray-600">
-                  TYPE: {model.type.join(", ")}
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-600">
+                    TYPE: {model.type.join(", ")}
+                  </p>
+                  {/* Remove button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveModel(model.id);
+                    }}
+                    className="text-red-500 hover:text-red-700 transition-colors"
+                    disabled={isRemoving && removingModelId === model.id}
+                    aria-label={`Remove ${model.name} from saved list`}
+                  >
+                    {isRemoving && removingModelId === model.id ? (
+                      <div className="w-5 h-5 animate-spin rounded-full border-t-2 border-red-500" />
+                    ) : (
+                      <Trash2 className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
               </div>
               {isSelectionActive && (
                 <button
