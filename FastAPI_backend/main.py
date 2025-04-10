@@ -5,6 +5,7 @@ from routes.user_routes import router as user_router
 from routes.rating_routes import router as rating_router
 from routes.project_routes import router as project_router
 from routes.role_management import router as role_router
+from routes.matches import router as match_router
 from services.Modellatag_service import router as Modellatag_router
 from services.Modella_preference_service import router as ModellaPref_router
 from services.keywords import router as keyword_router
@@ -126,6 +127,8 @@ app.include_router(project_router)
 
 # Include the role management router
 app.include_router(role_router, prefix="/api")
+
+app.include_router(match_router)
 
 # Auth0 login endpoint
 @app.get("/login")
