@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { X } from "lucide-react";
 import { getCalApi } from "@calcom/embed-react";
 import toast, { Toaster } from "react-hot-toast";
